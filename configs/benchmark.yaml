@@ -1,0 +1,80 @@
+# Phase 1 benchmark 設定 — 模型版本不寫死於程式碼,一律由此切換
+# 數據來源原則:速度結論必須在「實際部署的目標主機」上跑(說明文件 C.4 #4)
+
+dataset:
+  # EPFL-Smart-Kitchen-30 公開影片 zip(CC BY-NC 4.0,僅作 benchmark 素材,使用須引用論文 arXiv 2506.01608)
+  zip_url: "https://zenodo.org/records/15535461/files/Public_release_videos.zip?download=1"
+  sample_dir: "data/epfl"           # 取下的樣本 clip 放這
+  # 預設取最小一支固定相機 clip(由 zip central directory 實測得知,約 79.8 MB)
+  default_sample: "Public_release_videos/train/YH2040/2023_09_12_09_50_41/videos/Boutput0.mp4"
+
+m2_motion:
+  # 分支 A:大事件(人員/潑灑/跨區)。全域 frame-diff,作為 M3 的「省電開關」。
+  diff_threshold: 25                # cv2.absdiff 後二值化閾值
+  min_motion_ratio: 0.002           # 變動像素佔比 > 此值判定 has_motion
+  blur_ksize: 5                     # 前處理高斯模糊核(降噪)
+  use_reference_frame: false        # false=與前一幀比;true=與固定參考幀比
+
+m2_branch_b:
+  # 分支 B:小/關鍵目標專線(老鼠等)。對應 docs/M2_雙分支重構設計.md §4–§5。
+  # 背景相減(MOG2)定位 → 連通元件切 blob → 裁切放大 → 分類器確認。
+  min_blob_area: 8                  # 小 blob 下限(像素面積);寧鬆勿緊,先求不漏
+  large_blob_area: 2000             # ≥ 此面積視為「大事件/人」,交給分支 A,並作空間排除依據
+  exclusion_margin: 24              # 小 blob 與「大移動區(人)」距離 < 此值即排除(人的碎塊);設小=只砍真正貼著的,避免誤砍貼腳邊的老鼠
+  # 密度排除:人大動作會散成「一堆疊在一起的小框」;孤立的才像老鼠。砍密集群聚、留孤立。
+  density_radius: 120               # 多少 px 內算「鄰居」
+  density_max_neighbors: 3          # 鄰居數 ≥ 此值視為群聚(人)→ 排除;孤立(鄰居少)才保留
+  crop_size: 256                    # 裁切窗邊長(原生解析度,放大小目標)
+  max_crops_per_frame: 32           # 「負載警示」門檻(非上限):一幀小斑塊超過此數只記錄、不丟棄,確保絕不漏抓;準確優先,精準交給分類器。0=不警示
+  mog2_history: 500                 # MOG2 背景模型記憶幀數
+  mog2_var_threshold: 16            # MOG2 前景敏感度(小→敏感、易誤報)
+  warmup_frames: 30                 # 背景模型暖機幀數,期間不輸出 crop
+  # 時序持續性(方法 C):壓掉「閃爍的人碎塊/反光」又不傷連貫移動的老鼠
+  persistence_frames: 3             # 連續出現幾幀才確認;1=關閉時序(立即確認)
+  match_max_dist: 60                # 兩幀間視為同一目標的最大位移(px);老鼠不瞬移,碎塊會亂跳
+  track_max_miss: 2                 # 軌跡可容忍幾幀沒對到(短暫遮擋)後才移除
+  classifier:
+    # 模型族:MobileNetV3 / EfficientNet-lite(Apache/BSD),ONNX,與 M3 共用 ONNX Runtime。
+    # 目前尚無訓練權重(資料缺口見設計文件 §5.3);缺檔時 pipeline 仍可跑(只定位、標「待確認」)。
+    onnx: models/branch_b_classifier.onnx
+    input_size: 224
+    target_index: 1                 # 輸出向量中「是目標」的類別索引
+    threshold: 0.5                  # 信心 ≥ 此值才判為目標
+
+m3_speed:
+  # === 授權前提 ===
+  # 最終產品要交付業者(商用),必須避開 AGPL。
+  # 出貨候選只用 Apache-2.0 模型;Ultralytics YOLO(AGPL)僅作參考基準對照。
+  # 測速統一用 ONNX Runtime(MIT)後端,授權乾淨且貼近實際部署。
+  #
+  # 測試矩陣(說明文件 C.3 的精神,模型清單改為可商用)
+  backend: onnxruntime              # onnxruntime | ultralytics(後者僅限內部參考)
+  # 入選清單見 docs/模型選型評估.md §5;全部 Apache-2.0、皆支援 ONNX。
+  # 每筆指向一個 .onnx 檔(由各原版 repo 匯出,勿用 Ultralytics 套件以免沾 AGPL)。
+  models:
+    # --- D-FINE(Apache-2.0,效率王,原生 640)---
+    - {name: dfine_n,        license: Apache-2.0, onnx: models/dfine_n.onnx,        shippable: true}
+    - {name: dfine_s,        license: Apache-2.0, onnx: models/dfine_s.onnx,        shippable: true}
+    - {name: dfine_m,        license: Apache-2.0, onnx: models/dfine_m.onnx,        shippable: true}
+    # --- RF-DETR(Apache-2.0,小物件強,原生 384/512/576)---
+    - {name: rfdetr_nano,    license: Apache-2.0, onnx: models/rfdetr_nano.onnx,    shippable: true}
+    - {name: rfdetr_small,   license: Apache-2.0, onnx: models/rfdetr_small.onnx,   shippable: true}
+    - {name: rfdetr_medium,  license: Apache-2.0, onnx: models/rfdetr_medium.onnx,  shippable: true}
+    # --- RT-DETRv2(Apache-2.0,原生 640)---
+    - {name: rtdetrv2_r18,   license: Apache-2.0, onnx: models/rtdetrv2_r18.onnx,   shippable: true}
+    - {name: rtdetrv2_r34,   license: Apache-2.0, onnx: models/rtdetrv2_r34.onnx,   shippable: true}
+    # --- 參考列(BSD-3,非評估候選,僅對照,原生 320)---
+    - {name: ssdlite_ref,    license: BSD-3,      onnx: models/ssdlite_mobilenetv3.onnx, shippable: false}
+    # --- 以下待 repo 匯出(YOLOX/DAMO-YOLO/LW-DETR),缺檔會自動標 MISSING_ONNX ---
+    - {name: yolox_s,        license: Apache-2.0, onnx: models/yolox_s.onnx,        shippable: true}
+    - {name: damoyolo_t,     license: Apache-2.0, onnx: models/damoyolo_t.onnx,     shippable: true}
+    - {name: lwdetr_small,   license: Apache-2.0, onnx: models/lwdetr_small.onnx,   shippable: true}
+  imgsz: [640, 1280]                # 解析度;1280 是否保留依步驟1實測決定
+  batch_sizes: [1, 4, 8]            # 模擬多鏡頭同時進來
+  warmup_iters: 5
+  timed_iters: 50
+  target_fps: 15                    # 推算「可支援鏡頭數」用的目標幀率
+  device: cuda                      # cuda | cpu(本開發機為 RTX 3050 4GB,僅供管線驗證)
+
+output:
+  results_dir: "results"

@@ -1,0 +1,21 @@
+# 資料與權重不進版控
+data/
+*.mp4
+*.pt
+*.onnx
+*.engine
+
+# 結果輸出:文字報告(.md/.csv)可進版控,但 EPFL 衍生影像一律排除
+# (EPFL 為 CC BY-NC + 畫面含人臉隱私,不得進公開 repo)
+results/**/*.png
+results/**/*.jpg
+results/**/*.jpeg
+results/*.png
+results/frames/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env

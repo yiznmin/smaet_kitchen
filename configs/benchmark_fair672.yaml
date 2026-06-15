@@ -1,0 +1,19 @@
+# 公平比較設定:所有候選模型統一 672×672(672 同時是 32 與 56 的倍數,8 模型皆可用)
+# 用法:python scripts/bench_m3_speed.py --config configs/benchmark_fair672.yaml --tag fair672
+m3_speed:
+  backend: onnxruntime
+  models:
+    - {name: dfine_n,       license: Apache-2.0, onnx: models/dfine_n_672.onnx,       shippable: true}
+    - {name: dfine_s,       license: Apache-2.0, onnx: models/dfine_s_672.onnx,       shippable: true}
+    - {name: dfine_m,       license: Apache-2.0, onnx: models/dfine_m_672.onnx,       shippable: true}
+    - {name: rfdetr_nano,   license: Apache-2.0, onnx: models/rfdetr_nano_672.onnx,   shippable: true}
+    - {name: rfdetr_small,  license: Apache-2.0, onnx: models/rfdetr_small_672.onnx,  shippable: true}
+    - {name: rfdetr_medium, license: Apache-2.0, onnx: models/rfdetr_medium_672.onnx, shippable: true}
+    - {name: rtdetrv2_r18,  license: Apache-2.0, onnx: models/rtdetrv2_r18_672.onnx,  shippable: true}
+    - {name: rtdetrv2_r34,  license: Apache-2.0, onnx: models/rtdetrv2_r34_672.onnx,  shippable: true}
+  imgsz: [672]                # 模型輸入已固定 672,harness 會自動偵測;此欄僅備用
+  batch_sizes: [1, 4, 8]
+  warmup_iters: 5
+  timed_iters: 50
+  target_fps: 15
+  device: cuda

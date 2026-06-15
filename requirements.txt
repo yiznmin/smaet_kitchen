@@ -1,0 +1,8 @@
+# 智慧廚房 — Phase 1 (M2 動態偵測 + M3 速度評估) 相依套件
+# 注意:torch 請依目標主機的 CUDA 版本另行安裝對應 wheel
+#   參考 https://pytorch.org/get-started/locally/
+opencv-python>=4.9
+ultralytics>=8.2        # YOLOv8 / YOLO11
+pyyaml>=6.0
+pandas>=2.0
+numpy>=1.24
