@@ -1,0 +1,21 @@
+# M2 靜態線(水漬偵測)— 驗證
+
+## 合成對照:靜止水漬 vs 移動物(人)
+- 結果:**全部通過 ✅**
+- 靜止水漬(固定不動):確認 **12/20** 幀(應持續確認)
+- 移動物(人,每幀換位):確認 **0/20** 幀(預期 0 — 正在動被排除)
+
+## 長寬比過濾(測誤砍)
+- 扁平水漬保留:**True**(必須 True,否則誤砍);瘦高腿排除:**True**
+
+## 真實資料(此片無水漬,人全程走動)
+- 靜態線觸發幀:**2196/2340**(理想很低;殘留多為人偶爾站定,待分類器拒絕)
+- `results/m2/static_line/static_f370.png`
+- `results/m2/static_line/static_f380.png`
+- `results/m2/static_line/static_f390.png`
+- `results/m2/static_line/static_f400.png`
+- `results/m2/static_line/static_f410.png`
+- `results/m2/static_line/static_f420.png`
+
+> 結論:靜態線用『慢速基準比對 + 沒在動 + 持續存在』抓落地後靜止的水漬,
+> 與動態線(老鼠=連貫移動)互補。多類別分類器接上後做最終 老鼠/水漬/拒絕 判斷。

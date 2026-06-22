@@ -35,11 +35,34 @@ m2_branch_b:
   track_max_miss: 2                 # 軌跡可容忍幾幀沒對到(短暫遮擋)後才移除
   classifier:
     # 模型族:MobileNetV3 / EfficientNet-lite(Apache/BSD),ONNX,與 M3 共用 ONNX Runtime。
-    # 目前尚無訓練權重(資料缺口見設計文件 §5.3);缺檔時 pipeline 仍可跑(只定位、標「待確認」)。
+    # 多類別(老鼠 / 水漬殘渣 / 拒絕);目前尚無訓練權重(資料缺口見設計文件 §5.3)。
+    # 缺檔時 pipeline 仍可跑(只定位、標「待確認」)。
     onnx: models/branch_b_classifier.onnx
     input_size: 224
     target_index: 1                 # 輸出向量中「是目標」的類別索引
     threshold: 0.5                  # 信心 ≥ 此值才判為目標
+
+m2_static_line:
+  # 分支 B 靜態線:水漬/油漬/殘渣(落地後靜止)。對應 docs/M2_雙分支重構設計.md §3.3。
+  # 慢速基準背景比對:找「與平常不同、現在沒在動、又賴著不走」的塊。
+  baseline_alpha: 0.002             # 慢速基準更新率;小=水漬可被偵測更久(吸收慢)
+  baseline_diff_thresh: 30          # 與基準差 > 此值算「新出現的東西」
+  motion_thresh: 25                 # 短期 frame-diff > 此值算「正在動」(→ 排除,那是人)
+  blur_ksize: 5                     # 前處理高斯模糊核
+  min_blob_area: 60                 # 水漬最小面積(濾雜訊)
+  max_blob_area: 120000             # 上限;超過視為整片光線變化,非水漬
+  crop_size: 256                    # 裁切窗邊長
+  warmup_frames: 30                 # 建立基準的暖機幀數
+  motion_exclusion_margin: 61       # 把「正在動」的區域外擴此 px 後排除;人(旁邊有手在動)整個被排掉,水漬(周圍無動作)保留
+  max_aspect_ratio: 2.0             # 高/寬 > 此值=瘦高(腿/人站立)→ 排除;水漬扁平(寬≥高)保留。設大=寬鬆,避免誤砍稍長的水漬
+  persistence_frames: 8             # 連續靜止存在幾幀才確認(濾掉短暫站定的人)
+  match_max_dist: 40                # 靜止物位移小,gate 可較緊
+  track_max_miss: 3                 # 容忍幾幀沒對到
+  density_radius: 120               # 密度排除:鄰居半徑
+  density_max_neighbors: 4          # 鄰居 ≥ 此值=群聚(人)→ 排除
+  # 樓地板 ROI:水漬只在地面 → 只在此多邊形內偵測(牆/檯面/上半部排除)。
+  # null=全畫面;實際部署每鏡頭各自設 [[x,y],...](符合專案 zone 設計)。老鼠線不受此限(老鼠會上檯面)。
+  floor_zone: null
 
 m3_speed:
   # === 授權前提 ===
