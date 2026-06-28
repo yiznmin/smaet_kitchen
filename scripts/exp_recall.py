@@ -64,7 +64,7 @@ def _sta(cfg):
         persistence_frames=s["persistence_frames"], match_max_dist=s["match_max_dist"],
         track_max_miss=s["track_max_miss"],
         density_radius=s["density_radius"], density_max_neighbors=s["density_max_neighbors"],
-        floor_zone=EPFL_FLOOR)
+        floor_zone=EPFL_FLOOR, freeze_confirmed=s.get("freeze_confirmed", True))
 
 
 def hit(crops, cx, cy):

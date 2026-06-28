@@ -28,7 +28,8 @@ class StaticTargetDetector:
                  crop_size=256, warmup_frames=30, motion_exclusion_margin=61,
                  max_aspect_ratio=2.0,
                  persistence_frames=8, match_max_dist=40, track_max_miss=3,
-                 density_radius=120, density_max_neighbors=4, floor_zone=None):
+                 density_radius=120, density_max_neighbors=4, floor_zone=None,
+                 freeze_confirmed=True):
         self.baseline_alpha = baseline_alpha
         self.baseline_diff_thresh = baseline_diff_thresh
         self.motion_thresh = motion_thresh
@@ -53,6 +54,9 @@ class StaticTargetDetector:
         # None = 全畫面;否則為 [[x,y],...] 多邊形(每鏡頭各自設定,符合專案 zone 設計)。
         self.floor_zone = floor_zone
         self._floor_mask = None                       # 依首幀尺寸惰性建立
+        # 確認後凍結:已確認的水漬區域不讓基準吸收 → 持續標記到清掉為止(選擇性背景更新)
+        self.freeze_confirmed = freeze_confirmed
+        self._frozen = None                           # 凍結遮罩(uint8),依首幀尺寸建立
         self._n = 0
 
     def _gray(self, frame_bgr):
@@ -72,8 +76,13 @@ class StaticTargetDetector:
                 out["mask"] = np.zeros_like(gray)
             return out
 
-        # 慢速基準背景:水漬會被慢慢吸收 → 提供「偵測時間窗」(alpha 小=窗長)
-        cv2.accumulateWeighted(gray.astype(np.float32), self._baseline, self.baseline_alpha)
+        if self._frozen is None:
+            self._frozen = np.zeros(gray.shape, np.uint8)
+
+        # 慢速基準背景更新,但「凍結區域」不更新(已確認的水漬不被吸收,持續被偵測)
+        update_mask = cv2.bitwise_not(self._frozen) if self.freeze_confirmed else None
+        cv2.accumulateWeighted(gray.astype(np.float32), self._baseline, self.baseline_alpha,
+                               update_mask)
         baseline_u8 = cv2.convertScaleAbs(self._baseline)
 
         base_fg = (cv2.absdiff(gray, baseline_u8) > self.baseline_diff_thresh).astype(np.uint8) * 255
@@ -120,6 +129,14 @@ class StaticTargetDetector:
             for area, x, y, w, h in cand:
                 crop, box = self._extract_crop(frame_bgr, x, y, w, h, W, H)
                 crops.append(dict(bbox=box, blob_bbox=[x, y, x + w, y + h], area=area, crop=crop))
+
+        # 更新凍結遮罩:已確認的水漬區域加入凍結(基準不再吸收它);
+        # 該區若已回到背景(base_fg=0,水漬被清掉)則解凍。人經過時 base_fg=1 → 不解凍(維持)。
+        if self.freeze_confirmed and not warming:
+            for c in crops:
+                bx1, by1, bx2, by2 = c["blob_bbox"]
+                self._frozen[by1:by2, bx1:bx2] = 255
+            self._frozen[base_fg == 0] = 0          # 清掉的水漬處解凍,回歸正常更新
 
         out = dict(crops=crops, warming=warming, n_crops=len(crops), n_dense_excluded=n_dense)
         if return_mask:
