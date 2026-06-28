@@ -12,6 +12,8 @@ results/**/*.jpg
 results/**/*.jpeg
 results/*.png
 results/frames/
+# zone 標註預覽圖含 EPFL 衍生畫面(人臉隱私),不入庫
+*.preview.png
 
 # Python
 __pycache__/

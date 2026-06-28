@@ -23,6 +23,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from common.video_io import iter_frames, video_meta       # noqa: E402
 from m2_motion.branch_b import SmallTargetDetector         # noqa: E402
+from m2_motion.detector import MotionDetector              # noqa: E402
 
 CONFIG = ROOT / "configs" / "benchmark.yaml"
 DEST = ROOT / "results" / "m2" / "mouse_demo.mp4"
@@ -83,6 +84,9 @@ def main():
     fps = meta.get("fps", 30) or 30
 
     det = make_det(cfg)
+    m = cfg["m2_motion"]
+    branch_a = MotionDetector(m["diff_threshold"], m["min_motion_ratio"],
+                              m["blur_ksize"], m["use_reference_frame"])   # 分支 A:框人/大動作
     tmp = Path(tempfile.gettempdir()) / "mouse_demo_tmp.mp4"     # ASCII 暫存(VideoWriter 不吃中文路徑)
     vw = cv2.VideoWriter(str(tmp), cv2.VideoWriter_fourcc(*"mp4v"), float(fps), (W, H))
 
@@ -97,9 +101,18 @@ def main():
             draw_mouse(frame, cx, cy, moving_right=(prev_x is None or cx >= prev_x))
             prev_x = cx
 
+        # 先在「乾淨畫面」上跑兩條線(不可先畫框,否則框線會干擾 MOG2)
+        ra = branch_a.process(frame)
         r = det.process(frame)
 
-        # 疊偵測框:命中老鼠的=綠色,其餘候選=細灰
+        # 處理完才畫:分支 A 青色大框(框人/大動作 → 送 M3)
+        if ra["has_motion"] and ra["bbox"]:
+            ax1, ay1, ax2, ay2 = ra["bbox"]
+            cv2.rectangle(frame, (ax1, ay1), (ax2, ay2), (255, 255, 0), 2)
+            cv2.putText(frame, "Branch A: motion -> M3 (person)", (ax1, max(20, ay1 - 8)),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 0), 2)
+
+        # 分支 B 疊框:命中老鼠的=綠色,其餘候選=細灰
         got = False
         for c in r["crops"]:
             bx1, by1, bx2, by2 = c["blob_bbox"]

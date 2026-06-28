@@ -1,0 +1,10 @@
+{
+  "source": "data/epfl/Boutput0.mp4",
+  "frame": 0,
+  "width": 1280,
+  "height": 720,
+  "zones": [
+    {"name": "floor", "points": [[330, 715], [1080, 715], [950, 380], [470, 380]]},
+    {"name": "counter_right", "points": [[980, 470], [1190, 470], [1190, 650], [980, 650]]}
+  ]
+}
