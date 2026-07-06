@@ -22,18 +22,17 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
 from common.video_io import iter_frames, imwrite_unicode    # noqa: E402
+from common.zones import resolve_floor                       # noqa: E402
 from m2_motion.static_line import StaticTargetDetector       # noqa: E402
 
 CONFIG = ROOT / "configs" / "benchmark.yaml"
 OUT = ROOT / "results" / "m2" / "static_line"
 
-# EPFL Boutput0.mp4(1280×720)視野的「樓地板」概略多邊形(僅供示範;實際部署每鏡頭精算)。
-# 排除左側牆面反光、檯面、上半部設備,只留中下方地面。
-EPFL_FLOOR = [[330, 715], [1080, 715], [950, 380], [470, 380]]
 
-
-def _make(cfg, floor_zone=None):
+def _make(cfg, floor_zone="__auto__"):
+    # "__auto__"=依 config 讀 zones.json 地板;None=明確不套 ROI(合成測試用);list=直接用
     s = cfg["m2_static_line"]
+    fz = resolve_floor(s) if floor_zone == "__auto__" else floor_zone
     return StaticTargetDetector(
         baseline_alpha=s["baseline_alpha"], baseline_diff_thresh=s["baseline_diff_thresh"],
         motion_thresh=s["motion_thresh"], blur_ksize=s["blur_ksize"],
@@ -44,7 +43,7 @@ def _make(cfg, floor_zone=None):
         persistence_frames=s["persistence_frames"], match_max_dist=s["match_max_dist"],
         track_max_miss=s["track_max_miss"],
         density_radius=s["density_radius"], density_max_neighbors=s["density_max_neighbors"],
-        floor_zone=floor_zone if floor_zone is not None else s.get("floor_zone"))
+        floor_zone=fz)
 
 
 def test_synthetic(cfg):
@@ -58,7 +57,7 @@ def test_synthetic(cfg):
     bw, bh = 46, 32                       # 物體尺寸(水漬/人皆用此塊)
 
     # 情境1:靜止水漬 — 固定位置不動,持續 20 幀
-    d1 = _make(cfg)
+    d1 = _make(cfg, floor_zone=None)     # 合成測試不套地板 ROI(目標在固定座標)
     for _ in range(warm + 5):
         d1.process(bg.copy())
     spill_hits = 0
@@ -69,7 +68,7 @@ def test_synthetic(cfg):
             spill_hits += 1
 
     # 情境2:移動物(人)— 每幀換位置,持續 20 幀
-    d2 = _make(cfg)
+    d2 = _make(cfg, floor_zone=None)
     for _ in range(warm + 5):
         d2.process(bg.copy())
     move_hits = 0
@@ -107,7 +106,7 @@ def test_aspect(cfg):
     bg = (np.full((H, W, 3), 110, np.uint8)
           + rng.randint(-6, 7, (H, W, 3)).astype(np.int16)).clip(0, 255).astype(np.uint8)
     warm = cfg["m2_static_line"]["warmup_frames"]
-    d = _make(cfg)
+    d = _make(cfg, floor_zone=None)      # 合成測試不套地板 ROI
     for _ in range(warm + 5):
         d.process(bg.copy())
 
@@ -140,8 +139,10 @@ def test_aspect(cfg):
 def visual_real(cfg, video):
     print("\n=== 真實資料:靜態線(含樓地板 ROI)在『全程有人』片上的誤觸發 ===")
     OUT.mkdir(parents=True, exist_ok=True)
-    d = _make(cfg, floor_zone=EPFL_FLOOR)            # 套用 EPFL 概略地板多邊形
-    floor_pts = np.array(EPFL_FLOOR, np.int32)
+    floor = resolve_floor(cfg["m2_static_line"])    # 讀 zones.json 的地板 ROI
+    d = _make(cfg)
+    print(f"  地板 ROI:{'讀到 ' + str(len(floor)) + ' 點' if floor else '無(全畫面)'}")
+    floor_pts = np.array(floor, np.int32) if floor else None
     saved = []
     trig_frames = 0
     total = 0
@@ -155,7 +156,8 @@ def visual_real(cfg, video):
             vis = frame.copy()
             grn = np.zeros_like(frame); grn[:, :, 1] = r["mask"]
             vis = cv2.addWeighted(vis, 1.0, grn, 0.4, 0)
-            cv2.polylines(vis, [floor_pts], True, (255, 255, 0), 2)   # 青=樓地板 ROI
+            if floor_pts is not None:
+                cv2.polylines(vis, [floor_pts], True, (255, 255, 0), 2)   # 青=樓地板 ROI
             for c in r["crops"]:
                 x1, y1, x2, y2 = c["bbox"]
                 cv2.rectangle(vis, (x1, y1), (x2, y2), (0, 255, 0), 2)

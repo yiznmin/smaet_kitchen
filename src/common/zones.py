@@ -28,12 +28,32 @@ def load_zones(path):
     return json.loads(Path(path).read_text(encoding="utf-8"))
 
 
+_ROOT = Path(__file__).resolve().parents[2]
+
+
 def get_zone(path, name):
     """取某個命名 zone 的多邊形點(找不到回 None)。"""
     for z in load_zones(path).get("zones", []):
         if z.get("name") == name:
             return z["points"]
     return None
+
+
+def resolve_floor(cfg_static):
+    """依 m2_static_line 設定解析地板 ROI 多邊形。
+    優先 floor_zone_file + floor_zone_name(標註工具產出);
+    找不到檔/zone 時退回 floor_zone 內嵌點;再不然 None(全畫面)。"""
+    f = cfg_static.get("floor_zone_file")
+    name = cfg_static.get("floor_zone_name", "floor")
+    if f:
+        p = Path(f)
+        if not p.is_absolute():
+            p = _ROOT / f
+        if p.exists():
+            pts = get_zone(p, name)
+            if pts:
+                return pts
+    return cfg_static.get("floor_zone")
 
 
 def save_zones(path, zones, source=None, width=None, height=None, frame=0):

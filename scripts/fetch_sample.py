@@ -29,11 +29,27 @@ ROOT = Path(__file__).resolve().parent.parent
 CONFIG = ROOT / "configs" / "benchmark.yaml"
 
 
-def http_range(url, start, end):
-    """抓 [start, end](含)位元組。"""
-    req = urllib.request.Request(url, headers={"Range": f"bytes={start}-{end}"})
-    with urllib.request.urlopen(req, timeout=180) as r:
-        return r.read()
+def http_range(url, start, end, retries=5):
+    """抓 [start, end](含)位元組。分塊讀滿 + 中斷自動重試(對大範圍讀取穩健)。"""
+    expected = end - start + 1
+    last_err = None
+    for attempt in range(retries):
+        try:
+            req = urllib.request.Request(url, headers={"Range": f"bytes={start}-{end}"})
+            with urllib.request.urlopen(req, timeout=300) as r:
+                buf = bytearray()
+                while len(buf) < expected:
+                    chunk = r.read(min(1 << 20, expected - len(buf)))   # 每次最多 1MB
+                    if not chunk:
+                        break
+                    buf.extend(chunk)
+            if len(buf) == expected:
+                return bytes(buf)
+            last_err = f"讀到 {len(buf)}/{expected} bytes"
+        except Exception as ex:                      # 連線中斷/逾時 → 重試整段
+            last_err = repr(ex)
+        print(f"    range 讀取重試 {attempt + 1}/{retries}（{last_err}）")
+    raise RuntimeError(f"range 讀取失敗:{url} [{start}-{end}] — {last_err}")
 
 
 def http_size(url):
