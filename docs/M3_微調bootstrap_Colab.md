@@ -59,6 +59,7 @@ model.train(
 ```
 > ⏱ 60 epoch 在 T4 約 15–40 分鐘(視資料/解析度)。
 > ⚠ 若 OOM:把 `batch_size` 降到 2、`resolution` 降到 640。
+> 📌 **變體尚未鎖定**:先跑 `RFDETRNano`;之後也用 `RFDETRMedium` 跑一次,**比較兩者微調後的 knife AP**,才決定用哪個(見 M3_完整發現與決策 §2.6、§4.2)。微調會洗牌,不能只用未微調表現選。
 
 ### 5.(驗證)看「微調後」在 test 上抓不抓得到刀
 ```python
