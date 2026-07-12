@@ -131,14 +131,13 @@ def main():
     ap.add_argument("--img_dir", default=str(ROOT / "data" / "m3_finetune" / "images"))
     ap.add_argument("--draft", default=str(ROOT / "data" / "m3_finetune" / "_draft.json"))
     ap.add_argument("--out", default=str(ROOT / "results" / "m2" / "bbox_labeler.html"))
-    ap.add_argument("--classes", default="knife",
-                    help="逗號分隔的類別(person 會自動當第 1 類)")
+    ap.add_argument("--classes", default="person,knife",
+                    help="逗號分隔的類別;第 1 個當『已預標的人』(承接 draft 的 person 框)")
     args = ap.parse_args()
 
     IMG_DIR, OUT = Path(args.img_dir), Path(args.out).resolve()
-    categories = [{"id": 1, "name": "person"}]
-    for i, name in enumerate(args.classes.split(","), start=2):
-        categories.append({"id": i, "name": name.strip()})
+    categories = [{"id": i, "name": name.strip()}
+                  for i, name in enumerate(args.classes.split(","), start=1)]
 
     # person 預標(從 draft 讀,若有)
     person_by_name = {}
