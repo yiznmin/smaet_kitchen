@@ -19,7 +19,7 @@
 ### 1. 檢查 GPU、裝 rfdetr
 ```python
 !nvidia-smi -L
-!pip -q install rfdetr supervision
+!pip -q install "rfdetr[train,loggers]" supervision
 ```
 
 ### 2. 上傳資料集 zip 並解壓
