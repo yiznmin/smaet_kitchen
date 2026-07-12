@@ -54,7 +54,7 @@ model.train(
     batch_size=4,
     grad_accum_steps=4,
     lr=1e-4,
-    resolution=728,           # 高解析度(救小物件)
+    resolution=704,           # 高解析度(救小物件)
     output_dir='/content/output',
 )
 # 訓練過程會印出每個 epoch 的 validation mAP —— 看 knife 的 AP 有沒有往上動
