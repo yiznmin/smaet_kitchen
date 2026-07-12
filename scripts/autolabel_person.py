@@ -5,6 +5,7 @@ knife 之後手動補(RF-DETR 抓不到小刀)。
 輸出:data/m3_finetune/_draft.json(COCO 格式,含 person 標註;knife 之後 merge)
 用法:python scripts/autolabel_person.py
 """
+import argparse
 import json
 import sys
 from pathlib import Path
@@ -15,12 +16,17 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
-IMG_DIR = ROOT / "data" / "m3_finetune" / "images"
-OUT = ROOT / "data" / "m3_finetune" / "_draft.json"
 CATEGORIES = [{"id": 1, "name": "person"}, {"id": 2, "name": "knife"}]
 
 
 def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--img_dir", default=str(ROOT / "data" / "m3_finetune" / "images"))
+    ap.add_argument("--out", default=str(ROOT / "data" / "m3_finetune" / "_draft.json"))
+    args = ap.parse_args()
+    IMG_DIR = Path(args.img_dir)
+    OUT = Path(args.out).resolve()
+
     from rfdetr import RFDETRNano
     model = RFDETRNano()
 
