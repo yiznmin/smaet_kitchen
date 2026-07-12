@@ -4,7 +4,9 @@
 > **驗證「微調能不能把之前抓不到的刀救回來」**。這是丟棄的驗證(EPFL CC-NC,不出貨)。
 >
 > 需要:一個 Google 帳號。Colab 免費 T4 GPU 即可。
-> 資料:`data/m3_finetune/m3_finetune_dataset.zip`(7.1 MB,含 train/valid/test)。
+> 資料(**多視角多類別版**):`data/m3_finetune_mv/dataset.zip`(~16 MB,90圖/732框/**11類**:人/刀具/砧板/食材/鍋鏟/鍋子/手/容器/抹布/夾子/手套;含 train/valid/test)。
+> (舊的 person+knife bootstrap 在 `data/m3_finetune/`,已被此多類別版取代。)
+> **重點觀察類別**:刀具、砧板、食材、手(食安關鍵)的 AP 有沒有從低往上。
 
 ---
 
@@ -23,8 +25,8 @@
 ### 2. 上傳資料集 zip 並解壓
 ```python
 from google.colab import files
-up = files.upload()          # 選 m3_finetune_dataset.zip
-!unzip -q m3_finetune_dataset.zip -d /content/m3ds
+up = files.upload()          # 選 dataset.zip
+!unzip -q dataset.zip -d /content/m3ds
 !ls /content/m3ds            # 應看到 train valid test
 ```
 
@@ -109,6 +111,6 @@ files.download('/content/output/checkpoint_best_total.pth')   # 微調權重(檔
 流程一模一樣,只是換成**你們自己的廚房資料**(幾百張、多樣、含 person/knife/cutting_board/raw_meat),用同一個 bbox 標註器標、同樣上 Colab 微調 → 產出**可出貨**的模型。
 
 ## 相關檔案
-- 資料集:`data/m3_finetune/m3_finetune_dataset.zip`
+- 資料集:`data/m3_finetune/dataset.zip`
 - 標註器:`results/m2/bbox_labeler.html`
 - 抽幀/切分腳本:`scripts/extract_finetune_frames.py`、`split_coco.py`
