@@ -67,9 +67,35 @@ for p in sorted(glob.glob('/content/m3ds/test/*.jpg'))[:8]:
 
 ---
 
-## 3. Nano vs Medium(變體選擇,尚未鎖定)
+## 3. Nano vs Medium 微調結果比較 ✅(bootstrap 兩者都跑完)
 
-變體要**兩個都微調、比 AP** 才決定。改法:
+兩個變體都在同一份 EPFL 資料(90圖/732框/實際 10 類,夾子 0 標註)微調 60 epoch。
+
+### 整體(best checkpoint)
+
+| 指標 | Nano | Medium |
+|---|---|---|
+| mAP@50 | **0.85** | 0.835 |
+| mAP@50:95(best) | 0.458 | **0.485**(epoch 18 到頂) |
+| 參數量 | 小 | 33.6M(重一倍多) |
+
+### 食安關鍵類別(最該看,Recall 優先)
+
+| 類別 | Nano AP / **Recall** | Medium AP / **Recall** | 判讀 |
+|---|---|---|---|
+| 刀具 | 0.45 / **1.00** | 0.52 / 0.875 | AP medium 高,但 **Recall nano 完勝** |
+| 砧板 | 0.22 / 0.67 | 0.32 / 0.67 | AP medium 高 |
+| 食材 | 0.30 / **0.70** | 0.31 / 0.60 | AP 平,**Recall nano 高** |
+| 手   | 0.32 / 0.71 | 0.34 / **0.79** | medium 略好 |
+
+### 結論(誠實版):此 bootstrap 選不出明確贏家,暫傾向 nano
+
+1. **Medium 優勢很小**(mAP@50:95 +2.7 分)且集中在 precision;**nano 在食安最重要的 Recall 反而更好**(刀具 1.0、食材 0.70),mAP@50 也略高。
+2. 食安 = **Recall 優先**(寧多抓不漏),nano 沒輸甚至略勝;且更輕、3050 部署更友善。
+3. 差距落在 ~15 張 val 的**統計雜訊**內,**不足以定案**。
+4. **真正定案要等自己的廚房真實資料再比一次**(微調會洗牌,CC-NC 丟棄模型的排名不能直接搬)。
+
+### 改法備忘(Nano → Medium)
 
 | 位置 | Nano → Medium |
 |---|---|
@@ -77,8 +103,6 @@ for p in sorted(glob.glob('/content/m3ds/test/*.jpg'))[:8]:
 | 輸出 | `output_dir='/content/out_nano'` → `'/content/out_medium'` |
 | batch | 4 → **2**(medium 較吃記憶體) |
 | 權重路徑 | `out_nano/...` → `out_medium/...` |
-
-跑完把兩者的 AP 表比較(尤其刀具/砧板/食材),AP 高又省的贏。
 
 ---
 
