@@ -36,7 +36,7 @@ TEMPLATE = r"""<!doctype html>
  .hint{color:#aaa;font-size:13px;margin:4px 0}
  b{color:#ffd54a}
 </style></head><body>
-<h3>bbox 標註器 — 多類別物件</h3>
+<h3>bbox 標註器 — 匯出檔:__EXPORT_NAME__</h3>
 <div class="hint">
  <b>拖拉滑鼠</b>=畫框(目前類別) &nbsp;|&nbsp; <b>←/→</b>=上/下一張 &nbsp;|&nbsp;
  <b>數字鍵</b>快速切類別 &nbsp;|&nbsp; <b>d</b>=刪這張最後一個框 &nbsp;|&nbsp; 沒有的物件跳過 &nbsp;|&nbsp; 標完按<b>匯出</b>
@@ -117,7 +117,7 @@ function exportCoco(){
       coco.annotations.push({id:aid++,image_id:i+1,category_id:a.cat,bbox:[x,y,w,h],area:w*h,iscrowd:0});});
   });
   const blob=new Blob([JSON.stringify(coco)],{type:"application/json"});
-  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="coco.json"; a.click();
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="__EXPORT_NAME__"; a.click();
   const cnt={};coco.annotations.forEach(a=>{const n=catName(a.category_id);cnt[n]=(cnt[n]||0)+1;});
   alert("已匯出 coco.json:\n"+Object.entries(cnt).map(([k,v])=>k+"="+v).join("\n"));
 }
@@ -133,6 +133,8 @@ def main():
     ap.add_argument("--out", default=str(ROOT / "results" / "m2" / "bbox_labeler.html"))
     ap.add_argument("--classes", default="person,knife",
                     help="逗號分隔的類別;第 1 個當『已預標的人』(承接 draft 的 person 框)")
+    ap.add_argument("--batch", type=int, default=0,
+                    help="每個 html 放幾張圖(0=全部放一個檔;圖多建議 200,會分批產生 _1/_2…)")
     args = ap.parse_args()
 
     IMG_DIR, OUT = Path(args.img_dir), Path(args.out).resolve()
@@ -159,12 +161,28 @@ def main():
         images.append({"file_name": p.name, "w": w, "h": h, "src": src})
         anns.append([{"cat": 1, "bbox": [round(v, 1) for v in b]} for b in person_by_name.get(p.name, [])])
 
-    data = {"images": images, "anns": anns, "categories": categories}
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(TEMPLATE.replace("__DATA__", json.dumps(data)), encoding="utf-8")
-    mb = OUT.stat().st_size / 1e6
-    print(f"已產生:{OUT.relative_to(ROOT).as_posix()}({mb:.1f} MB)")
-    print(f"  {len(images)} 張,類別:{[c['name'] for c in categories]}")
+    def write_html(path, imgs, anns_sub, export_name):
+        data = {"images": imgs, "anns": anns_sub, "categories": categories}
+        html = (TEMPLATE.replace("__DATA__", json.dumps(data))
+                        .replace("__EXPORT_NAME__", export_name))
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(html, encoding="utf-8")
+        return path.stat().st_size / 1e6
+
+    if args.batch and args.batch > 0:
+        n = args.batch
+        nb = (len(images) + n - 1) // n
+        print(f"分批:{len(images)} 張 → 每檔 {n} 張,共 {nb} 檔")
+        for k in range(nb):
+            imgs = images[k * n:(k + 1) * n]
+            anns_sub = anns[k * n:(k + 1) * n]
+            outk = OUT.with_name(f"{OUT.stem}_{k + 1}{OUT.suffix}")
+            mb = write_html(outk, imgs, anns_sub, f"coco_{k + 1}.json")
+            print(f"  {outk.name}: {len(imgs)} 張({mb:.1f} MB)→ 匯出 coco_{k + 1}.json")
+    else:
+        mb = write_html(OUT, images, anns, "coco.json")
+        print(f"已產生:{OUT.relative_to(ROOT).as_posix()}({mb:.1f} MB),{len(images)} 張")
+    print(f"類別:{[c['name'] for c in categories]}")
 
 
 if __name__ == "__main__":
