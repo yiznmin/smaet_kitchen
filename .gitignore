@@ -16,6 +16,9 @@ results/frames/
 *.preview.png
 results/**/*.html
 
+# 交付給標註幫手的整包(含內嵌 EPFL 衍生畫面,CC-BY-NC,不入庫)
+標註交付包_*/
+
 # Python
 __pycache__/
 *.pyc
