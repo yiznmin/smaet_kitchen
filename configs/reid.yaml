@@ -1,0 +1,12 @@
+# M5 廚師身份管理(Re-ID)。把 track_id 綁到全域 chef_id。
+# ⚠ 外觀模型權重授權未定(見 docs/M5_身份管理設計與驗證.md);目前用顏色直方圖佔位。
+reid:
+  embedder: color_histogram          # color_histogram(佔位) | osnet(待授權解決後實作)
+  similarity_threshold: 0.5          # 餘弦相似度 >= 此值才視為同一位廚師
+                                     #  注意:門檻與 embedder 有關。顏色直方圖用 ~0.5;
+                                     #  換成 OSNet 等外觀模型通常落在 0.6~0.75,需重調。
+  recently_disappeared_ttl: 150      # 廚師離開後保留幀數(可再現重綁);超過視為永久離開
+  embedding_ema: 0.5                 # 代表特徵的指數移動平均係數(0=只留舊、1=只留新)
+  # 顏色直方圖參數
+  hist_h_bins: 16
+  hist_s_bins: 16
