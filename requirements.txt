@@ -2,7 +2,12 @@
 # 注意:torch 請依目標主機的 CUDA 版本另行安裝對應 wheel
 #   參考 https://pytorch.org/get-started/locally/
 opencv-python>=4.9
-ultralytics>=8.2        # YOLOv8 / YOLO11
+ultralytics>=8.2        # YOLOv8 / YOLO11(僅內部測速,AGPL 不出貨)
 pyyaml>=6.0
 pandas>=2.0
 numpy>=1.24
+scipy>=1.10             # M4 ByteTrack 匈牙利配對(linear_sum_assignment)
+# M4 追蹤:用 supervision 內的 ByteTrack(MIT)。⚠ sv.ByteTrack 於 0.30 移除,
+# 遷移目標是獨立的 trackers 套件(update() 介面);未遷移前釘住 <0.30。
+# 觸點只在 src/m4_track/tracker.py,遷移時改該處即可。
+supervision>=0.24,<0.30

@@ -1,0 +1,11 @@
+# M4 多目標追蹤(ByteTrack 主 / BoT-SORT、OC-SORT 未來備援,同介面可切換)。
+# 純運動追蹤(Kalman + IoU + 匈牙利),不含外觀 Re-ID(那屬 M5)。
+tracker:
+  backend: bytetrack                 # bytetrack(主) | botsort | ocsort(未實作)
+  track_activation_threshold: 0.25   # 高分偵測門檻:啟動/維持軌跡
+  minimum_matching_threshold: 0.8    # IoU 匹配門檻;低→精確但易斷裂
+  lost_track_buffer: 30              # 目標消失後保留幀數(遮擋恢復);對應 spec「短暫遮擋」
+  frame_rate: 30                     # 影片幀率(換算 max_time_lost)
+  minimum_consecutive_frames: 1      # 連續達標幀數才算有效軌跡(>1 可壓誤啟動)
+  history_len: 30                    # 每軌跡保留的 bbox 歷史長度
+  person_only: true                  # demo:僅追蹤 person(COCO base 可跑,免微調權重)
