@@ -19,6 +19,12 @@ results/**/*.html
 # 交付給標註幫手的整包(含內嵌 EPFL 衍生畫面,CC-BY-NC,不入庫)
 標註交付包_*/
 
+# 訓練權重(大檔;EPFL 丟棄驗證模型),不入庫
+*.pth
+model_result/
+# M4 追蹤輸出(標註幀/軌跡紀錄)
+results/m4_track/
+
 # Python
 __pycache__/
 *.pyc
