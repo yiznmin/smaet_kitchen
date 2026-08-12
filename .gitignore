@@ -24,6 +24,10 @@ results/**/*.html
 model_result/
 # M4 追蹤輸出(標註幀/軌跡紀錄)
 results/m4_track/
+# M5 Re-ID 驗證輸出(EPFL 衍生 crops / 結果 json,研究限定)
+results/m5_reid/
+reid_epfl_results.json
+reid_eval_results.json
 
 # Python
 __pycache__/
