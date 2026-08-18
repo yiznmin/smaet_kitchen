@@ -1,0 +1,27 @@
+# M5 v2 相機拓撲(Camera Link Model)——跨鏡頭「同一位廚師」關聯的時空依據。
+# ⚠ 這裡是「示例值」;真實佈署後要用實測填入:哪台接哪台、走過去平均幾秒。
+# 依據:Camera Link Model(相機拓撲 + 轉場時間高斯 + 方向 + 外觀輔助)。
+camera_topology:
+
+  # 融合權重:時空為主、外觀(DINOv2 可商用但弱)為輔破平手
+  fusion:
+    w_st: 0.7                 # 時空分數權重(主)
+    w_app: 0.3               # 外觀分數權重(輔)
+    k_sigma: 2.0             # 時間窗 = μ ± k·σ(超出視為不可能)
+    combined_threshold: 0.35 # fused 分數 ≥ 此值才綁定為同一人
+    overlap_window_s: 0.5    # 重疊相機「同時刻」容許誤差(秒)
+
+  # 每台相機的入/出口 zone(名稱引用 configs/zones.json;真實佈署再標)
+  cameras:
+    cam1: { entry_zones: [門口], exit_zones: [走道] }
+    cam2: { entry_zones: [走道], exit_zones: [灶台區] }
+    cam3: { entry_zones: [門口], exit_zones: [走道] }
+
+  # 有向連結 + 轉場時間高斯(秒)。雙向請各寫一條(A→B 與 B→A 可不同)。
+  links:
+    - { from: cam1, to: cam2, mean_s: 4.0, std_s: 1.5 }
+    - { from: cam2, to: cam1, mean_s: 4.5, std_s: 1.6 }
+
+  # 重疊相機對(同一時刻可用幾何關聯,不需靠外觀)
+  overlapping:
+    - [cam1, cam3]
