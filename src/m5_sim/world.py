@@ -16,6 +16,8 @@
   · 外觀:EPFL 449 crops 實測的 same/diff cosine 分布
   · M4 缺陷率:由實際跑 KitchenTracker 的結果量測(見 m4_defect_rates)
 """
+import math
+
 import numpy as np
 
 
@@ -48,7 +50,9 @@ class WorldConfig:
                  # 地面座標:廚房尺寸(公尺)與各鏡頭的標定殘差。
                  # ⚠ 不模擬 homography 的估計過程,直接注入殘差 —— 要問的是
                  #   「殘差多大還能用」,不是「怎麼估 homography」。
-                 kitchen_m=(10.0, 6.0), calib_sigma_m=0.4, calib_bias_m=0.15,
+                 # ⚠ calib_sigma_m 代表**總殘差**;系統性偏差按比例分配,否則掃描
+                 #   會被混淆:固定的偏差在 σ 很小時會主導,讓「校正越準反而越差」。
+                 kitchen_m=(10.0, 6.0), calib_sigma_m=0.4, calib_bias_ratio=0.4,
                  # 全景鏡頭:一台看得到整個廚房的鏡頭。每位廚師全程在它畫面裡,
                  # 唯一的身份遺失路徑是它自己因遮擋而斷軌(master_fragment_rate)。
                  master_camera=None, master_fragment_rate=0.05,
@@ -124,11 +128,14 @@ def observe_world(cfg, xy, cam, rng, _bias={}):
 
     系統性偏差每台固定(標定時的殘差),噪聲每次不同(腳點偵測誤差)。
     """
-    if cam not in _bias:
-        _bias[cam] = (rng.randn() * cfg.calib_bias_m, rng.randn() * cfg.calib_bias_m)
-    bx, by = _bias[cam]
-    return (float(xy[0] + bx + rng.randn() * cfg.calib_sigma_m),
-            float(xy[1] + by + rng.randn() * cfg.calib_sigma_m))
+    b = cfg.calib_sigma_m * cfg.calib_bias_ratio          # 系統性(每台固定)
+    n = cfg.calib_sigma_m * math.sqrt(max(1 - cfg.calib_bias_ratio ** 2, 0.0))  # 隨機
+    key = (cam, round(b, 6))
+    if key not in _bias:
+        _bias[key] = (rng.randn() * b, rng.randn() * b)
+    bx, by = _bias[key]
+    return (float(xy[0] + bx + rng.randn() * n),
+            float(xy[1] + by + rng.randn() * n))
 
 
 def rand_pos(cfg, rng):
@@ -153,8 +160,19 @@ def to_bbox(cfg, pos):
 
 
 def observe(anchor, mu_same, sigma_same, rng):
-    """從錨點抽一個觀測向量,cosine 服從 N(mu_same, sigma_same)。"""
-    a = float(np.clip(rng.normal(mu_same, sigma_same), -0.99, 0.99))
+    """從錨點抽一個觀測向量,使**兩次觀測之間**的 cosine 服從 N(mu_same, sigma_same)。
+
+    ⚠ 關鍵:AppearanceLR 的 mu_same=0.490 是 EPFL 實測的 **crop 對 crop** cosine,
+      不是「crop 對錨點」。而 cos(o1,o2) ≈ cos(o1,錨點)·cos(o2,錨點),
+      所以振幅要取 **√mu_same** 才對得上。
+
+      踩過的坑:原本直接用 mu_same 當振幅 → 世界產生的同一人 cosine 只有
+      0.49²=0.242,比 AppearanceLR 認定的「不同人 0.465」還低 → **同一個人
+      一律拿到負的外觀證據**,把每次綁定都往下拉約 0.4 nats。
+    """
+    amp = math.sqrt(max(mu_same, 0.0))
+    sd = sigma_same / (2.0 * max(amp, 1e-6))      # 讓成對 cosine 的標準差仍為 sigma_same
+    a = float(np.clip(rng.normal(amp, sd), -0.99, 0.99))
     n = rng.randn(len(anchor))
     n = _l2(n - (n @ anchor) * anchor)
     return _l2(a * anchor + np.sqrt(max(0.0, 1 - a * a)) * n)

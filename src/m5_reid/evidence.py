@@ -405,8 +405,12 @@ class GroundPlaneLR:
       被批評的魔數 0.35。這是架構裡最後一個沒有物理依據的參數。
     """
 
-    def __init__(self, sigma_m=0.4, area_m2=30.0, clip=8.0, speed_mps=0.9):
-        self.sigma = float(sigma_m)
+    def __init__(self, sigma_m=0.4, area_m2=30.0, clip=8.0, speed_mps=0.9,
+                 pairwise=True):
+        # ⚠ sigma_m 是**單台鏡頭**的標定誤差。我們比的是兩台鏡頭的觀測**差值**,
+        #   其標準差是 √2 倍。用單台的 σ 會高估鑑別力 → 真的同一人被判成
+        #   「位置對不上」。實測時真的那位只拿到 +0.20 nats(應該 +2.5)。
+        self.sigma = float(sigma_m) * (math.sqrt(2.0) if pairwise else 1.0)
         self.speed = float(speed_mps)      # 兩次觀測之間人可能走多遠
         self.area = float(area_m2)
         self.clip = float(clip)

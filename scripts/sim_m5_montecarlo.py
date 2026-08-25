@@ -348,8 +348,8 @@ def compare_fixes(wcfg, reps, budget_break, budget_fm):
         return tp
 
     variants.append(("[現況] 全景鏡頭,無地面校正", with_master(), {}, None, MASTER))
-    for sg in [0.2, 0.4, 0.8, 1.5]:
-        variants.append((f"+ 地面校正 σ={sg:.1f}m", with_master(
+    for sg in [0.05, 0.10, 0.15, 0.2, 0.4, 0.8, 1.5]:   # 0.05~0.15 為事後診斷,非登記網格
+        variants.append((f"+ 地面校正 σ={sg:.2f}m", with_master(
             ground_plane={"enabled": True, "sigma_m": sg, "area_m2": 30.0, "clip": 8.0}),
             {}, None, dict(MASTER, calib_sigma_m=sg)))
     # 預測 3:人越多,地面校正的效益越大
