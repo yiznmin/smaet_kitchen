@@ -47,6 +47,8 @@ _DEFAULT_FUSION = {
     "transit_model": "loiter",              # loiter | gaussian
     "p_loiter": 0.15,                       # 中途停下來做事的比例
     "tau_loiter_s": 20.0,                   # 停留時間尺度
+    "loiter_dist": "exp",                   # exp | lognormal(重尾)
+    "loiter_log_sigma": 1.0,                # loiter_dist=lognormal 時的 logσ
     "appearance_profile": "dinov2",         # 外觀 LR 用哪組實測分布
     "appearance_clip": None,                # 外觀 LLR 上下限(None=不夾)
     "overlap_llr": 5.0,                     # 重疊鏡頭同時觀測的幾何證據強度(nats)
@@ -112,7 +114,8 @@ class CameraTopology:
         f = self.fusion
         kw = {}
         if f["transit_model"] == "loiter":
-            kw = dict(p_loiter=f["p_loiter"], tau_loiter_s=f["tau_loiter_s"])
+            kw = dict(p_loiter=f["p_loiter"], tau_loiter_s=f["tau_loiter_s"],
+                      loiter_dist=f["loiter_dist"], loiter_log_sigma=f["loiter_log_sigma"])
         elif f["transit_model"] == "gaussian":
             kw = dict(max_z=f["max_z"])
         self.transits = {k: make_transit(mu, sd, kind=f["transit_model"], **kw)

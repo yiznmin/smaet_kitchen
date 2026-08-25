@@ -103,25 +103,46 @@ class LoiterMixtureTransit(TransitModel):
     第二項用「移位指數」近似(τ >> σ 時誤差可忽略),避免做數值卷積。
     """
 
-    def __init__(self, mean_s, std_s, p_loiter=0.15, tau_loiter_s=20.0, hard_min_ratio=None):
+    def __init__(self, mean_s, std_s, p_loiter=0.15, tau_loiter_s=20.0,
+                 loiter_dist="exp", loiter_log_sigma=1.0, hard_min_ratio=None):
         self.mu, self.sigma = float(mean_s), float(std_s)
         self.p = float(p_loiter)
         self.tau = float(tau_loiter_s)
+        self.dist = loiter_dist            # exp | lognormal
+        self.log_sigma = float(loiter_log_sigma)
         if hard_min_ratio is not None:
             self.hard_min_ratio = float(hard_min_ratio)
 
+    def peak_density(self):
+        """逗留成分能達到的最大密度。
+
+        判定式要求 p(Δt) > exp(門檻 − (−log λ_bg));若這個峰值本身就低於那個值,
+        **任何逗留時間都過不了門**,換分布形狀也救不了(重尾改善的是很久之後,
+        不是峰值高度)。見 docs/M5_模擬預先登記_逗留_20260825.md §2。
+        """
+        if self.dist == "lognormal":
+            return self.p / (self.tau * self.log_sigma * math.sqrt(2 * math.pi))
+        return self.p / self.tau
+
+    def _loiter_pdf(self, gap):
+        if gap <= 0:
+            return 0.0
+        if self.dist == "lognormal":
+            z = (math.log(gap) - math.log(self.tau)) / self.log_sigma
+            return math.exp(-0.5 * z * z) / (gap * self.log_sigma * math.sqrt(2 * math.pi))
+        return math.exp(-gap / self.tau) / self.tau
+
     def _logpdf(self, dt):
         direct = math.exp(_log_gauss_pdf(dt, self.mu, self.sigma))
-        if dt > self.mu:
-            loiter = math.exp(-(dt - self.mu) / self.tau) / self.tau
-        else:
-            loiter = 0.0
+        loiter = self._loiter_pdf(dt - self.mu) if dt > self.mu else 0.0
         p = (1.0 - self.p) * direct + self.p * loiter
         return math.log(p) if p > 0 else NEG_INF
 
     def describe(self):
+        tail = (f"對數常態(中位數 {self.tau:.0f}s, logσ {self.log_sigma:.1f})"
+                if self.dist == "lognormal" else f"指數(τ={self.tau:.0f}s)")
         return (f"LoiterMixture(μ={self.mu:.1f}s, σ={self.sigma:.1f}s, "
-                f"p_逗留={self.p:.2f}, τ={self.tau:.0f}s)")
+                f"p_逗留={self.p:.2f}, 尾部={tail}, 峰值密度={self.peak_density():.4f})")
 
 
 class HistogramParzenTransit(TransitModel):

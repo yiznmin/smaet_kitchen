@@ -306,9 +306,18 @@ def compare_fixes(wcfg, reps, budget_break, budget_fm):
     for gap in [5.0, 30.0]:
         v = {"same_camera": {**F3["same_camera"], "max_gap_s": gap}}
         variants.append((f"+F3(含位置), 上限={gap:.0f}s", build(**{**OFF, **v})))
-    for tau in [45.0, 90.0]:
-        variants.append((f"+F1+F3(含位置), τ_逗留={tau:.0f}",
-                         build(**{**OFF, **F1, **F3}, tau_loiter_s=tau)))
+    # ── 第二輪登記網格:逗留(docs/M5_模擬預先登記_逗留_20260825.md §3)──
+    #    F3(含位置)固定開啟、F1 固定關閉,只掃逗留相關的三個旋鈕。
+    BASE2 = {**OFF, **F3}
+    for dist in ["exp", "lognormal"]:
+        for pl in [0.15, 0.30, 0.50]:
+            for hz, hzl in [(1/600, "1/600"), (1/1800, "1/1800"), (1/3600, "1/3600")]:
+                if dist == "exp" and pl == 0.15 and abs(hz - 1/600) < 1e-9:
+                    label = "[現況] exp p=0.15 λ=1/600"
+                else:
+                    label = f"{dist} p={pl:.2f} λ={hzl}"
+                variants.append((label, build(**BASE2, loiter_dist=dist, p_loiter=pl,
+                                              background_arrival_hz=hz)))
 
     print(f"  {'設定':<28}{'碎裂率':>9}{'誤併率':>9}{'正常轉場碎裂':>13}{'等級':>6}")
     print("  " + "-" * 70)
