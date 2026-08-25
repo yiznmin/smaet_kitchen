@@ -60,7 +60,7 @@ def run_once(wcfg, topo, ablation="full", ttl_s=600.0):
 
     if ablation == "all_new":                      # 基線:從不綁定
         recs, seen, tags = [], set(), []
-        for kind, gt, cam, t, emb, tag in events:
+        for kind, gt, cam, t, emb, tag, box in events:
             if kind == "enter":
                 recs.append((gt, f"new{len(recs)}", False, gt in seen))
                 tags.append(tag)
@@ -69,19 +69,20 @@ def run_once(wcfg, topo, ablation="full", ttl_s=600.0):
 
     m = SpatioTemporalIdentityManager(topo, fps=1.0, recently_disappeared_ttl=ttl_s)
     recs, tags, seen, tid = [], [], set(), {}
-    for kind, gt, cam, t, emb, tag in events:
+    for kind, gt, cam, t, emb, tag, box in events:
         f = int(t)
         if kind == "enter":
             tid[(gt, cam)] = tid.get((gt, cam), 0) + 1
             key = tid[(gt, cam)] * 1000 + gt
-            r = m.on_new_track(key, camera_id=cam, frame_id=f, t_sec=t, embedding=emb)
+            r = m.on_new_track(key, camera_id=cam, frame_id=f, t_sec=t, embedding=emb,
+                               bbox=box)
             recs.append((gt, r.chef_id, r.matched, gt in seen))
             tags.append(tag)
             seen.add(gt)
         else:
             key = tid.get((gt, cam), 1) * 1000 + gt
-            m.on_track_lost(key, camera_id=cam, frame_id=f, t_sec=t)
-            m.on_track_removed(key, camera_id=cam, frame_id=f + 1, t_sec=t + 1.0)
+            m.on_track_lost(key, camera_id=cam, frame_id=f, t_sec=t, bbox=box)
+            m.on_track_removed(key, camera_id=cam, frame_id=f + 1, t_sec=t + 1.0, bbox=box)
     return recs, tags
 
 
@@ -284,23 +285,30 @@ def compare_fixes(wcfg, reps, budget_break, budget_fm):
         t._build_evidence()
         return t
 
-    OFF_F1 = {"unknown_path": {"enabled": False}}
-    OFF_F3 = {"same_camera": {"enabled": False}}
+    # ⚠ 預設值現在是「兩者皆關」(2026-08-25 的決定),所以變體必須**顯式開啟**
+    #   要測的那一項。先前這裡靠預設開啟來表示「+F1」,改預設後會靜默退化成基準
+    #   —— 所有變體數字一模一樣,看起來像「修法無效」,實際是根本沒開。
+    F1 = {"unknown_path": {"enabled": True, "median_multiplier": 2.0,
+                           "log_sigma": 0.8, "logprior": -2.0}}
+    F3 = {"same_camera": {"enabled": True, "tau_break_s": 2.0, "max_gap_s": 15.0}}
+    POS_OFF = {"position": {"enabled": False}}
+    # ⚠ 每一列都**顯式**指定所有開關,一個都不靠預設。
+    #   踩過兩次:預設從開改關時「+F1」靜默退化成基準;預設從關改開時「基準」
+    #   靜默變成含 F3。兩次都是九列數字看起來合理、實際比較的不是想比的東西。
+    OFF = {"unknown_path": {"enabled": False}, "same_camera": {"enabled": False}}
     variants = [
-        ("基準(上一輪,三個都關)", build(**OFF_F1, **OFF_F3)),
-        ("+F1 繞路 logprior=-2", build(**OFF_F3)),
-        ("+F3 同鏡頭重關聯", build(**OFF_F1)),
-        ("+F1+F3", build()),
+        ("基準(三者皆關)", build(**OFF)),
+        ("+F1 繞路", build(**{**OFF, **F1})),
+        ("+F3 同鏡頭(無位置)", build(**{**OFF, **F3}, **POS_OFF)),
+        ("+F3 同鏡頭(含位置證據)", build(**{**OFF, **F3})),
+        ("+F1+F3(含位置)", build(**{**OFF, **F1, **F3})),
     ]
-    for lp in [-3.0, -1.0]:
-        variants.append((f"+F1(logprior={lp:+.0f})+F3",
-                         build(unknown_path={"logprior": lp})))
+    for gap in [5.0, 30.0]:
+        v = {"same_camera": {**F3["same_camera"], "max_gap_s": gap}}
+        variants.append((f"+F3(含位置), 上限={gap:.0f}s", build(**{**OFF, **v})))
     for tau in [45.0, 90.0]:
-        variants.append((f"+F1+F3, τ_逗留={tau:.0f}(登記值)",
-                         build(tau_loiter_s=tau)))
-    for gap in [5.0]:
-        variants.append((f"+F1+F3, 同鏡頭上限={gap:.0f}s",
-                         build(same_camera={"max_gap_s": gap})))
+        variants.append((f"+F1+F3(含位置), τ_逗留={tau:.0f}",
+                         build(**{**OFF, **F1, **F3}, tau_loiter_s=tau)))
 
     print(f"  {'設定':<28}{'碎裂率':>9}{'誤併率':>9}{'正常轉場碎裂':>13}{'等級':>6}")
     print("  " + "-" * 70)

@@ -59,7 +59,12 @@ _DEFAULT_FUSION = {
     #   詳見 docs/M5_模擬預先登記_20260825.md 與 results/m5_reid/sim_after_fixes.txt。
     "unknown_path": {"enabled": False, "median_multiplier": 2.0,
                      "log_sigma": 0.8, "logprior": -2.0},
-    "same_camera": {"enabled": False, "tau_break_s": 2.0, "max_gap_s": 15.0},
+    # F3 於 2026-08-25 接上位置證據後改為**預設開啟**:含位置時誤併率回到基準
+    # (9.5%→4.5%)且保留碎裂改善(24.4%→19.8%),加權成本 46.9→42.3。
+    "same_camera": {"enabled": True, "tau_break_s": 2.0, "max_gap_s": 15.0},
+    # 位置證據(僅同鏡頭適用)。F3 只用時間時誤併率翻倍,位置是收緊它的關鍵。
+    "position": {"enabled": True, "speed_bh_per_s": 0.5, "noise_bh": 0.3,
+                 "frame_span_bh": 6.0, "clip": 8.0},
     "max_z": 6.0,                           # 轉場分布的遠尾截斷(省算,非決策門)
     # ── v2(mode=weighted_sum)參數 ──────────────────────────────────
     "w_st": 0.7, "w_app": 0.3, "k_sigma": 2.0, "combined_threshold": 0.35,
@@ -102,8 +107,8 @@ class CameraTopology:
 
     def _build_evidence(self):
         """建 v3 需要的轉場模型與外觀 LR。mode=weighted_sum 時不會被用到。"""
-        from m5_reid.evidence import (AppearanceLR, SameCameraTransit, UnknownPathTransit,
-                                      decision_threshold, make_transit)
+        from m5_reid.evidence import (AppearanceLR, PositionLR, SameCameraTransit,
+                                      UnknownPathTransit, decision_threshold, make_transit)
         f = self.fusion
         kw = {}
         if f["transit_model"] == "loiter":
@@ -129,6 +134,12 @@ class CameraTopology:
         self.same_cam = SameCameraTransit(
             tau_break_s=float(sc.get("tau_break_s", 2.0)),
             max_gap_s=float(sc.get("max_gap_s", 15.0))) if sc.get("enabled") else None
+        pos = f.get("position") or {}
+        self.pos_lr = PositionLR(
+            speed_bh_per_s=float(pos.get("speed_bh_per_s", 0.5)),
+            noise_bh=float(pos.get("noise_bh", 0.3)),
+            frame_span_bh=float(pos.get("frame_span_bh", 6.0)),
+            clip=float(pos.get("clip", 8.0))) if pos.get("enabled", True) else None
         self.app_lr = AppearanceLR.measured(f["appearance_profile"], clip=f["appearance_clip"])
         self.log_lambda_bg = np.log(float(f["background_arrival_hz"]))
         self.llr_threshold = decision_threshold(f["cost_false_merge_over_break"])

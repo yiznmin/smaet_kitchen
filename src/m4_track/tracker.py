@@ -138,8 +138,18 @@ class KitchenTracker(BaseTracker):
 
         t_sec = float(timestamp) if timestamp is not None else frame_id / float(self.frame_rate)
 
+        def _last_box(tid):
+            """最後已知位置。track 進 lost 後就不在 tracked_tracks 裡,只能從歷史取。
+
+            M5 的同鏡頭重關聯需要「離場位置」才能分辨斷軌前後是不是同一個人
+            —— 只有時間的話,同一台鏡頭裡有多人時會綁錯。
+            """
+            h = self._history.get(tid)
+            return h[-1] if h else None
+
         def ev(kind, tid, box=None):
-            return TrackEvent(kind, tid, frame_id, self._last_class.get(tid), box,
+            return TrackEvent(kind, tid, frame_id, self._last_class.get(tid),
+                              box if box is not None else _last_box(tid),
                               camera_id=self.camera_id, t_sec=t_sec)
 
         events = []

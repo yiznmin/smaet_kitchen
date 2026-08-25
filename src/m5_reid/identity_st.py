@@ -19,9 +19,9 @@ class SpatioTemporalIdentityManager(IdentityManager):
         self.topo = topology
         self.fps = fps
         self.f = topology.fusion
-        self._exit = {}         # chef_id -> (camera_id, t_sec) 離場資訊
+        self._exit = {}         # chef_id -> (camera_id, t_sec, bbox) 離場資訊
         self._cam = {}          # chef_id -> (camera_id, t_sec) 目前所在(active)
-        self._pending_exit = {} # (camera_id, track_id) -> (camera_id, t_sec, frame_id)
+        self._pending_exit = {} # (cam, track) -> (cam, t_sec, frame_id, bbox)
         # 診斷:每次綁定決策有幾個候選通過物理可能性檢查。索引 5 代表「5 個以上」。
         # 這是本架構最關鍵的觀測量 —— 若幾乎總是 1,外觀品質對結果沒有影響。
         self._cand_hist = [0] * 6
@@ -83,6 +83,11 @@ class SpatioTemporalIdentityManager(IdentityManager):
                     continue
                 app = cosine(emb, chef.embedding)
                 score = llr_t + self.topo.app_lr.llr(app)
+                # 位置證據只在**同一台鏡頭**適用:跨鏡頭的影像座標是不同座標系,
+                # 沒有外參校正就不可比。這條專門用來收緊 M4 斷軌的重關聯。
+                if ex[0] == camera_id and self.topo.pos_lr is not None:
+                    score += self.topo.pos_lr.llr(ex[2] if len(ex) > 2 else None,
+                                                  bbox, t - ex[1])
             else:
                 ok, sp = self.topo.transition_gate(ex[0], ex[1], camera_id, t)
                 if not ok:
@@ -144,16 +149,22 @@ class SpatioTemporalIdentityManager(IdentityManager):
     # 若在 lost 就標 gone,該 chef 會永遠卡在 gone、綁定永久遺失。
     # 因此:lost → 只記預備出口;reacquired → 撤銷;removed → 才真的離場。
 
-    def on_track_lost(self, track_id, *, camera_id=None, frame_id=0, t_sec=None):
-        """進 ByteTrack lost。只記「預備出口」,不動 chef 狀態。"""
+    def on_track_lost(self, track_id, *, camera_id=None, frame_id=0, t_sec=None, bbox=None):
+        """進 ByteTrack lost。只記「預備出口」(含離場位置),不動 chef 狀態。
+
+        bbox 是 M4 該 track 最後已知的位置,同鏡頭重關聯要靠它分辨斷軌前後是不是
+        同一個人 —— 只有時間的話,同鏡頭有多人時會綁錯(實測誤併率會翻倍)。
+        """
         gk = self._key(track_id, camera_id)
         cid = self.track_to_chef.get(gk)
         if cid is None:
             return None
-        self._pending_exit[gk] = (camera_id, self._t(frame_id, t_sec, camera_id), frame_id)
+        self._pending_exit[gk] = (camera_id, self._t(frame_id, t_sec, camera_id),
+                                  frame_id, bbox)
         return cid
 
-    def on_track_reacquired(self, track_id, *, camera_id=None, frame_id=0, t_sec=None):
+    def on_track_reacquired(self, track_id, *, camera_id=None, frame_id=0, t_sec=None,
+                            bbox=None):
         """從 lost 找回(人沒走,只是被擋住)→ 撤銷預備出口,chef 維持 active。"""
         gk = self._key(track_id, camera_id)
         self._pending_exit.pop(gk, None)
@@ -166,7 +177,8 @@ class SpatioTemporalIdentityManager(IdentityManager):
             self._cam[cid] = (camera_id, self._t(frame_id, t_sec, camera_id))
         return cid
 
-    def on_track_removed(self, track_id, *, camera_id=None, frame_id=0, t_sec=None):
+    def on_track_removed(self, track_id, *, camera_id=None, frame_id=0, t_sec=None,
+                         bbox=None):
         """lost buffer 到期 → 真正離場。
 
         ⚠ 出口時間戳取自 lost_track 當時,不是 removed 當時。用 removed 的話,
@@ -176,9 +188,10 @@ class SpatioTemporalIdentityManager(IdentityManager):
         gk = self._key(track_id, camera_id)
         pending = self._pending_exit.pop(gk, None)
         if pending is not None:
-            exit_cam, exit_t, exit_frame = pending
+            exit_cam, exit_t, exit_frame, exit_box = pending
         else:                              # 沒收到 lost 就直接 removed(理論上不該發生)
-            exit_cam, exit_t, exit_frame = camera_id, self._t(frame_id, t_sec, camera_id), frame_id
+            exit_cam, exit_t, exit_frame, exit_box = (
+                camera_id, self._t(frame_id, t_sec, camera_id), frame_id, bbox)
 
         cid = self.track_to_chef.pop(gk, None)
         if cid is None:
@@ -193,6 +206,6 @@ class SpatioTemporalIdentityManager(IdentityManager):
             chef.state = "gone"
             self.active.pop(cid, None)
             self.gone[cid] = chef
-            self._exit[cid] = (exit_cam, exit_t)
+            self._exit[cid] = (exit_cam, exit_t, exit_box)
             self._cam.pop(cid, None)
         return cid

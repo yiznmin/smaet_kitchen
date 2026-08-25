@@ -45,6 +45,8 @@ class WorldConfig:
                  app_mu_same=0.490, app_sigma_same=0.10, app_mu_diff=0.465,
                  # γ=0 用實測可分性;γ→1 模擬同制服(可分性趨近 0)
                  gamma_uniform=0.0,
+                 # 畫面幾何:以「人身高」為單位。frame_span_bh 見 PositionLR。
+                 body_px=200.0, frame_span_bh=6.0,
                  dim=64, seed=0):
         self.__dict__.update(locals())
         del self.__dict__["self"]
@@ -79,6 +81,27 @@ def make_anchors(n, mu_same, mu_diff, gamma, dim, rng):
     return anchors
 
 
+def rand_pos(cfg, rng):
+    """畫面內的隨機落點(以像素表示,身高 = body_px)。"""
+    span = cfg.frame_span_bh * cfg.body_px
+    return (float(rng.rand() * span), float(rng.rand() * span))
+
+
+def step_pos(cfg, pos, dt, rng):
+    """經過 dt 秒後的新位置。步速 0.5 身高/秒,撞邊界就夾住。"""
+    span = cfg.frame_span_bh * cfg.body_px
+    sigma = 0.5 * cfg.body_px * max(dt, 0.0)
+    x = min(max(pos[0] + rng.randn() * sigma, 0.0), span)
+    y = min(max(pos[1] + rng.randn() * sigma, 0.0), span)
+    return (float(x), float(y))
+
+
+def to_bbox(cfg, pos):
+    """腳點 → (x1,y1,x2,y2)。寬約身高的 0.4 倍。"""
+    h = cfg.body_px
+    return (pos[0] - 0.2 * h, pos[1] - h, pos[0] + 0.2 * h, pos[1])
+
+
 def observe(anchor, mu_same, sigma_same, rng):
     """從錨點抽一個觀測向量,cosine 服從 N(mu_same, sigma_same)。"""
     a = float(np.clip(rng.normal(mu_same, sigma_same), -0.99, 0.99))
@@ -102,7 +125,7 @@ def sample_transit(cfg, rng, want_tag=False):
 def generate(cfg, links, all_cameras):
     """產生事件流。
 
-    回傳 [(kind, gt_id, camera, t_observed, embedding, tag)],kind ∈ {enter, leave}。
+    回傳 [(kind, gt_id, camera, t_observed, embedding, tag, bbox)]。
     t_observed 已加上該鏡頭的時鐘漂移(系統看到的就是這個,不是真值)。
     tag 標明這次抵達的成因,供失效分解用:
       first    首次入場(不是轉場,不計入碎裂/誤併)
@@ -125,14 +148,18 @@ def generate(cfg, links, all_cameras):
     for chef in chefs:
         cam = cams[rng.randint(len(cams))]
         t = rng.rand() * cfg.transition_interval_s
+        pos = rand_pos(cfg, rng)
         events.append(("enter", chef.gt_id, cam, t + skew.get(cam, 0.0),
-                       observe(chef.anchor, cfg.app_mu_same, cfg.app_sigma_same, rng), "first"))
+                       observe(chef.anchor, cfg.app_mu_same, cfg.app_sigma_same, rng),
+                       "first", to_bbox(cfg, pos)))
         while t < cfg.duration_s:
             stay = rng.exponential(cfg.transition_interval_s)
             t_leave = t + stay
             if t_leave > cfg.duration_s:
                 break
-            events.append(("leave", chef.gt_id, cam, t_leave + skew.get(cam, 0.0), None, ""))
+            pos = step_pos(cfg, pos, t_leave - t, rng)      # 停留期間有走動
+            events.append(("leave", chef.gt_id, cam, t_leave + skew.get(cam, 0.0),
+                           None, "", to_bbox(cfg, pos)))
 
             nxt = out_links.get(cam, [])
             detour = rng.rand() < cfg.p_detour or not nxt
@@ -151,14 +178,20 @@ def generate(cfg, links, all_cameras):
                 cam = dest
                 continue
             cam = dest
+            pos = rand_pos(cfg, rng)                        # 換鏡頭 → 新座標系,重抽
             events.append(("enter", chef.gt_id, cam, t + skew.get(cam, 0.0),
-                           observe(chef.anchor, cfg.app_mu_same, cfg.app_sigma_same, rng), tag))
+                           observe(chef.anchor, cfg.app_mu_same, cfg.app_sigma_same, rng),
+                           tag, to_bbox(cfg, pos)))
             if rng.rand() < cfg.m4_fragment_rate:       # M4 斷軌 → 同鏡頭再開一個 track
                 t_frag = t + rng.exponential(5.0)
-                events.append(("leave", chef.gt_id, cam, t_frag + skew.get(cam, 0.0), None, ""))
+                pos = step_pos(cfg, pos, t_frag - t, rng)
+                events.append(("leave", chef.gt_id, cam, t_frag + skew.get(cam, 0.0),
+                               None, "", to_bbox(cfg, pos)))
+                # 關鍵:斷軌前後是同一個人,位置只移動了 0.5 秒的距離
+                pos = step_pos(cfg, pos, 0.5, rng)
                 events.append(("enter", chef.gt_id, cam, t_frag + 0.5 + skew.get(cam, 0.0),
                                observe(chef.anchor, cfg.app_mu_same, cfg.app_sigma_same, rng),
-                               "fragment"))
+                               "fragment", to_bbox(cfg, pos)))
                 t = t_frag + 0.5
     events.sort(key=lambda e: e[3])
     return events

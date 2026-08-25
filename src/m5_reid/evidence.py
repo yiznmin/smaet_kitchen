@@ -298,6 +298,67 @@ class AppearanceLR:
                 f"最大證據 {self.max_abs_llr():.2f} nats)")
 
 
+# ── 位置證據(僅限同一台鏡頭)────────────────────────────────────────────
+
+class PositionLR:
+    """同鏡頭前後兩次觀測的位移證據:log p(位移|同一人) − log p(位移|不同人)。
+
+    ⚠ **只在同一台鏡頭內有意義。** 跨鏡頭的影像座標是不同的座標系,沒有外參
+      校正就不可比 —— 硬比會得到隨機結果。所以本類只用在 M4 斷軌的重關聯上。
+
+    為什麼需要它:實測(2026-08-25 預先登記那輪)顯示,同鏡頭重關聯**只用時間**
+    會讓誤併率翻倍(4.8%→10.2%)—— 因為同一台鏡頭裡有多位廚師時,時間分不出
+    斷軌的片段屬於誰。位置可以。
+
+    模型(尺度不變,用「人身高」當單位,所以不需要知道實際公尺數):
+      · 同一人:短暫斷軌期間位移小。速度約 0.5 身高/秒(廚房步速 0.9 m/s ÷ 1.7 m),
+        位移向量 ~ 各向同性高斯,σ = speed·Δt + 量測雜訊
+      · 不同人:進場位置與離場位置無關 → 大致均勻散布在畫面上,密度 = 1/畫面面積
+
+      LLR = log A − log(2πσ²) − d²/(2σ²)      d = 位移 / 平均身高,A = 畫面面積(身高²)
+    """
+
+    def __init__(self, speed_bh_per_s=0.5, noise_bh=0.3, frame_span_bh=6.0, clip=8.0,
+                 uniform_mix=0.05):
+        self.speed = float(speed_bh_per_s)
+        self.noise = float(noise_bh)
+        self.span = float(frame_span_bh)
+        self.area = self.span ** 2                 # 畫面面積,以身高² 為單位
+        self.clip = float(clip)
+        # 「同一人」的位置分布不可能比「均勻散布在畫面上」更分散 —— 人再怎麼走
+        # 也走不出畫面。σ 若無上限地隨 Δt 成長,長間隔時它的密度會低於均勻分布,
+        # 反而給出莫名的負證據。用畫面的均勻分布標準差當上限。
+        self.sigma_max = self.span / math.sqrt(12.0)
+        # 少量均勻成分:偵測跳框、被完全遮擋後從別處出現等。同時把 LLR 的下界
+        # 夾在 log(uniform_mix),避免單一離群位置給出無限大的反證。
+        self.eps = float(uniform_mix)
+
+    @staticmethod
+    def _foot_and_height(bbox):
+        x1, y1, x2, y2 = bbox
+        return ((x1 + x2) / 2.0, float(y2)), max(abs(y2 - y1), 1e-6)
+
+    def llr(self, bbox_exit, bbox_enter, dt):
+        """兩個 bbox 皆為同一鏡頭的 (x1,y1,x2,y2)。任一為 None 則回 0(無證據)。"""
+        if bbox_exit is None or bbox_enter is None:
+            return 0.0
+        (ex, ey), he = self._foot_and_height(bbox_exit)
+        (nx, ny), hn = self._foot_and_height(bbox_enter)
+        h = 0.5 * (he + hn)
+        d = math.hypot(nx - ex, ny - ey) / h        # 以身高為單位的位移
+        sigma = min(self.speed * max(dt, 0.0) + self.noise, self.sigma_max)
+        gauss = math.exp(-d * d / (2 * sigma * sigma)) / (2 * math.pi * sigma * sigma)
+        p_same = (1.0 - self.eps) * gauss + self.eps / self.area
+        p_diff = 1.0 / self.area
+        v = math.log(p_same / p_diff)
+        return max(-self.clip, min(self.clip, v))
+
+    def describe(self):
+        return (f"PositionLR(速度 {self.speed:.2f} 身高/秒, 雜訊 {self.noise:.2f} 身高, "
+                f"畫面 {math.sqrt(self.area):.1f}×{math.sqrt(self.area):.1f} 身高, "
+                f"夾 ±{self.clip:.0f} nats)")
+
+
 # ── 決策門檻 ──────────────────────────────────────────────────────────────
 
 def decision_threshold(cost_false_merge_over_break=5.0, prior_odds=1.0):

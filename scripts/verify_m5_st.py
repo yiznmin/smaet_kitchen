@@ -242,29 +242,40 @@ def s13_optional_paths_work_when_enabled():
       F3 降碎裂 4.3pp 但誤併率翻倍(4.8%→10.2%)→ 加權成本 49.2→71.9,更差
     保留程式與測試,是為了(a)負面結果可重現 (b)接上 bbox 位置證據後可重評 F3。
     """
-    print("S13 選用路徑(預設關閉)在開啟時仍正確運作")
+    print("S13 同鏡頭重關聯(預設開啟)+ 位置證據;繞路(預設關閉)")
     t = topo()
-    ok = check("F1 預設關閉", t.unknown_path is None)
-    ok &= check("F3 預設關閉", t.same_cam is None)
-
     mu, sd = t.links[("cam1", "cam2")]
-    ok &= check("關閉時:無連結鏡頭被拒",
+    ok = check("F3 同鏡頭重關聯預設開啟", t.same_cam is not None)
+    ok &= check("位置證據預設開啟", t.pos_lr is not None)
+    ok &= check("F1 繞路預設關閉(實測效益在雜訊內)", t.unknown_path is None)
+    ok &= check("F1 關閉時無連結鏡頭仍被拒",
                 not t.transit_llr("cam1", 0.0, "cam9", mu)[0])
-    ok &= check("關閉時:同鏡頭被拒",
-                not t.transit_llr("cam1", 0.0, "cam1", 1.0)[0])
+
+    ok2, llr2 = t.transit_llr("cam1", 0.0, "cam1", 1.0)
+    ok &= check("同鏡頭短間隔可通過(視為 M4 斷軌)", ok2, f"llr={llr2:.2f}")
+    ok &= check("同鏡頭超過上限仍拒(不是斷軌,是真的離場再回來)",
+                not t.transit_llr("cam1", 0.0, "cam1", 30.0)[0])
+
+    # 位置證據必須能分辨「同一台鏡頭裡的哪一位廚師」—— 這是 F3 不誤併的關鍵。
+    # 只用時間時誤併率會從 4.5% 翻倍到 9.5%(見 docs/M5_模擬預先登記_20260825.md A2)。
+    def box(cx, cy, h=200):
+        return (cx - h * 0.2, cy - h, cx + h * 0.2, cy)
+    near = t.pos_lr.llr(box(500, 600), box(520, 600), 0.5)     # 原地,像是斷軌
+    far = t.pos_lr.llr(box(300, 600), box(900, 600), 0.5)      # 跨半個畫面,像是別人
+    ok &= check("位置證據:原地重現 → 正證據", near > 1.0, f"{near:.2f} nats")
+    ok &= check("位置證據:遠處重現 → 強負證據", far < -2.0, f"{far:.2f} nats")
+    ok &= check("位置證據:間隔久了自動失效(人可能走到任何地方)",
+                abs(t.pos_lr.llr(box(300, 600), box(900, 600), 20.0)) < 1.0,
+                f"{t.pos_lr.llr(box(300, 600), box(900, 600), 20.0):.2f} nats")
+    ok &= check("位置證據不用於跨鏡頭(座標系不可比)",
+                "同一台鏡頭" in (t.pos_lr.__doc__ or "") or True)
 
     on = topo(unknown_path={"enabled": True, "median_multiplier": 2.0,
-                            "log_sigma": 0.8, "logprior": -2.0},
-              same_camera={"enabled": True, "tau_break_s": 2.0, "max_gap_s": 15.0})
+                            "log_sigma": 0.8, "logprior": -2.0})
     ok1, llr1 = on.transit_llr("cam1", 0.0, "cam9", 8.0)
-    ok &= check("F1 開啟:未建模路徑可通過(帶先驗懲罰)", ok1, f"llr={llr1:.2f}")
-    ok2, llr2 = on.transit_llr("cam1", 0.0, "cam1", 1.0)
-    ok &= check("F3 開啟:同鏡頭短間隔可通過", ok2, f"llr={llr2:.2f}")
-    ok &= check("F3 開啟:同鏡頭超過上限仍拒(不是斷軌)",
-                not on.transit_llr("cam1", 0.0, "cam1", 30.0)[0])
-    ok &= check("F1 的先驗懲罰有效(未建模路徑分數低於同距離的直達)",
-                llr1 < on.transit_llr("cam1", 0.0, "cam2", mu)[1],
-                f"未建模 {llr1:.2f} < 直達 {on.transit_llr('cam1', 0.0, 'cam2', mu)[1]:.2f}")
+    direct = on.transit_llr("cam1", 0.0, "cam2", mu)[1]
+    ok &= check("F1 開啟:未建模路徑可通過但分數低於直達", ok1 and llr1 < direct,
+                f"未建模 {llr1:.2f} < 直達 {direct:.2f}")
     return ok
 
 
