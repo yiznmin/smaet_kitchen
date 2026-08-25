@@ -33,6 +33,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from m5_reid import metrics                                        # noqa: E402
 from m5_reid.evidence import AppearanceLR, HistogramParzenTransit  # noqa: E402
 from m5_reid.identity_st import SpatioTemporalIdentityManager      # noqa: E402
+from m5_reid.refine import OfflineRefiner                          # noqa: E402
 from m5_reid.spatiotemporal import CameraTopology                  # noqa: E402
 from m5_sim import world as W                                      # noqa: E402
 
@@ -54,7 +55,12 @@ def _with_fusion(**over):
     return t
 
 
-def run_once(wcfg, topo, ablation="full", ttl_s=600.0):
+def run_once(wcfg, topo, ablation="full", ttl_s=600.0, refine=None):
+    """refine = None 或 dict(use_refine=, use_headcount=, window=, min_llr=)。
+
+    離線精修跑在事件流結束後,把暫定 chef_id 重新映射 —— 對應真實系統的
+    「線上先給暫定編號、數分鐘後修正才寫進 M8」。
+    """
     """跑一次模擬,回傳 records = [(gt_id, pred_id, matched, is_transition)]。"""
     events = W.generate(wcfg, topo.links, topo.all_cameras(), topo.link_zones)
 
@@ -68,6 +74,13 @@ def run_once(wcfg, topo, ablation="full", ttl_s=600.0):
         return recs, tags
 
     m = SpatioTemporalIdentityManager(topo, fps=1.0, recently_disappeared_ttl=ttl_s)
+    ref = None
+    if refine:
+        ref = OfflineRefiner(topo, expected_headcount=wcfg.n_chefs,
+                             refine_window_s=refine.get("window", 900.0),
+                             min_merge_llr=refine.get("min_llr", 1.0),
+                             use_headcount=refine.get("use_headcount", False),
+                             use_refine=refine.get("use_refine", False))
     recs, tags, seen, tid = [], [], set(), {}
     for kind, gt, cam, t, emb, tag, box, zn in events:
         f = int(t)
@@ -79,11 +92,25 @@ def run_once(wcfg, topo, ablation="full", ttl_s=600.0):
             recs.append((gt, r.chef_id, r.matched, gt in seen))
             tags.append(tag)
             seen.add(gt)
+            if ref is not None:
+                ref.record(r.chef_id, cam, t, embedding=emb, zone=zn, bbox=box)
         else:
             key = tid.get((gt, cam), 1) * 1000 + gt
             m.on_track_lost(key, camera_id=cam, frame_id=f, t_sec=t, bbox=box, zone=zn)
             m.on_track_removed(key, camera_id=cam, frame_id=f + 1, t_sec=t + 1.0,
                                bbox=box, zone=zn)
+    if ref is not None:
+        ref.refine()
+        # ⚠ 指標必須從**修正後的編號序列**重算,不能沿用線上的 matched 旗標。
+        #   線上判「開新 chef」的那次,若離線合併回去了,就不該再算成碎裂 ——
+        #   否則離線精修的效果完全反映不出來(所有變體數字會一模一樣)。
+        #   重新定義 matched = 「這個(修正後的)編號在此之前已經存在」。
+        seen_ids, fixed = set(), []
+        for gt, p, _mt, tr in recs:
+            rp = ref.resolve(p)
+            fixed.append((gt, rp, rp in seen_ids, tr))
+            seen_ids.add(rp)
+        recs = fixed
     return recs, tags
 
 
@@ -307,15 +334,21 @@ def compare_fixes(wcfg, reps, budget_break, budget_fm):
     for gap in [5.0, 30.0]:
         v = {"same_camera": {**F3["same_camera"], "max_gap_s": gap}}
         variants.append((f"+F3(含位置), 上限={gap:.0f}s", build(**{**OFF, **v})))
-    # ── 第三輪登記網格:方向(docs/M5_模擬預先登記_方向_20260825.md §3)──
-    BASE3 = {**OFF, **F3}
-    variants.append(("[現況] 方向關閉", build(**BASE3)))
-    for qz in [0.70, 0.85, 0.95]:
-        for err in [0.0, 0.15, 0.35]:
-            variants.append((f"方向 q={qz:.2f} 標註誤差={err:.0%}",
-                             build(**BASE3, direction={"enabled": True, "q": qz,
-                                                       "n_zones": 3, "clip": 6.0}),
-                             dict(q_zone=qz, zone_error_rate=err)))
+    # ── 第四輪登記網格:離線重關聯 + 人數約束(docs/M5_模擬預先登記_離線重關聯_*)──
+    BASE4 = {**OFF, **F3}
+    R = lambda **kw: dict(dict(use_refine=False, use_headcount=False,
+                               window=900.0, min_llr=1.0), **kw)
+    variants.append(("[現況] 三者皆關", build(**BASE4), {}, None))
+    for w in [300.0, 900.0]:
+        variants.append((f"G1 離線重關聯 窗={w:.0f}s", build(**BASE4), {},
+                         R(use_refine=True, window=w)))
+    for ml in [0.0, 1.0]:
+        variants.append((f"G2 人數約束 min_llr={ml:.1f}", build(**BASE4), {},
+                         R(use_headcount=True, min_llr=ml)))
+    variants.append(("G1+G2", build(**BASE4), {},
+                     R(use_refine=True, use_headcount=True)))
+    variants.append(("G1+G2 窗=300s", build(**BASE4), {},
+                     R(use_refine=True, use_headcount=True, window=300.0)))
 
     print(f"  {'設定':<28}{'碎裂率':>9}{'誤併率':>9}{'正常轉場碎裂':>13}{'等級':>6}")
     print("  " + "-" * 70)
@@ -323,13 +356,14 @@ def compare_fixes(wcfg, reps, budget_break, budget_fm):
     for entry in variants:
         name, tp = entry[0], entry[1]
         world_over = entry[2] if len(entry) > 2 else {}
+        refine_cfg = entry[3] if len(entry) > 3 else None
         pb, fm, normal_b = [], [], []
         for r in range(reps):
             w = copy.deepcopy(wcfg)
             for k_, v_ in world_over.items():
                 setattr(w, k_, v_)
             w.rng = np.random.RandomState(3000 + r)
-            rc, tg = run_once(w, tp)
+            rc, tg = run_once(w, tp, refine=refine_cfg)
             s = metrics.summarize(rc)
             if s["p_break"] is None:
                 continue
