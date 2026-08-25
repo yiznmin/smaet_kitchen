@@ -45,6 +45,9 @@ class WorldConfig:
                  app_mu_same=0.490, app_sigma_same=0.10, app_mu_diff=0.465,
                  # γ=0 用實測可分性;γ→1 模擬同制服(可分性趨近 0)
                  gamma_uniform=0.0,
+                 # 全景鏡頭:一台看得到整個廚房的鏡頭。每位廚師全程在它畫面裡,
+                 # 唯一的身份遺失路徑是它自己因遮擋而斷軌(master_fragment_rate)。
+                 master_camera=None, master_fragment_rate=0.05,
                  # 方向:走連結時使用「對應 zone」的機率;zone_error 是標註/幾何誤差
                  n_zones=3, q_zone=0.85, zone_error_rate=0.0,
                  # 畫面幾何:以「人身高」為單位。frame_span_bh 見 PositionLR。
@@ -214,8 +217,48 @@ def generate(cfg, links, all_cameras, link_zones=None):
                                observe(chef.anchor, cfg.app_mu_same, cfg.app_sigma_same, rng),
                                "fragment", to_bbox(cfg, pos), pick_zone(cfg, rng)))
                 t = t_frag + 0.5
+    if cfg.master_camera:
+        events += _master_events(cfg, events, rng)
     events.sort(key=lambda e: e[3])
     return events
+
+
+def _master_events(cfg, events, rng):
+    """全景鏡頭的事件流:每位廚師從首次出現到最後一次出現,全程在畫面裡。
+
+    唯一會中斷的原因是遮擋(中島、抽油煙機、其他人)→ master_fragment_rate。
+    斷掉之後立刻重新出現(人沒走,只是被擋住),所以同鏡頭重關聯路徑會接手。
+    """
+    span = {}
+    for kind, gt, cam, t, emb, tag, box, zn in events:
+        lo, hi = span.get(gt, (t, t))
+        span[gt] = (min(lo, t), max(hi, t))
+
+    out = []
+    mc = cfg.master_camera
+    for gt, (t0, t1) in span.items():
+        anchor = _l2(rng.randn(cfg.dim))
+        pos = rand_pos(cfg, rng)
+        t = t0
+        out.append(("enter", gt, mc, t, observe(anchor, cfg.app_mu_same,
+                                                cfg.app_sigma_same, rng),
+                    "first", to_bbox(cfg, pos), pick_zone(cfg, rng)))
+        while t < t1:
+            # 下一次遮擋斷軌。rate 越高,平均連續時間越短。
+            gap = rng.exponential(max(60.0 / max(cfg.master_fragment_rate, 1e-6), 1.0))
+            t_break = min(t + gap, t1)
+            if t_break >= t1:
+                break
+            pos = step_pos(cfg, pos, t_break - t, rng)
+            out.append(("leave", gt, mc, t_break, None, "", to_bbox(cfg, pos),
+                        pick_zone(cfg, rng)))
+            t = t_break + rng.uniform(0.3, 2.0)          # 被擋住一下下就又看到
+            pos = step_pos(cfg, pos, t - t_break, rng)
+            out.append(("enter", gt, mc, t, observe(anchor, cfg.app_mu_same,
+                                                    cfg.app_sigma_same, rng),
+                        "fragment", to_bbox(cfg, pos), pick_zone(cfg, rng)))
+        out.append(("leave", gt, mc, t1, None, "", to_bbox(cfg, pos), pick_zone(cfg, rng)))
+    return out
 
 
 def m4_defect_rates(tracks_csv=None):

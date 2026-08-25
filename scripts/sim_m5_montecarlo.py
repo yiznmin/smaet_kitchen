@@ -334,21 +334,16 @@ def compare_fixes(wcfg, reps, budget_break, budget_fm):
     for gap in [5.0, 30.0]:
         v = {"same_camera": {**F3["same_camera"], "max_gap_s": gap}}
         variants.append((f"+F3(含位置), 上限={gap:.0f}s", build(**{**OFF, **v})))
-    # ── 第四輪登記網格:離線重關聯 + 人數約束(docs/M5_模擬預先登記_離線重關聯_*)──
-    BASE4 = {**OFF, **F3}
-    R = lambda **kw: dict(dict(use_refine=False, use_headcount=False,
-                               window=900.0, min_llr=1.0), **kw)
-    variants.append(("[現況] 三者皆關", build(**BASE4), {}, None))
-    for w in [300.0, 900.0]:
-        variants.append((f"G1 離線重關聯 窗={w:.0f}s", build(**BASE4), {},
-                         R(use_refine=True, window=w)))
-    for ml in [0.0, 1.0]:
-        variants.append((f"G2 人數約束 min_llr={ml:.1f}", build(**BASE4), {},
-                         R(use_headcount=True, min_llr=ml)))
-    variants.append(("G1+G2", build(**BASE4), {},
-                     R(use_refine=True, use_headcount=True)))
-    variants.append(("G1+G2 窗=300s", build(**BASE4), {},
-                     R(use_refine=True, use_headcount=True, window=300.0)))
+    # ── 第五輪登記網格:全景鏡頭(docs/M5_模擬預先登記_全景鏡頭_20260825.md §3)──
+    BASE5 = {**OFF, **F3}
+    variants.append(("[現況] 無全景鏡頭", build(**BASE5), {}, None))
+    for mfr in [0.02, 0.05, 0.15]:
+        # 全景鏡頭與所有鏡頭重疊 → 幾何路徑取代時間推測
+        tp = build(**BASE5)
+        tp.overlapping |= {frozenset(("master", c)) for c in ["cam1", "cam2", "cam3"]}
+        tp.cameras.setdefault("master", {})
+        variants.append((f"全景鏡頭 遮擋斷軌={mfr:.0%}", tp, {},
+                         None, dict(master_camera="master", master_fragment_rate=mfr)))
 
     print(f"  {'設定':<28}{'碎裂率':>9}{'誤併率':>9}{'正常轉場碎裂':>13}{'等級':>6}")
     print("  " + "-" * 70)
@@ -357,6 +352,7 @@ def compare_fixes(wcfg, reps, budget_break, budget_fm):
         name, tp = entry[0], entry[1]
         world_over = entry[2] if len(entry) > 2 else {}
         refine_cfg = entry[3] if len(entry) > 3 else None
+        world_over = {**world_over, **(entry[4] if len(entry) > 4 else {})}
         pb, fm, normal_b = [], [], []
         for r in range(reps):
             w = copy.deepcopy(wcfg)

@@ -6,6 +6,8 @@
 
 track_id 各鏡頭不全域唯一 → 內部一律用 (camera_id, track_id) 當 key。
 """
+import math
+
 from m5_reid.embedder import l2norm
 from m5_reid.identity import ChefIdentity, IdentityManager, MatchResult, cosine
 from m5_reid.spatiotemporal import CameraTopology
@@ -99,16 +101,37 @@ class SpatioTemporalIdentityManager(IdentityManager):
                 score = w_st * sp + w_app * app
             cands.append((score, cid, app))
 
-        # (b) active + 重疊相機 + 同時刻:幾何關聯(不需靠時間分布)
+        # (b) 該 chef 此刻正被某台「與本鏡頭重疊」的相機看著 → 幾何關聯
+        #
+        # ⚠ 判斷依據是 chef.track_ids(目前綁定中的所有 (鏡頭, track)),**不是**
+        #   _cam 的時間戳。踩過的坑:原本用 `_cam` 並要求 |Δt| ≤ 0.5s,但 _cam 只在
+        #   「綁定事件」發生時更新,而「這個人現在正在畫面裡」是一個**持續狀態**,
+        #   不是事件。M4 每幀都會輸出當前 active 的 tracks,但 M5 只吃事件,
+        #   所以它無從得知誰此刻在畫面上 —— 重疊路徑因此幾乎從不觸發。
+        #   全景鏡頭方案第一次跑時碎裂率完全沒降,根因就是這個。
+        overlap_pool = {}          # 重疊鏡頭 -> 此刻在該鏡頭裡的 chef 數
+        for chef in self.active.values():
+            for c, _t in chef.track_ids:
+                if c != camera_id and self.topo.is_overlapping(c, camera_id):
+                    overlap_pool[c] = overlap_pool.get(c, 0) + 1
+
         for cid, chef in self.active.items():
-            ct = self._cam.get(cid)
-            if ct is None or ct[0] == camera_id:
+            cams = {c for c, _t in chef.track_ids
+                    if c != camera_id and self.topo.is_overlapping(c, camera_id)}
+            if not cams:
                 continue
-            if self.topo.is_overlapping(ct[0], camera_id) and abs(t - ct[1]) <= self.f["overlap_window_s"]:
-                app = cosine(emb, chef.embedding)
-                score = (self.f["overlap_llr"] + self.topo.app_lr.llr(app)) if llr_mode \
-                    else (w_st * 1.0 + w_app * app)
-                cands.append((score, cid, app))
+            # ⚠ 「重疊鏡頭裡有人」不等於「就是這一個人」。若該鏡頭此刻有 K 位廚師,
+            #   這條證據只說得出「是那 K 個之中的一個」→ 證據量要除以 K。
+            #   沒有這一項的話,多人同時在場時重疊路徑會無差別地給滿分,誤併爆增。
+            #   真正要收緊它需要**跨鏡頭的地面平面校正(homography)**,才能比對
+            #   「兩台鏡頭看到的是不是地面上同一個點」。本版尚未實作,故只做稀釋。
+            k = max(min(overlap_pool.get(c, 1) for c in cams), 1)
+            app = cosine(emb, chef.embedding)
+            if llr_mode:
+                score = self.f["overlap_llr"] - math.log(k) + self.topo.app_lr.llr(app)
+            else:
+                score = w_st * 1.0 + w_app * app
+            cands.append((score, cid, app))
 
         # 候選數是本架構最關鍵的診斷量:若幾乎總是 1,外觀品質根本不影響結果。
         self.last_candidates = len(cands)
