@@ -56,13 +56,20 @@ camera_topology:
     # ── 共用 ───────────────────────────────────────────────────────────
     overlap_window_s: 0.5               # 重疊相機「同時刻」容許誤差(秒)
 
+    # 方向證據(出入口 zone)。與轉場時間正交:走對門的人不管走了多久都更可能是
+    # 同一人;走錯門的人時間再吻合也會被扣分。q = 走連結時使用「對應 zone」的機率。
+    direction: { enabled: false, q: 0.85, n_zones: 3, clip: 6.0 }
+
   # 有向連結 + 轉場時間(秒)。雙向請各寫一條(A→B 與 B→A 可不同)。
   # ⚠ 隱含約束:min(μ) 必須大於 M4 的 lost_track_buffer / fps(預設 30/30 = 1.0 秒),
   #   否則走得快的廚師在進入 gone gallery 之前就抵達下一鏡頭 → 必定開新 chef_id。
   #   這條約束目前沒有任何地方自動檢查,見 analyze_gate_capacity.py §3。
   links:
-    - { from: cam1, to: cam2, mean_s: 4.0, std_s: 1.5 }
-    - { from: cam2, to: cam1, mean_s: 4.5, std_s: 1.6 }
+    # exit_zone / entry_zone:方向證據用。指「從哪個出入口離開/進入」。
+    # 這是 CLM 四線索裡的「移動方向」,與轉場時間正交 —— 走對門的人不管走了
+    # 多久都更可能是同一人,走錯門的人時間再吻合也會被扣分。
+    - { from: cam1, to: cam2, mean_s: 4.0, std_s: 1.5, exit_zone: 1, entry_zone: 0 }
+    - { from: cam2, to: cam1, mean_s: 4.5, std_s: 1.6, exit_zone: 0, entry_zone: 1 }
 
   # 重疊相機對(同一時刻可用幾何關聯,不需靠轉場時間)
   overlapping:
@@ -85,13 +92,14 @@ camera_topology:
     cam2: { clock_offset_s: 0.0 }
     cam3: { clock_offset_s: 0.0 }
 
-# ── 已移除的設定 ──────────────────────────────────────────────────────
-# 原本這裡有 `cameras: {cam1: {entry_zones: [...], exit_zones: [...]}}`,
-# 但**從未被任何程式讀取**(CameraTopology.from_config 只取 links/overlapping/fusion),
-# 且引用的 zone 名(門口/走道/灶台區)與 configs/zones.json 實際存在的
-# (地板/冰箱/灶台/洗手台/造台下方櫃)完全對不上,zones.json 也只有單一鏡頭、
-# 沒有 camera_id 維度。留著會誤導填寫者以為它有作用,故移除。
+# ── 方向證據的歷史 ────────────────────────────────────────────────────
+# 2026-08-24:原本有 `cameras.*.entry_zones/exit_zones`,但從未被任何程式讀取,
+#   且引用的 zone 名與 configs/zones.json 實際存在的完全對不上 → 當作死設定移除。
+#   當時的理由是「沒有實測資料,無從驗證它有沒有幫助」。
+# 2026-08-25:蒙地卡羅證明時間軸的資訊量已用盡(見 docs/M5_模擬預先登記_逗留_*),
+#   方向是 CLM 四線索裡唯一還沒動用的 → 以 links 的 exit_zone/entry_zone 重新實作,
+#   這次**真的被讀**(CameraTopology.link_zones → direction_llr)。
 #
-# 現況:方向線索只做到「有向連結」這一層(A→B 與 B→A 可有不同的轉場時間分布),
-# 沒有做到「從哪個門走出去」。要補這一層需要業主逐鏡頭標出入口多邊形,
-# 以目前只有平面圖的狀況不合理,且沒有實測資料無從驗證它有沒有幫助。
+# 真實部署時 zone 要從 bbox 經 src/m5_reid/spatiotemporal.py 的 which_zone() 判定,
+# 需要業主逐鏡頭標出入口多邊形。值不值得付這個標註成本,由模擬的
+# zone_error_rate 掃描決定 —— 見 docs/M5_模擬預先登記_方向_20260825.md。

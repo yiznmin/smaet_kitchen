@@ -45,6 +45,8 @@ class WorldConfig:
                  app_mu_same=0.490, app_sigma_same=0.10, app_mu_diff=0.465,
                  # γ=0 用實測可分性;γ→1 模擬同制服(可分性趨近 0)
                  gamma_uniform=0.0,
+                 # 方向:走連結時使用「對應 zone」的機率;zone_error 是標註/幾何誤差
+                 n_zones=3, q_zone=0.85, zone_error_rate=0.0,
                  # 畫面幾何:以「人身高」為單位。frame_span_bh 見 PositionLR。
                  body_px=200.0, frame_span_bh=6.0,
                  dim=64, seed=0):
@@ -79,6 +81,21 @@ def make_anchors(n, mu_same, mu_diff, gamma, dim, rng):
         e = _l2(e - (e @ u) * u)                    # 與共同分量正交
         anchors.append(_l2(np.sqrt(c) * u + np.sqrt(max(0.0, 1 - c)) * e))
     return anchors
+
+
+def pick_zone(cfg, rng, expected=None):
+    """走連結時以 q_zone 的機率使用「對應的 zone」,否則隨機;再疊上標註誤差。
+
+    zone_error_rate 模擬業主標錯 zone 或 bbox→zone 的幾何誤判 —— 這是決定
+    「值不值得要求業主付標註成本」的關鍵參數。
+    """
+    if expected is not None and rng.rand() < cfg.q_zone:
+        z = expected
+    else:
+        z = int(rng.randint(cfg.n_zones))
+    if rng.rand() < cfg.zone_error_rate:          # 觀測被污染
+        z = int(rng.randint(cfg.n_zones))
+    return z
 
 
 def rand_pos(cfg, rng):
@@ -122,10 +139,10 @@ def sample_transit(cfg, rng, want_tag=False):
     return (float(dt), loitered) if want_tag else float(dt)
 
 
-def generate(cfg, links, all_cameras):
+def generate(cfg, links, all_cameras, link_zones=None):
     """產生事件流。
 
-    回傳 [(kind, gt_id, camera, t_observed, embedding, tag, bbox)]。
+    回傳 [(kind, gt_id, camera, t_observed, embedding, tag, bbox, zone)]。
     t_observed 已加上該鏡頭的時鐘漂移(系統看到的就是這個,不是真值)。
     tag 標明這次抵達的成因,供失效分解用:
       first    首次入場(不是轉場,不計入碎裂/誤併)
@@ -143,6 +160,7 @@ def generate(cfg, links, all_cameras):
     out_links = {}
     for (a, b) in links:
         out_links.setdefault(a, []).append(b)
+    lz = link_zones or {}
 
     events = []
     for chef in chefs:
@@ -151,16 +169,13 @@ def generate(cfg, links, all_cameras):
         pos = rand_pos(cfg, rng)
         events.append(("enter", chef.gt_id, cam, t + skew.get(cam, 0.0),
                        observe(chef.anchor, cfg.app_mu_same, cfg.app_sigma_same, rng),
-                       "first", to_bbox(cfg, pos)))
+                       "first", to_bbox(cfg, pos), pick_zone(cfg, rng)))
         while t < cfg.duration_s:
             stay = rng.exponential(cfg.transition_interval_s)
             t_leave = t + stay
             if t_leave > cfg.duration_s:
                 break
             pos = step_pos(cfg, pos, t_leave - t, rng)      # 停留期間有走動
-            events.append(("leave", chef.gt_id, cam, t_leave + skew.get(cam, 0.0),
-                           None, "", to_bbox(cfg, pos)))
-
             nxt = out_links.get(cam, [])
             detour = rng.rand() < cfg.p_detour or not nxt
             if detour:                                  # 走了拓撲沒建模的路徑
@@ -171,6 +186,11 @@ def generate(cfg, links, all_cameras):
                 dest = nxt[rng.randint(len(nxt))]
                 dt, loitered = sample_transit(cfg, rng, want_tag=True)
                 tag = "loiter" if loitered else "normal"
+            # 離場 zone 取決於「等一下要走哪條連結」→ 這正是方向證據的來源
+            want = lz.get((cam, dest), (None, None))
+            events.append(("leave", chef.gt_id, cam, t_leave + skew.get(cam, 0.0),
+                           None, "", to_bbox(cfg, pos),
+                           pick_zone(cfg, rng, None if detour else want[0])))
             t = t_leave + dt
             if t > cfg.duration_s:
                 break
@@ -181,17 +201,18 @@ def generate(cfg, links, all_cameras):
             pos = rand_pos(cfg, rng)                        # 換鏡頭 → 新座標系,重抽
             events.append(("enter", chef.gt_id, cam, t + skew.get(cam, 0.0),
                            observe(chef.anchor, cfg.app_mu_same, cfg.app_sigma_same, rng),
-                           tag, to_bbox(cfg, pos)))
+                           tag, to_bbox(cfg, pos),
+                           pick_zone(cfg, rng, None if detour else want[1])))
             if rng.rand() < cfg.m4_fragment_rate:       # M4 斷軌 → 同鏡頭再開一個 track
                 t_frag = t + rng.exponential(5.0)
                 pos = step_pos(cfg, pos, t_frag - t, rng)
                 events.append(("leave", chef.gt_id, cam, t_frag + skew.get(cam, 0.0),
-                               None, "", to_bbox(cfg, pos)))
+                               None, "", to_bbox(cfg, pos), pick_zone(cfg, rng)))
                 # 關鍵:斷軌前後是同一個人,位置只移動了 0.5 秒的距離
                 pos = step_pos(cfg, pos, 0.5, rng)
                 events.append(("enter", chef.gt_id, cam, t_frag + 0.5 + skew.get(cam, 0.0),
                                observe(chef.anchor, cfg.app_mu_same, cfg.app_sigma_same, rng),
-                               "fragment", to_bbox(cfg, pos)))
+                               "fragment", to_bbox(cfg, pos), pick_zone(cfg, rng)))
                 t = t_frag + 0.5
     events.sort(key=lambda e: e[3])
     return events

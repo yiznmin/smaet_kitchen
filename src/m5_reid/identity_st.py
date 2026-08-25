@@ -61,7 +61,7 @@ class SpatioTemporalIdentityManager(IdentityManager):
         return self.topo.corrected(camera_id, raw) if camera_id is not None else raw
 
     def on_new_track(self, track_id, *, camera_id=None, frame_id=0, t_sec=None,
-                     crop=None, embedding=None, bbox=None):
+                     crop=None, embedding=None, bbox=None, zone=None):
         self.tick(frame_id)
         t = self._t(frame_id, t_sec, camera_id)
         emb = l2norm(embedding if embedding is not None else self.embedder.extract(crop))
@@ -88,6 +88,9 @@ class SpatioTemporalIdentityManager(IdentityManager):
                 if ex[0] == camera_id and self.topo.pos_lr is not None:
                     score += self.topo.pos_lr.llr(ex[2] if len(ex) > 2 else None,
                                                   bbox, t - ex[1])
+                # 方向證據:與 Δt 正交,所以能幫到逗留者(時間軸上救不了的那些)
+                score += self.topo.direction_llr(ex[0], camera_id,
+                                                 ex[3] if len(ex) > 3 else None, zone)
             else:
                 ok, sp = self.topo.transition_gate(ex[0], ex[1], camera_id, t)
                 if not ok:
@@ -149,7 +152,8 @@ class SpatioTemporalIdentityManager(IdentityManager):
     # 若在 lost 就標 gone,該 chef 會永遠卡在 gone、綁定永久遺失。
     # 因此:lost → 只記預備出口;reacquired → 撤銷;removed → 才真的離場。
 
-    def on_track_lost(self, track_id, *, camera_id=None, frame_id=0, t_sec=None, bbox=None):
+    def on_track_lost(self, track_id, *, camera_id=None, frame_id=0, t_sec=None,
+                      bbox=None, zone=None):
         """進 ByteTrack lost。只記「預備出口」(含離場位置),不動 chef 狀態。
 
         bbox 是 M4 該 track 最後已知的位置,同鏡頭重關聯要靠它分辨斷軌前後是不是
@@ -160,11 +164,11 @@ class SpatioTemporalIdentityManager(IdentityManager):
         if cid is None:
             return None
         self._pending_exit[gk] = (camera_id, self._t(frame_id, t_sec, camera_id),
-                                  frame_id, bbox)
+                                  frame_id, bbox, zone)
         return cid
 
     def on_track_reacquired(self, track_id, *, camera_id=None, frame_id=0, t_sec=None,
-                            bbox=None):
+                            bbox=None, zone=None):
         """從 lost 找回(人沒走,只是被擋住)→ 撤銷預備出口,chef 維持 active。"""
         gk = self._key(track_id, camera_id)
         self._pending_exit.pop(gk, None)
@@ -178,7 +182,7 @@ class SpatioTemporalIdentityManager(IdentityManager):
         return cid
 
     def on_track_removed(self, track_id, *, camera_id=None, frame_id=0, t_sec=None,
-                         bbox=None):
+                         bbox=None, zone=None):
         """lost buffer 到期 → 真正離場。
 
         ⚠ 出口時間戳取自 lost_track 當時,不是 removed 當時。用 removed 的話,
@@ -188,10 +192,10 @@ class SpatioTemporalIdentityManager(IdentityManager):
         gk = self._key(track_id, camera_id)
         pending = self._pending_exit.pop(gk, None)
         if pending is not None:
-            exit_cam, exit_t, exit_frame, exit_box = pending
+            exit_cam, exit_t, exit_frame, exit_box, exit_zone = pending
         else:                              # 沒收到 lost 就直接 removed(理論上不該發生)
-            exit_cam, exit_t, exit_frame, exit_box = (
-                camera_id, self._t(frame_id, t_sec, camera_id), frame_id, bbox)
+            exit_cam, exit_t, exit_frame, exit_box, exit_zone = (
+                camera_id, self._t(frame_id, t_sec, camera_id), frame_id, bbox, zone)
 
         cid = self.track_to_chef.pop(gk, None)
         if cid is None:
@@ -206,6 +210,6 @@ class SpatioTemporalIdentityManager(IdentityManager):
             chef.state = "gone"
             self.active.pop(cid, None)
             self.gone[cid] = chef
-            self._exit[cid] = (exit_cam, exit_t, exit_box)
+            self._exit[cid] = (exit_cam, exit_t, exit_box, exit_zone)
             self._cam.pop(cid, None)
         return cid

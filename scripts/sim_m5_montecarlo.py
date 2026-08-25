@@ -56,11 +56,11 @@ def _with_fusion(**over):
 
 def run_once(wcfg, topo, ablation="full", ttl_s=600.0):
     """跑一次模擬,回傳 records = [(gt_id, pred_id, matched, is_transition)]。"""
-    events = W.generate(wcfg, topo.links, topo.all_cameras())
+    events = W.generate(wcfg, topo.links, topo.all_cameras(), topo.link_zones)
 
     if ablation == "all_new":                      # 基線:從不綁定
         recs, seen, tags = [], set(), []
-        for kind, gt, cam, t, emb, tag, box in events:
+        for kind, gt, cam, t, emb, tag, box, zn in events:
             if kind == "enter":
                 recs.append((gt, f"new{len(recs)}", False, gt in seen))
                 tags.append(tag)
@@ -69,20 +69,21 @@ def run_once(wcfg, topo, ablation="full", ttl_s=600.0):
 
     m = SpatioTemporalIdentityManager(topo, fps=1.0, recently_disappeared_ttl=ttl_s)
     recs, tags, seen, tid = [], [], set(), {}
-    for kind, gt, cam, t, emb, tag, box in events:
+    for kind, gt, cam, t, emb, tag, box, zn in events:
         f = int(t)
         if kind == "enter":
             tid[(gt, cam)] = tid.get((gt, cam), 0) + 1
             key = tid[(gt, cam)] * 1000 + gt
             r = m.on_new_track(key, camera_id=cam, frame_id=f, t_sec=t, embedding=emb,
-                               bbox=box)
+                               bbox=box, zone=zn)
             recs.append((gt, r.chef_id, r.matched, gt in seen))
             tags.append(tag)
             seen.add(gt)
         else:
             key = tid.get((gt, cam), 1) * 1000 + gt
-            m.on_track_lost(key, camera_id=cam, frame_id=f, t_sec=t, bbox=box)
-            m.on_track_removed(key, camera_id=cam, frame_id=f + 1, t_sec=t + 1.0, bbox=box)
+            m.on_track_lost(key, camera_id=cam, frame_id=f, t_sec=t, bbox=box, zone=zn)
+            m.on_track_removed(key, camera_id=cam, frame_id=f + 1, t_sec=t + 1.0,
+                               bbox=box, zone=zn)
     return recs, tags
 
 
@@ -306,26 +307,27 @@ def compare_fixes(wcfg, reps, budget_break, budget_fm):
     for gap in [5.0, 30.0]:
         v = {"same_camera": {**F3["same_camera"], "max_gap_s": gap}}
         variants.append((f"+F3(含位置), 上限={gap:.0f}s", build(**{**OFF, **v})))
-    # ── 第二輪登記網格:逗留(docs/M5_模擬預先登記_逗留_20260825.md §3)──
-    #    F3(含位置)固定開啟、F1 固定關閉,只掃逗留相關的三個旋鈕。
-    BASE2 = {**OFF, **F3}
-    for dist in ["exp", "lognormal"]:
-        for pl in [0.15, 0.30, 0.50]:
-            for hz, hzl in [(1/600, "1/600"), (1/1800, "1/1800"), (1/3600, "1/3600")]:
-                if dist == "exp" and pl == 0.15 and abs(hz - 1/600) < 1e-9:
-                    label = "[現況] exp p=0.15 λ=1/600"
-                else:
-                    label = f"{dist} p={pl:.2f} λ={hzl}"
-                variants.append((label, build(**BASE2, loiter_dist=dist, p_loiter=pl,
-                                              background_arrival_hz=hz)))
+    # ── 第三輪登記網格:方向(docs/M5_模擬預先登記_方向_20260825.md §3)──
+    BASE3 = {**OFF, **F3}
+    variants.append(("[現況] 方向關閉", build(**BASE3)))
+    for qz in [0.70, 0.85, 0.95]:
+        for err in [0.0, 0.15, 0.35]:
+            variants.append((f"方向 q={qz:.2f} 標註誤差={err:.0%}",
+                             build(**BASE3, direction={"enabled": True, "q": qz,
+                                                       "n_zones": 3, "clip": 6.0}),
+                             dict(q_zone=qz, zone_error_rate=err)))
 
     print(f"  {'設定':<28}{'碎裂率':>9}{'誤併率':>9}{'正常轉場碎裂':>13}{'等級':>6}")
     print("  " + "-" * 70)
     rows = []
-    for name, tp in variants:
+    for entry in variants:
+        name, tp = entry[0], entry[1]
+        world_over = entry[2] if len(entry) > 2 else {}
         pb, fm, normal_b = [], [], []
         for r in range(reps):
             w = copy.deepcopy(wcfg)
+            for k_, v_ in world_over.items():
+                setattr(w, k_, v_)
             w.rng = np.random.RandomState(3000 + r)
             rc, tg = run_once(w, tp)
             s = metrics.summarize(rc)

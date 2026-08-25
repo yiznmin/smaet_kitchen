@@ -380,6 +380,58 @@ class PositionLR:
                 f"夾 ±{self.clip:.0f} nats)")
 
 
+# ── 方向證據(出入口 zone)────────────────────────────────────────────────
+
+class DirectionLR:
+    """走對門沒有?出入口 zone 的對數概似比。
+
+    這是 CLM 四線索(拓撲、轉場時間、移動方向、外觀)裡最後一個被實作的。
+    前兩輪失敗的共同模式是:所有旋鈕都沿著**時間軸**放寬,而「逗留的人」與
+    「不相干的人剛好出現」在時間軸上就是重疊的 → 必然零和交換。
+
+    方向與 Δt 正交:
+      · 走對門的人 **不管走了多久** 都更可能是同一人 → 對逗留者提供固定證據
+      · 走錯門的人 **時間再吻合也拿到負證據** → 壓低誤併
+
+        LLR = log[P(觀測 zone | 走這條連結) / P(該 zone | 背景)]   (出口 + 入口各一)
+        P(符合 | 走這條連結) = q,其餘 zone 均分 (1−q)
+        P(任一 zone | 背景)  = 1/n_zones
+
+    ⚠ 模擬用離散 zone 標籤;真實部署要從 bbox 經 which_zone() 判定,
+      會多一層幾何誤差 → 模擬結果是**樂觀上界**。
+    """
+
+    def __init__(self, q=0.85, n_zones=3, clip=6.0):
+        self.q = float(q)
+        self.n = int(n_zones)
+        self.clip = float(clip)
+
+    def _endpoint_llr(self, observed, expected):
+        if observed is None or expected is None:
+            return 0.0                      # 沒標 zone → 不提供證據(不是負證據)
+        if observed == expected:
+            p = self.q
+        else:
+            p = (1.0 - self.q) / max(self.n - 1, 1)
+        if p <= 0:
+            return -self.clip
+        return math.log(p * self.n)         # 除以背景機率 1/n
+
+    def llr(self, exit_zone, expected_exit, enter_zone, expected_enter):
+        v = (self._endpoint_llr(exit_zone, expected_exit)
+             + self._endpoint_llr(enter_zone, expected_enter))
+        return max(-self.clip, min(self.clip, v))
+
+    def max_llr(self):
+        """兩端都走對時的證據量(nats)。與判定門檻比大小就知道夠不夠。"""
+        return 2 * math.log(self.q * self.n)
+
+    def describe(self):
+        return (f"DirectionLR(q={self.q:.2f}, {self.n} 個 zone, "
+                f"走對兩端 +{self.max_llr():.2f} nats, "
+                f"走錯一端 {self._endpoint_llr('a', 'b'):+.2f} nats)")
+
+
 # ── 決策門檻 ──────────────────────────────────────────────────────────────
 
 def decision_threshold(cost_false_merge_over_break=5.0, prior_odds=1.0):

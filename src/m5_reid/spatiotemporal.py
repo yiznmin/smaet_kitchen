@@ -64,6 +64,8 @@ _DEFAULT_FUSION = {
     # F3 於 2026-08-25 接上位置證據後改為**預設開啟**:含位置時誤併率回到基準
     # (9.5%→4.5%)且保留碎裂改善(24.4%→19.8%),加權成本 46.9→42.3。
     "same_camera": {"enabled": True, "tau_break_s": 2.0, "max_gap_s": 15.0},
+    # 方向證據(出入口 zone)。CLM 四線索裡最後一個;與 Δt 正交,見 DirectionLR。
+    "direction": {"enabled": False, "q": 0.85, "n_zones": 3, "clip": 6.0},
     # 位置證據(僅同鏡頭適用)。F3 只用時間時誤併率翻倍,位置是收緊它的關鍵。
     "position": {"enabled": True, "speed_bh_per_s": 0.5, "noise_bh": 0.3,
                  "frame_span_bh": 6.0, "clip": 8.0},
@@ -78,6 +80,9 @@ _DEFAULT_FUSION = {
 class CameraTopology:
     def __init__(self, links, overlapping, fusion=None, cameras=None, clock=None):
         self.links = {(l["from"], l["to"]): (float(l["mean_s"]), float(l["std_s"])) for l in links}
+        # 每條連結對應的出入口 zone(方向證據用)。沒填就是 None → 不提供證據。
+        self.link_zones = {(l["from"], l["to"]): (l.get("exit_zone"), l.get("entry_zone"))
+                           for l in links}
         self.overlapping = set(frozenset(p) for p in overlapping)
         self.fusion = {**_DEFAULT_FUSION, **(fusion or {})}
         # 每台相機的時鐘偏移(秒)。整套 CLM 建立在 t_exit 與 t_enter 同一時基上;
@@ -109,7 +114,7 @@ class CameraTopology:
 
     def _build_evidence(self):
         """建 v3 需要的轉場模型與外觀 LR。mode=weighted_sum 時不會被用到。"""
-        from m5_reid.evidence import (AppearanceLR, PositionLR, SameCameraTransit,
+        from m5_reid.evidence import (AppearanceLR, DirectionLR, PositionLR, SameCameraTransit,
                                       UnknownPathTransit, decision_threshold, make_transit)
         f = self.fusion
         kw = {}
@@ -137,6 +142,10 @@ class CameraTopology:
         self.same_cam = SameCameraTransit(
             tau_break_s=float(sc.get("tau_break_s", 2.0)),
             max_gap_s=float(sc.get("max_gap_s", 15.0))) if sc.get("enabled") else None
+        d = f.get("direction") or {}
+        self.dir_lr = DirectionLR(q=float(d.get("q", 0.85)),
+                                  n_zones=int(d.get("n_zones", 3)),
+                                  clip=float(d.get("clip", 6.0))) if d.get("enabled") else None
         pos = f.get("position") or {}
         self.pos_lr = PositionLR(
             speed_bh_per_s=float(pos.get("speed_bh_per_s", 0.5)),
@@ -195,6 +204,15 @@ class CameraTopology:
         if abs(dt - mean) > self.fusion["k_sigma"] * std:  # 超出時間窗
             return (False, 0.0)
         return (True, st_prob(dt, mean, std))
+
+    def direction_llr(self, cam_from, cam_to, exit_zone, enter_zone):
+        """走對門沒有?只在有拓撲連結、且該連結有標 zone 時提供證據。"""
+        if self.dir_lr is None:
+            return 0.0
+        want = self.link_zones.get((cam_from, cam_to))
+        if want is None:
+            return 0.0
+        return self.dir_lr.llr(exit_zone, want[0], enter_zone, want[1])
 
     def transit_llr(self, cam_from, t_exit, cam_to, t_enter):
         """v3:轉場時間的對數勝算比 log p(Δt|同一人) − log λ_bg。
