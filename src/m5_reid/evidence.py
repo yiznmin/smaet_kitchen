@@ -380,6 +380,59 @@ class PositionLR:
                 f"夾 ±{self.clip:.0f} nats)")
 
 
+# ── 地面平面證據(跨鏡頭,需 homography 校正)──────────────────────────────
+
+class GroundPlaneLR:
+    """兩台鏡頭推得的**世界座標**距離,對數概似比。
+
+    這是唯一能回答「重疊視野裡的是**哪一個**人」的證據。
+    在它之前,重疊路徑只能說「那台鏡頭裡有人」,於是 K 位廚師同時在場時
+    只能亂猜 —— 第五輪實測誤併 6.8% 就是這麼來的。
+
+        LLR = log A − log(2πσ²) − d²/(2σ²)
+        d = 兩台鏡頭推得的世界座標距離(公尺)
+        σ = 標定殘差 + 腳點偵測誤差(公尺)
+        A = 重疊區面積(m²),「不同人」時位置大致均勻散布的範圍
+
+    與同鏡頭的 PositionLR 是同一套數學,差別只在單位:
+    PositionLR 用「人身高」(因為沒有校正,只能求尺度不變);
+    本類用真實公尺(因為有 homography)。
+
+    ⚠ σ 必須遠小於「兩人之間的典型距離」(廚房約 1~2 m),否則分不出誰是誰。
+      A=30 m² 時:σ=0.2 給 +4.8/−23.3 nats(極強);σ=1.5 給 +0.75/+0.25(幾乎無)。
+
+    ⚠ 它取代 `overlap_llr = 5.0` 這個常數 —— 那是編的,性質同 v2 那個
+      被批評的魔數 0.35。這是架構裡最後一個沒有物理依據的參數。
+    """
+
+    def __init__(self, sigma_m=0.4, area_m2=30.0, clip=8.0, speed_mps=0.9):
+        self.sigma = float(sigma_m)
+        self.speed = float(speed_mps)      # 兩次觀測之間人可能走多遠
+        self.area = float(area_m2)
+        self.clip = float(clip)
+        # 與 PositionLR 同樣的物理約束:「同一人」的分布不可能比「均勻散布在
+        # 重疊區」更分散,否則長距離時會給出莫名的負證據。
+        self.sigma_max = math.sqrt(self.area / 12.0)
+
+    def llr(self, xy_a, xy_b, dt=0.0):
+        """兩個世界座標 (x, y),單位公尺。dt = 兩次觀測相隔幾秒。
+
+        dt > 0 時要把「這段時間人可能走多遠」算進不確定度,否則會拿舊位置
+        跟新位置比,把真正的同一人判成位置對不上。dt 大到一定程度後
+        σ 會被 sigma_max 夾住 → 證據自然趨近 0(我們確實什麼都不知道)。
+        """
+        if xy_a is None or xy_b is None:
+            return 0.0
+        d = math.hypot(xy_a[0] - xy_b[0], xy_a[1] - xy_b[1])
+        s = min(math.hypot(self.sigma, self.speed * max(dt, 0.0)), self.sigma_max)
+        v = math.log(self.area) - math.log(2 * math.pi * s * s) - d * d / (2 * s * s)
+        return max(-self.clip, min(self.clip, v))
+
+    def describe(self):
+        return (f"GroundPlaneLR(σ={self.sigma:.2f}m, 重疊區 {self.area:.0f}m², "
+                f"同人 {self.llr((0,0),(0,0)):+.2f} / 相距1.5m {self.llr((0,0),(1.5,0)):+.2f} nats)")
+
+
 # ── 方向證據(出入口 zone)────────────────────────────────────────────────
 
 class DirectionLR:

@@ -24,6 +24,7 @@ class SpatioTemporalIdentityManager(IdentityManager):
         self._exit = {}         # chef_id -> (camera_id, t_sec, bbox) 離場資訊
         self._cam = {}          # chef_id -> (camera_id, t_sec) 目前所在(active)
         self._pending_exit = {} # (cam, track) -> (cam, t_sec, frame_id, bbox)
+        self._world = {}        # chef_id -> 最近一次觀測到的世界座標(公尺)
         # 診斷:每次綁定決策有幾個候選通過物理可能性檢查。索引 5 代表「5 個以上」。
         # 這是本架構最關鍵的觀測量 —— 若幾乎總是 1,外觀品質對結果沒有影響。
         self._cand_hist = [0] * 6
@@ -45,11 +46,12 @@ class SpatioTemporalIdentityManager(IdentityManager):
         """
         self._exit.pop(chef_id, None)
         self._cam.pop(chef_id, None)
+        self._world.pop(chef_id, None)
 
     def resident_stats(self):
         s = super().resident_stats()
         s.update({"_exit": len(self._exit), "_cam": len(self._cam),
-                  "_pending_exit": len(self._pending_exit)})
+                  "_pending_exit": len(self._pending_exit), "_world": len(self._world)})
         return s
 
     def _t(self, frame_id, t_sec, camera_id=None):
@@ -63,7 +65,7 @@ class SpatioTemporalIdentityManager(IdentityManager):
         return self.topo.corrected(camera_id, raw) if camera_id is not None else raw
 
     def on_new_track(self, track_id, *, camera_id=None, frame_id=0, t_sec=None,
-                     crop=None, embedding=None, bbox=None, zone=None):
+                     crop=None, embedding=None, bbox=None, zone=None, world_xy=None):
         self.tick(frame_id)
         t = self._t(frame_id, t_sec, camera_id)
         emb = l2norm(embedding if embedding is not None else self.embedder.extract(crop))
@@ -125,12 +127,24 @@ class SpatioTemporalIdentityManager(IdentityManager):
             #   沒有這一項的話,多人同時在場時重疊路徑會無差別地給滿分,誤併爆增。
             #   真正要收緊它需要**跨鏡頭的地面平面校正(homography)**,才能比對
             #   「兩台鏡頭看到的是不是地面上同一個點」。本版尚未實作,故只做稀釋。
-            k = max(min(overlap_pool.get(c, 1) for c in cams), 1)
             app = cosine(emb, chef.embedding)
-            if llr_mode:
-                score = self.f["overlap_llr"] - math.log(k) + self.topo.app_lr.llr(app)
+            if not llr_mode:
+                cands.append((w_st * 1.0 + w_app * app, cid, app))
+                continue
+            if self.topo.ground_lr is not None and world_xy is not None:
+                # 有地面校正:直接問「是不是站在同一個位置」,不必稀釋。
+                # ⚠ 但要把「上次觀測到現在」的可能移動算進不確定度 —— 否則會拿
+                #   舊位置跟新位置比,把對的綁定當成位置對不上而擋掉。
+                g = self._world.get(cid)
+                if g is None:
+                    continue
+                score = (self.topo.ground_lr.llr(g[0], world_xy, dt=t - g[1])
+                         + self.topo.app_lr.llr(app))
             else:
-                score = w_st * 1.0 + w_app * app
+                # 無校正:只知道「那台鏡頭裡有人」。若該鏡頭此刻有 K 位廚師,
+                # 這條證據只說得出「是 K 個之中的一個」→ 證據量除以 K。
+                k = max(min(overlap_pool.get(c, 1) for c in cams), 1)
+                score = self.f["overlap_llr"] - math.log(k) + self.topo.app_lr.llr(app)
             cands.append((score, cid, app))
 
         # 候選數是本架構最關鍵的診斷量:若幾乎總是 1,外觀品質根本不影響結果。
@@ -150,6 +164,8 @@ class SpatioTemporalIdentityManager(IdentityManager):
             chef.embedding = l2norm(self.ema * chef.embedding + (1 - self.ema) * emb)
             self.track_to_chef[gk] = best_id
             self._cam[best_id] = (camera_id, t)
+            if world_xy is not None:
+                self._world[best_id] = (world_xy, t)
             return MatchResult(track_id, best_id, True, round(best_score, 4), frame_id)
 
         cid = self._next                                        # 開新廚師
@@ -157,9 +173,34 @@ class SpatioTemporalIdentityManager(IdentityManager):
         self.active[cid] = ChefIdentity(cid, emb, [gk], "active", frame_id, frame_id)
         self.track_to_chef[gk] = cid
         self._cam[cid] = (camera_id, t)
+        if world_xy is not None:
+            self._world[cid] = (world_xy, t)
         # 無候選時 best_score 是 -inf;回 0.0 表示「沒有任何證據」而非「證據為負」
         shown = 0.0 if best_score == float("-inf") else round(best_score, 4)
         return MatchResult(track_id, cid, False, shown, frame_id)
+
+    def on_track_update(self, track_id, *, camera_id=None, frame_id=0, t_sec=None,
+                        world_xy=None, bbox=None):
+        """M4 每幀(或每隔幾幀)回報「這條 track 還在,現在在這裡」。
+
+        ⚠ 這個介面是**地面校正的前提**,不是可有可無的優化。
+          M5 原本只吃事件(new_track / lost / removed),所以它只知道每位 chef
+          **上次綁定時**在哪裡。全景鏡頭的 track 是連續的、中間沒有綁定事件,
+          於是比對「30 秒前的位置」與「現在的位置」→ 距離很大 → 強負證據 →
+          把對的綁定擋掉(實測碎裂從 0.2% 暴增到 22.7%)。
+
+          這與第五輪踩到的 `_cam` 時間戳問題是同一個結構性缺口:
+          **M4 每幀輸出 active tracks,但 M5 只吃事件。**
+          第五輪用 chef.track_ids 繞過了「誰在畫面裡」,但「在哪個位置」繞不過。
+        """
+        cid = self.track_to_chef.get(self._key(track_id, camera_id))
+        if cid is None:
+            return None
+        t = self._t(frame_id, t_sec, camera_id)
+        self._cam[cid] = (camera_id, t)
+        if world_xy is not None:
+            self._world[cid] = (world_xy, t)
+        return cid
 
     def candidate_histogram(self):
         """回傳 {候選數: 次數}。'5' 代表 5 個以上。

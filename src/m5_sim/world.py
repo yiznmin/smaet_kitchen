@@ -45,6 +45,10 @@ class WorldConfig:
                  app_mu_same=0.490, app_sigma_same=0.10, app_mu_diff=0.465,
                  # γ=0 用實測可分性;γ→1 模擬同制服(可分性趨近 0)
                  gamma_uniform=0.0,
+                 # 地面座標:廚房尺寸(公尺)與各鏡頭的標定殘差。
+                 # ⚠ 不模擬 homography 的估計過程,直接注入殘差 —— 要問的是
+                 #   「殘差多大還能用」,不是「怎麼估 homography」。
+                 kitchen_m=(10.0, 6.0), calib_sigma_m=0.4, calib_bias_m=0.15,
                  # 全景鏡頭:一台看得到整個廚房的鏡頭。每位廚師全程在它畫面裡,
                  # 唯一的身份遺失路徑是它自己因遮擋而斷軌(master_fragment_rate)。
                  master_camera=None, master_fragment_rate=0.05,
@@ -101,6 +105,32 @@ def pick_zone(cfg, rng, expected=None):
     return z
 
 
+def rand_world(cfg, rng):
+    """廚房地面上的隨機位置(公尺)。"""
+    W, H = cfg.kitchen_m
+    return (float(rng.rand() * W), float(rng.rand() * H))
+
+
+def step_world(cfg, xy, dt, rng, speed=0.9):
+    """經過 dt 秒後的世界座標。廚房步速 0.9 m/s,撞牆夾住。"""
+    W, H = cfg.kitchen_m
+    sd = speed * max(dt, 0.0) / 1.4          # 隨機遊走,非直線
+    return (float(min(max(xy[0] + rng.randn() * sd, 0.0), W)),
+            float(min(max(xy[1] + rng.randn() * sd, 0.0), H)))
+
+
+def observe_world(cfg, xy, cam, rng, _bias={}):
+    """某台鏡頭「透過 homography 推得」的世界座標 = 真值 + 該台的系統性偏差 + 噪聲。
+
+    系統性偏差每台固定(標定時的殘差),噪聲每次不同(腳點偵測誤差)。
+    """
+    if cam not in _bias:
+        _bias[cam] = (rng.randn() * cfg.calib_bias_m, rng.randn() * cfg.calib_bias_m)
+    bx, by = _bias[cam]
+    return (float(xy[0] + bx + rng.randn() * cfg.calib_sigma_m),
+            float(xy[1] + by + rng.randn() * cfg.calib_sigma_m))
+
+
 def rand_pos(cfg, rng):
     """畫面內的隨機落點(以像素表示,身高 = body_px)。"""
     span = cfg.frame_span_bh * cfg.body_px
@@ -145,7 +175,7 @@ def sample_transit(cfg, rng, want_tag=False):
 def generate(cfg, links, all_cameras, link_zones=None):
     """產生事件流。
 
-    回傳 [(kind, gt_id, camera, t_observed, embedding, tag, bbox, zone)]。
+    回傳 [(kind, gt_id, camera, t_observed, embedding, tag, bbox, zone, world_xy)]。
     t_observed 已加上該鏡頭的時鐘漂移(系統看到的就是這個,不是真值)。
     tag 標明這次抵達的成因,供失效分解用:
       first    首次入場(不是轉場,不計入碎裂/誤併)
@@ -166,19 +196,25 @@ def generate(cfg, links, all_cameras, link_zones=None):
     lz = link_zones or {}
 
     events = []
+    traj = {}          # gt_id -> [(t, 真實世界座標)] 供全景鏡頭取樣同一條軌跡
     for chef in chefs:
         cam = cams[rng.randint(len(cams))]
         t = rng.rand() * cfg.transition_interval_s
         pos = rand_pos(cfg, rng)
+        wxy = rand_world(cfg, rng)
+        traj.setdefault(chef.gt_id, []).append((t, wxy))
         events.append(("enter", chef.gt_id, cam, t + skew.get(cam, 0.0),
                        observe(chef.anchor, cfg.app_mu_same, cfg.app_sigma_same, rng),
-                       "first", to_bbox(cfg, pos), pick_zone(cfg, rng)))
+                       "first", to_bbox(cfg, pos), pick_zone(cfg, rng),
+                       observe_world(cfg, wxy, cam, rng)))
         while t < cfg.duration_s:
             stay = rng.exponential(cfg.transition_interval_s)
             t_leave = t + stay
             if t_leave > cfg.duration_s:
                 break
             pos = step_pos(cfg, pos, t_leave - t, rng)      # 停留期間有走動
+            wxy = step_world(cfg, wxy, t_leave - t, rng)
+            traj[chef.gt_id].append((t_leave, wxy))
             nxt = out_links.get(cam, [])
             detour = rng.rand() < cfg.p_detour or not nxt
             if detour:                                  # 走了拓撲沒建模的路徑
@@ -193,7 +229,8 @@ def generate(cfg, links, all_cameras, link_zones=None):
             want = lz.get((cam, dest), (None, None))
             events.append(("leave", chef.gt_id, cam, t_leave + skew.get(cam, 0.0),
                            None, "", to_bbox(cfg, pos),
-                           pick_zone(cfg, rng, None if detour else want[0])))
+                           pick_zone(cfg, rng, None if detour else want[0]),
+                           observe_world(cfg, wxy, cam, rng)))
             t = t_leave + dt
             if t > cfg.duration_s:
                 break
@@ -201,48 +238,91 @@ def generate(cfg, links, all_cameras, link_zones=None):
                 cam = dest
                 continue
             cam = dest
-            pos = rand_pos(cfg, rng)                        # 換鏡頭 → 新座標系,重抽
+            pos = rand_pos(cfg, rng)                        # 換鏡頭 → 新影像座標系,重抽
+            wxy = step_world(cfg, wxy, dt, rng)             # 世界座標是連續的
+            traj[chef.gt_id].append((t, wxy))
             events.append(("enter", chef.gt_id, cam, t + skew.get(cam, 0.0),
                            observe(chef.anchor, cfg.app_mu_same, cfg.app_sigma_same, rng),
                            tag, to_bbox(cfg, pos),
-                           pick_zone(cfg, rng, None if detour else want[1])))
+                           pick_zone(cfg, rng, None if detour else want[1]),
+                           observe_world(cfg, wxy, cam, rng)))
             if rng.rand() < cfg.m4_fragment_rate:       # M4 斷軌 → 同鏡頭再開一個 track
                 t_frag = t + rng.exponential(5.0)
                 pos = step_pos(cfg, pos, t_frag - t, rng)
+                wxy = step_world(cfg, wxy, t_frag - t, rng)
                 events.append(("leave", chef.gt_id, cam, t_frag + skew.get(cam, 0.0),
-                               None, "", to_bbox(cfg, pos), pick_zone(cfg, rng)))
+                               None, "", to_bbox(cfg, pos), pick_zone(cfg, rng),
+                               observe_world(cfg, wxy, cam, rng)))
                 # 關鍵:斷軌前後是同一個人,位置只移動了 0.5 秒的距離
                 pos = step_pos(cfg, pos, 0.5, rng)
                 events.append(("enter", chef.gt_id, cam, t_frag + 0.5 + skew.get(cam, 0.0),
                                observe(chef.anchor, cfg.app_mu_same, cfg.app_sigma_same, rng),
-                               "fragment", to_bbox(cfg, pos), pick_zone(cfg, rng)))
+                               "fragment", to_bbox(cfg, pos), pick_zone(cfg, rng),
+                               observe_world(cfg, wxy, cam, rng)))
                 t = t_frag + 0.5
     if cfg.master_camera:
-        events += _master_events(cfg, events, rng)
-    events.sort(key=lambda e: e[3])
+        events += _master_events(cfg, events, rng, traj,
+                                 {c.gt_id: c.anchor for c in chefs})
+    # 同一時刻時,「心跳」必須排在「進場」之前 —— 否則位置資訊到得太晚,
+    # 綁定決策當下拿到的還是舊位置,地面校正等於沒接上。
+    events.sort(key=lambda e: (e[3], 0 if e[0] == "update" else 1))
     return events
 
 
-def _master_events(cfg, events, rng):
+def _world_at(traj_pts, t):
+    """在該廚師的真實軌跡上取 t 時刻的位置(最近鄰)。
+
+    全景鏡頭必須觀測到**與其他鏡頭同一個**世界座標,否則地面校正證據就是假的
+    ——它會變成在比對兩條無關的軌跡。
+    """
+    best, bd = traj_pts[0][1], abs(traj_pts[0][0] - t)
+    for tt, xy in traj_pts:
+        d = abs(tt - t)
+        if d < bd:
+            bd, best = d, xy
+    return best
+
+
+def _master_events(cfg, events, rng, traj, anchors):
     """全景鏡頭的事件流:每位廚師從首次出現到最後一次出現,全程在畫面裡。
 
     唯一會中斷的原因是遮擋(中島、抽油煙機、其他人)→ master_fragment_rate。
     斷掉之後立刻重新出現(人沒走,只是被擋住),所以同鏡頭重關聯路徑會接手。
     """
     span = {}
-    for kind, gt, cam, t, emb, tag, box, zn in events:
+    for kind, gt, cam, t, emb, tag, box, zn, wxy in events:
         lo, hi = span.get(gt, (t, t))
         span[gt] = (min(lo, t), max(hi, t))
+
+    # 別台鏡頭的進場時刻 —— 心跳只需要在這些瞬間之前送到
+    enters = sorted({t for kind, gt, cam, t, *_ in events
+                     if kind == "enter" and cam != cfg.master_camera})
+
+    def beats(gt, pts, a, b, mc, rng):
+        """在 [a,b] 這段「track 確實活著」的區間內,於每個別台進場時刻回報位置。
+
+        ⚠ 只在活著的區間發 —— 斷軌空檔沒有 track,回報了也沒有對應的 chef。
+          真實系統就是這樣:M4 每幀輸出當前 active tracks,track 不在就沒有它。
+        """
+        return [("update", gt, mc, t, None, "", None, None,
+                 observe_world(cfg, _world_at(pts, t), mc, rng))
+                for t in enters if a <= t <= b]
 
     out = []
     mc = cfg.master_camera
     for gt, (t0, t1) in span.items():
-        anchor = _l2(rng.randn(cfg.dim))
+        # ⚠ 必須用**該廚師本人的**錨點。踩過的坑:這裡原本重新抽一個隨機錨點,
+        #   於是全景鏡頭與其他鏡頭的外觀完全無關 → 跨鏡頭 cosine ≈ 0 →
+        #   外觀證據給 −1.2 nats,把地面證據的 +2.5 拖到門檻以下 → 全部綁不上。
+        #   那是模擬的 bug,不是系統的性質。
+        anchor = anchors[gt]
         pos = rand_pos(cfg, rng)
         t = t0
+        pts = traj.get(gt) or [(t0, rand_world(cfg, rng))]
         out.append(("enter", gt, mc, t, observe(anchor, cfg.app_mu_same,
                                                 cfg.app_sigma_same, rng),
-                    "first", to_bbox(cfg, pos), pick_zone(cfg, rng)))
+                    "first", to_bbox(cfg, pos), pick_zone(cfg, rng),
+                    observe_world(cfg, _world_at(pts, t), mc, rng)))
         while t < t1:
             # 下一次遮擋斷軌。rate 越高,平均連續時間越短。
             gap = rng.exponential(max(60.0 / max(cfg.master_fragment_rate, 1e-6), 1.0))
@@ -250,14 +330,20 @@ def _master_events(cfg, events, rng):
             if t_break >= t1:
                 break
             pos = step_pos(cfg, pos, t_break - t, rng)
+            out += beats(gt, pts, t, t_break, mc, rng)      # 這段 track 活著
             out.append(("leave", gt, mc, t_break, None, "", to_bbox(cfg, pos),
-                        pick_zone(cfg, rng)))
+                        pick_zone(cfg, rng),
+                        observe_world(cfg, _world_at(pts, t_break), mc, rng)))
             t = t_break + rng.uniform(0.3, 2.0)          # 被擋住一下下就又看到
             pos = step_pos(cfg, pos, t - t_break, rng)
             out.append(("enter", gt, mc, t, observe(anchor, cfg.app_mu_same,
                                                     cfg.app_sigma_same, rng),
-                        "fragment", to_bbox(cfg, pos), pick_zone(cfg, rng)))
-        out.append(("leave", gt, mc, t1, None, "", to_bbox(cfg, pos), pick_zone(cfg, rng)))
+                        "fragment", to_bbox(cfg, pos), pick_zone(cfg, rng),
+                        observe_world(cfg, _world_at(pts, t), mc, rng)))
+        out += beats(gt, pts, t, t1, mc, rng)              # 最後一段
+        out.append(("leave", gt, mc, t1, None, "", to_bbox(cfg, pos), pick_zone(cfg, rng),
+                    observe_world(cfg, _world_at(pts, t1), mc, rng)))
+
     return out
 
 

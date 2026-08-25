@@ -66,7 +66,7 @@ def run_once(wcfg, topo, ablation="full", ttl_s=600.0, refine=None):
 
     if ablation == "all_new":                      # 基線:從不綁定
         recs, seen, tags = [], set(), []
-        for kind, gt, cam, t, emb, tag, box, zn in events:
+        for kind, gt, cam, t, emb, tag, box, zn, wxy in events:
             if kind == "enter":
                 recs.append((gt, f"new{len(recs)}", False, gt in seen))
                 tags.append(tag)
@@ -82,13 +82,17 @@ def run_once(wcfg, topo, ablation="full", ttl_s=600.0, refine=None):
                              use_headcount=refine.get("use_headcount", False),
                              use_refine=refine.get("use_refine", False))
     recs, tags, seen, tid = [], [], set(), {}
-    for kind, gt, cam, t, emb, tag, box, zn in events:
+    for kind, gt, cam, t, emb, tag, box, zn, wxy in events:
         f = int(t)
+        if kind == "update":                 # 心跳:只更新位置,不做綁定決策
+            m.on_track_update(tid.get((gt, cam), 1) * 1000 + gt, camera_id=cam,
+                              frame_id=f, t_sec=t, world_xy=wxy)
+            continue
         if kind == "enter":
             tid[(gt, cam)] = tid.get((gt, cam), 0) + 1
             key = tid[(gt, cam)] * 1000 + gt
             r = m.on_new_track(key, camera_id=cam, frame_id=f, t_sec=t, embedding=emb,
-                               bbox=box, zone=zn)
+                               bbox=box, zone=zn, world_xy=wxy)
             recs.append((gt, r.chef_id, r.matched, gt in seen))
             tags.append(tag)
             seen.add(gt)
@@ -334,16 +338,25 @@ def compare_fixes(wcfg, reps, budget_break, budget_fm):
     for gap in [5.0, 30.0]:
         v = {"same_camera": {**F3["same_camera"], "max_gap_s": gap}}
         variants.append((f"+F3(含位置), 上限={gap:.0f}s", build(**{**OFF, **v})))
-    # ── 第五輪登記網格:全景鏡頭(docs/M5_模擬預先登記_全景鏡頭_20260825.md §3)──
-    BASE5 = {**OFF, **F3}
-    variants.append(("[現況] 無全景鏡頭", build(**BASE5), {}, None))
-    for mfr in [0.02, 0.05, 0.15]:
-        # 全景鏡頭與所有鏡頭重疊 → 幾何路徑取代時間推測
-        tp = build(**BASE5)
+    # ── 第六輪登記網格:地面校正(docs/M5_模擬預先登記_地面校正_20260825.md §4)──
+    MASTER = dict(master_camera="master", master_fragment_rate=0.05)
+
+    def with_master(**fusion):
+        tp = build(**{**OFF, **F3}, **fusion)
         tp.overlapping |= {frozenset(("master", c)) for c in ["cam1", "cam2", "cam3"]}
         tp.cameras.setdefault("master", {})
-        variants.append((f"全景鏡頭 遮擋斷軌={mfr:.0%}", tp, {},
-                         None, dict(master_camera="master", master_fragment_rate=mfr)))
+        return tp
+
+    variants.append(("[現況] 全景鏡頭,無地面校正", with_master(), {}, None, MASTER))
+    for sg in [0.2, 0.4, 0.8, 1.5]:
+        variants.append((f"+ 地面校正 σ={sg:.1f}m", with_master(
+            ground_plane={"enabled": True, "sigma_m": sg, "area_m2": 30.0, "clip": 8.0}),
+            {}, None, dict(MASTER, calib_sigma_m=sg)))
+    # 預測 3:人越多,地面校正的效益越大
+    variants.append(("[8人] 無地面校正", with_master(), {}, None, dict(MASTER, n_chefs=8)))
+    variants.append(("[8人] + 地面校正 σ=0.4m", with_master(
+        ground_plane={"enabled": True, "sigma_m": 0.4, "area_m2": 30.0, "clip": 8.0}),
+        {}, None, dict(MASTER, n_chefs=8, calib_sigma_m=0.4)))
 
     print(f"  {'設定':<28}{'碎裂率':>9}{'誤併率':>9}{'正常轉場碎裂':>13}{'等級':>6}")
     print("  " + "-" * 70)

@@ -66,6 +66,9 @@ _DEFAULT_FUSION = {
     "same_camera": {"enabled": True, "tau_break_s": 2.0, "max_gap_s": 15.0},
     # 方向證據(出入口 zone)。CLM 四線索裡最後一個;與 Δt 正交,見 DirectionLR。
     "direction": {"enabled": False, "q": 0.85, "n_zones": 3, "clip": 6.0},
+    # 跨鏡頭地面校正(homography)。開啟後取代 overlap_llr 常數 —— 它能回答
+    # 「重疊視野裡的是哪一個人」,而 overlap_llr 只能說「那裡有人」。
+    "ground_plane": {"enabled": False, "sigma_m": 0.4, "area_m2": 30.0, "clip": 8.0},
     # 位置證據(僅同鏡頭適用)。F3 只用時間時誤併率翻倍,位置是收緊它的關鍵。
     "position": {"enabled": True, "speed_bh_per_s": 0.5, "noise_bh": 0.3,
                  "frame_span_bh": 6.0, "clip": 8.0},
@@ -114,8 +117,9 @@ class CameraTopology:
 
     def _build_evidence(self):
         """建 v3 需要的轉場模型與外觀 LR。mode=weighted_sum 時不會被用到。"""
-        from m5_reid.evidence import (AppearanceLR, DirectionLR, PositionLR, SameCameraTransit,
-                                      UnknownPathTransit, decision_threshold, make_transit)
+        from m5_reid.evidence import (AppearanceLR, DirectionLR, GroundPlaneLR, PositionLR,
+                                      SameCameraTransit, UnknownPathTransit,
+                                      decision_threshold, make_transit)
         f = self.fusion
         kw = {}
         if f["transit_model"] == "loiter":
@@ -146,6 +150,10 @@ class CameraTopology:
         self.dir_lr = DirectionLR(q=float(d.get("q", 0.85)),
                                   n_zones=int(d.get("n_zones", 3)),
                                   clip=float(d.get("clip", 6.0))) if d.get("enabled") else None
+        g = f.get("ground_plane") or {}
+        self.ground_lr = GroundPlaneLR(sigma_m=float(g.get("sigma_m", 0.4)),
+                                       area_m2=float(g.get("area_m2", 30.0)),
+                                       clip=float(g.get("clip", 8.0))) if g.get("enabled") else None
         pos = f.get("position") or {}
         self.pos_lr = PositionLR(
             speed_bh_per_s=float(pos.get("speed_bh_per_s", 0.5)),
