@@ -14,10 +14,17 @@ from m5_reid.embedder import BaseEmbedder, l2norm
 class OSNetEmbedder(BaseEmbedder):
     def __init__(self, model_name="osnet_x1_0", device=None, weights=""):
         import torch
-        from torchreid.utils import FeatureExtractor
+        from pathlib import Path
+        try:
+            from torchreid.utils import FeatureExtractor
+        except ImportError:                         # 新版 torchreid 路徑不同
+            from torchreid.reid.utils import FeatureExtractor
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
-        self.extractor = FeatureExtractor(model_name=model_name,
-                                          model_path=weights or "", device=self.device)
+        # 預設找 Re-ID 訓練權重(研究限定,僅驗證);沒有則退回 imagenet backbone(非 Re-ID、較弱)
+        if not weights:
+            default = Path(__file__).resolve().parents[2] / "model_result" / "reid" / "osnet_reid.pth"
+            weights = str(default) if default.exists() else ""
+        self.extractor = FeatureExtractor(model_name=model_name, model_path=weights, device=self.device)
         self.dim = 512
 
     def _rgb(self, crop_bgr):

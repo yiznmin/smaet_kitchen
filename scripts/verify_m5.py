@@ -41,9 +41,9 @@ def check(name, cond, extra=""):
 def s1_reappear_within_ttl():
     print("S1 同一人離開再現(TTL 內)")
     m = mgr(ttl=100)
-    r1 = m.on_new_track(1, crop(RED, 1), frame_id=0)
-    m.on_track_lost(1, 10)
-    r2 = m.on_new_track(2, crop(RED, 2), frame_id=30)
+    r1 = m.on_new_track(1, crop=crop(RED, 1), frame_id=0)
+    m.on_track_lost(1, frame_id=10)
+    r2 = m.on_new_track(2, crop=crop(RED, 2), frame_id=30)
     ok = check("再現綁回同一 chef_id", r1.chef_id == r2.chef_id and r2.matched,
                f"c1={r1.chef_id} c2={r2.chef_id} sim={r2.similarity:.3f}")
     ok &= check("最終只有 1 位廚師", m.stats()["total_chefs"] == 1, str(m.stats()))
@@ -53,8 +53,8 @@ def s1_reappear_within_ttl():
 def s2_different_person():
     print("S2 不同人(不同衣色)")
     m = mgr()
-    r1 = m.on_new_track(1, crop(RED, 1), frame_id=0)
-    r2 = m.on_new_track(2, crop(BLUE, 1), frame_id=1)
+    r1 = m.on_new_track(1, crop=crop(RED, 1), frame_id=0)
+    r2 = m.on_new_track(2, crop=crop(BLUE, 1), frame_id=1)
     return check("不同衣色 → 不同 chef_id", r1.chef_id != r2.chef_id and not r2.matched,
                  f"c1={r1.chef_id} c2={r2.chef_id} sim={r2.similarity:.3f}")
 
@@ -62,9 +62,9 @@ def s2_different_person():
 def s3_reappear_after_ttl():
     print("S3 離開太久(> TTL)再現")
     m = mgr(ttl=20)
-    r1 = m.on_new_track(1, crop(RED, 1), frame_id=0)
-    m.on_track_lost(1, 5)
-    r2 = m.on_new_track(2, crop(RED, 2), frame_id=5 + 20 + 10)   # 超過 TTL
+    r1 = m.on_new_track(1, crop=crop(RED, 1), frame_id=0)
+    m.on_track_lost(1, frame_id=5)
+    r2 = m.on_new_track(2, crop=crop(RED, 2), frame_id=5 + 20 + 10)   # 超過 TTL
     return check("舊身份已過期 → 開新 chef_id", r1.chef_id != r2.chef_id and not r2.matched,
                  f"c1={r1.chef_id} c2={r2.chef_id}")
 
@@ -72,8 +72,8 @@ def s3_reappear_after_ttl():
 def s4_cross_camera():
     print("S4 跨鏡頭同時出現(同一人兩鏡頭)")
     m = mgr()
-    r1 = m.on_new_track(1, crop(RED, 1), frame_id=0)     # cam1
-    r2 = m.on_new_track(2, crop(RED, 3), frame_id=1)     # cam2,同人、A 仍活躍
+    r1 = m.on_new_track(1, crop=crop(RED, 1), frame_id=0)     # cam1
+    r2 = m.on_new_track(2, crop=crop(RED, 3), frame_id=1)     # cam2,同人、A 仍活躍
     ok = check("第二鏡頭綁到同一 chef", r1.chef_id == r2.chef_id and r2.matched,
                f"c1={r1.chef_id} c2={r2.chef_id}")
     ok &= check("該 chef 綁定兩個 track", set(m.active[r1.chef_id].track_ids) == {1, 2},

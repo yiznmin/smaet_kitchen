@@ -64,7 +64,7 @@ def enter(m, topo, tid, cam, t, emb, note=""):
               f"時空門 {mark}{reason} st={sp:.2f} 外觀={app:.2f} → 融合 {fs}")
         if passed:
             cands.append((fused, cid))
-    r = m.on_new_track(tid, cam, t_sec=t, frame_id=int(t * 30), embedding=emb)
+    r = m.on_new_track(tid, camera_id=cam, t_sec=t, frame_id=int(t * 30), embedding=emb)
     if r.matched:
         print(f"   ➜ 決定:融合最高且 ≥{f['combined_threshold']} → **綁定 chef{r.chef_id}**(同一位廚師)")
     else:
@@ -73,8 +73,14 @@ def enter(m, topo, tid, cam, t, emb, note=""):
     return r
 
 
-def leave(m, tid, cam, t):
-    m.on_track_lost(tid, cam, frame_id=int(t * 30), t_sec=t)
+def leave(m, tid, cam, t, buffer_s=1.0):
+    """M4 真實序列:lost_track 先發,lost buffer 到期才發 removed。
+
+    出口時間戳由 M5 內部取自 lost 當時(t),不是 removed 當時(t+buffer_s)。
+    """
+    m.on_track_lost(tid, camera_id=cam, frame_id=int(t * 30), t_sec=t)
+    m.on_track_removed(tid, camera_id=cam, frame_id=int((t + buffer_s) * 30),
+                       t_sec=t + buffer_s)
     print(f"\n◀ t={t:>4.1f}s  cam={cam}  track {tid} 離開 → 記入「最近消失」")
 
 

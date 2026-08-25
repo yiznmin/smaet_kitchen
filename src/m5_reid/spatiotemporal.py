@@ -38,25 +38,137 @@ def st_prob(dt, mean, std):
     return float(np.exp(-0.5 * ((dt - mean) / std) ** 2))
 
 
-_DEFAULT_FUSION = {"w_st": 0.7, "w_app": 0.3, "k_sigma": 2.0,
-                   "combined_threshold": 0.35, "overlap_window_s": 0.5}
+_DEFAULT_FUSION = {
+    # 融合模式:llr = v3 對數勝算比(建議);weighted_sum = v2 加權和(保留供消融對照)
+    "mode": "llr",
+    # ── v3(mode=llr)參數 ────────────────────────────────────────────
+    "background_arrival_hz": 1.0 / 600.0,   # 「真正的新人」在單一鏡頭出現的速率
+    "cost_false_merge_over_break": 5.0,     # 誤併比碎裂嚴重幾倍 → 換算成 LLR 門檻
+    "transit_model": "loiter",              # loiter | gaussian
+    "p_loiter": 0.15,                       # 中途停下來做事的比例
+    "tau_loiter_s": 20.0,                   # 停留時間尺度
+    "appearance_profile": "dinov2",         # 外觀 LR 用哪組實測分布
+    "appearance_clip": None,                # 外觀 LLR 上下限(None=不夾)
+    "overlap_llr": 5.0,                     # 重疊鏡頭同時觀測的幾何證據強度(nats)
+    # F1 未建模路徑(繞路)、F3 同鏡頭重關聯(M4 斷軌)。
+    # ⚠ 兩者**預設關閉** —— 2026-08-25 依預先登記判準實測後的決定,不是尚未啟用。
+    #   F1 幾乎無效(碎裂 25.2%→25.0%,在雜訊內);
+    #   F3 降碎裂 4.3pp 但誤併率翻倍(4.8%→10.2%),依「誤併比碎裂嚴重 5 倍」的
+    #   成本比,加權成本從 49.2 惡化到 71.9。根因:同鏡頭斷軌只用時間無法分辨
+    #   「同一台鏡頭裡的哪一位廚師」,需要位置證據(bbox)才收得緊。
+    #   詳見 docs/M5_模擬預先登記_20260825.md 與 results/m5_reid/sim_after_fixes.txt。
+    "unknown_path": {"enabled": False, "median_multiplier": 2.0,
+                     "log_sigma": 0.8, "logprior": -2.0},
+    "same_camera": {"enabled": False, "tau_break_s": 2.0, "max_gap_s": 15.0},
+    "max_z": 6.0,                           # 轉場分布的遠尾截斷(省算,非決策門)
+    # ── v2(mode=weighted_sum)參數 ──────────────────────────────────
+    "w_st": 0.7, "w_app": 0.3, "k_sigma": 2.0, "combined_threshold": 0.35,
+    # ── 共用 ─────────────────────────────────────────────────────────
+    "overlap_window_s": 0.5,
+}
 
 
 class CameraTopology:
-    def __init__(self, links, overlapping, fusion=None):
+    def __init__(self, links, overlapping, fusion=None, cameras=None, clock=None):
         self.links = {(l["from"], l["to"]): (float(l["mean_s"]), float(l["std_s"])) for l in links}
         self.overlapping = set(frozenset(p) for p in overlapping)
         self.fusion = {**_DEFAULT_FUSION, **(fusion or {})}
+        # 每台相機的時鐘偏移(秒)。整套 CLM 建立在 t_exit 與 t_enter 同一時基上;
+        # NVR 若無 NTP,鏡頭間漂移 1~2 秒是常態,而 σ=1.5s 時 2 秒漂移 = 1.33σ,
+        # 足以把幾乎所有真實轉場推出門外 —— 症狀是「chef_id 一直開新的」,
+        # 看起來像模型爛,實際是時鐘問題。量化見 analyze_gate_capacity.py §4。
+        self.cameras = dict(cameras or {})
+        self.clock_offset = {c: float(v.get("clock_offset_s", 0.0) or 0.0)
+                             for c, v in self.cameras.items()}
+        self.clock = {"max_skew_s": 0.2, **(clock or {})}
+
+        self._build_evidence()
+
+    def offset(self, camera_id):
+        """該相機時鐘相對基準的偏移(秒)。校正後時間 = 原始時間 − offset。"""
+        return self.clock_offset.get(camera_id, 0.0)
+
+    def corrected(self, camera_id, t_sec):
+        return t_sec - self.offset(camera_id)
+
+    def all_cameras(self):
+        """config 中出現過的所有 camera_id(links + overlapping + cameras)。"""
+        seen = set(self.cameras)
+        for a, b in self.links:
+            seen |= {a, b}
+        for pair in self.overlapping:
+            seen |= set(pair)
+        return seen
+
+    def _build_evidence(self):
+        """建 v3 需要的轉場模型與外觀 LR。mode=weighted_sum 時不會被用到。"""
+        from m5_reid.evidence import (AppearanceLR, SameCameraTransit, UnknownPathTransit,
+                                      decision_threshold, make_transit)
+        f = self.fusion
+        kw = {}
+        if f["transit_model"] == "loiter":
+            kw = dict(p_loiter=f["p_loiter"], tau_loiter_s=f["tau_loiter_s"])
+        elif f["transit_model"] == "gaussian":
+            kw = dict(max_z=f["max_z"])
+        self.transits = {k: make_transit(mu, sd, kind=f["transit_model"], **kw)
+                         for k, (mu, sd) in self.links.items()}
+
+        # F1 未建模路徑(繞路):中位數取「典型直達時間 × 倍率」
+        up = f.get("unknown_path") or {}
+        if up.get("enabled"):
+            typical = float(np.median([mu for mu, _ in self.links.values()])) if self.links else 4.0
+            self.unknown_path = UnknownPathTransit(
+                median_s=typical * float(up.get("median_multiplier", 2.0)),
+                log_sigma=float(up.get("log_sigma", 0.8)),
+                logprior=float(up.get("logprior", -2.0)))
+        else:
+            self.unknown_path = None
+
+        # F3 同鏡頭重關聯(M4 斷軌)
+        sc = f.get("same_camera") or {}
+        self.same_cam = SameCameraTransit(
+            tau_break_s=float(sc.get("tau_break_s", 2.0)),
+            max_gap_s=float(sc.get("max_gap_s", 15.0))) if sc.get("enabled") else None
+        self.app_lr = AppearanceLR.measured(f["appearance_profile"], clip=f["appearance_clip"])
+        self.log_lambda_bg = np.log(float(f["background_arrival_hz"]))
+        self.llr_threshold = decision_threshold(f["cost_false_merge_over_break"])
+
+    def set_transit(self, cam_from, cam_to, model):
+        """用實測資料校準後,把某條連結的轉場模型換掉(見 scripts/calibrate_topology.py)。"""
+        self.transits[(cam_from, cam_to)] = model
 
     @classmethod
     def from_config(cls, cfg):
-        return cls(cfg.get("links", []), cfg.get("overlapping", []), cfg.get("fusion"))
+        """cfg = camera_topology 的『內層』dict(links/overlapping/fusion/cameras/clock)。"""
+        return cls(cfg.get("links", []), cfg.get("overlapping", []), cfg.get("fusion"),
+                   cameras=cfg.get("cameras"), clock=cfg.get("clock"))
+
+    @classmethod
+    def from_yaml(cls, path):
+        """讀 configs/camera_topology.yaml。
+
+        該檔最外層包了一層 `camera_topology:`,from_config 期望的是內層 dict
+        ——直接把整份檔案餵進 from_config 會靜默得到空拓撲(所有轉場都被拒),
+        所以在這裡剝掉外層。
+        """
+        import yaml
+        with open(path, encoding="utf-8") as f:
+            raw = yaml.safe_load(f) or {}
+        cfg = raw.get("camera_topology", raw)
+        if not cfg.get("links"):
+            raise ValueError(f"{path} 沒有任何 links → 所有跨鏡頭轉場都會被拒絕")
+        return cls.from_config(cfg)
 
     def is_overlapping(self, a, b):
         return frozenset((a, b)) in self.overlapping
 
     def transition_gate(self, cam_from, t_exit, cam_to, t_enter):
-        """回傳 (是否通過, st_prob)。需:有向連結存在、Δt>0、Δt 在時間窗 μ±kσ 內。"""
+        """v2 加權和用的硬門。回傳 (是否通過, st_prob)。
+
+        ⚠ 實測發現 k_sigma 這道門在真實運作中幾乎從不觸發:只有外觀 cosine ≥ 0.851
+          時它才是實際生效的限制,而 DINOv2(0.490)/OSNet(0.618)都達不到。
+          真正淘汰候選的一直是 combined_threshold。詳見 analyze_gate_capacity.py §1。
+        """
         if cam_from == cam_to:
             return (False, 0.0)
         key = (cam_from, cam_to)
@@ -69,3 +181,34 @@ class CameraTopology:
         if abs(dt - mean) > self.fusion["k_sigma"] * std:  # 超出時間窗
             return (False, 0.0)
         return (True, st_prob(dt, mean, std))
+
+    def transit_llr(self, cam_from, t_exit, cam_to, t_enter):
+        """v3:轉場時間的對數勝算比 log p(Δt|同一人) − log λ_bg。
+
+        三條路徑(依序嘗試,取第一條適用的):
+          1. 同鏡頭極短間隔  → M4 軌跡中斷(SameCameraTransit)
+          2. 有拓撲連結      → 正常轉場(config 的 μ/σ)
+          3. 無拓撲連結      → 未建模路徑(UnknownPathTransit,帶負先驗)
+
+        回傳 (是否物理可能, llr)。Δt ≤ 0 一律拒絕(不能比離開更早抵達)。
+        """
+        from m5_reid.evidence import NEG_INF
+        dt = t_enter - t_exit
+        if dt <= 0:
+            return (False, NEG_INF)
+
+        if cam_from == cam_to:
+            if self.same_cam is None:
+                return (False, NEG_INF)
+            model = self.same_cam
+        elif (cam_from, cam_to) in self.transits:
+            model = self.transits[(cam_from, cam_to)]
+        elif self.unknown_path is not None:
+            model = self.unknown_path
+        else:
+            return (False, NEG_INF)
+
+        lp = model.logpdf(dt)
+        if lp <= NEG_INF:
+            return (False, NEG_INF)
+        return (True, lp - self.log_lambda_bg)

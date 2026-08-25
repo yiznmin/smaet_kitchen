@@ -1,7 +1,7 @@
 """M4 多目標追蹤:KitchenTracker(ByteTrack 包裝)。
 
 把 M3 每幀無 ID 的偵測(supervision Detections)串成有 track_id 的軌跡,
-維持跨幀一致、撐短暫遮擋,並輸出 new_track / lost_track / removed 事件。
+維持跨幀一致、撐短暫遮擋,並輸出 new_track / reacquired / lost_track / removed 事件。
 
 - backend 目前用 supervision 的 ByteTrack(MIT,純運動 Kalman+IoU+匈牙利;不含 Re-ID)。
 - ⚠ sv.ByteTrack 在 supervision 0.30 會移除;本 wrapper 是唯一觸點,將來換 `trackers`
@@ -35,11 +35,21 @@ class Track:
 
 @dataclass
 class TrackEvent:
-    kind: str                      # "new_track"(→M5) | "lost_track"(→中央) | "removed"
+    """M4 → M5/中央 的事件。
+
+    kind 語意(M5 的離場判定依賴這組語意,勿隨意更動):
+      new_track   首次進入 active            → M5 抽特徵、綁 chef_id
+      reacquired  從 lost 回到 active        → M5 取消預備出口(短暫遮擋,人沒走)
+      lost_track  進入 ByteTrack lost        → M5 只記「預備出口」,不標 gone
+      removed     lost buffer 到期、真的離開 → M5 標 gone,出口時間戳用 lost 當時的
+    """
+    kind: str
     track_id: int
     frame_id: int
     class_id: int | None = None
     bbox: tuple | None = None
+    camera_id: str | None = None   # 哪一台相機(M5 跨鏡頭必需;track_id 各鏡頭不唯一)
+    t_sec: float | None = None     # 事件時間(秒)。M5 的轉場時間窗以此計算
 
 
 @dataclass
@@ -68,10 +78,13 @@ class KitchenTracker(BaseTracker):
     def __init__(self, backend="bytetrack",
                  track_activation_threshold=0.25, lost_track_buffer=30,
                  minimum_matching_threshold=0.8, frame_rate=30,
-                 minimum_consecutive_frames=1, history_len=30, class_names=None):
+                 minimum_consecutive_frames=1, history_len=30, class_names=None,
+                 camera_id=None):
         self.backend = backend
         self.history_len = history_len
         self.class_names = class_names or {}
+        self.camera_id = camera_id      # 每台相機一個 tracker 實例;會蓋進所有事件
+        self.frame_rate = frame_rate    # 未給 timestamp 時用來換算 t_sec
         self._bt_kwargs = dict(track_activation_threshold=track_activation_threshold,
                                lost_track_buffer=lost_track_buffer,
                                minimum_matching_threshold=minimum_matching_threshold,
@@ -81,12 +94,12 @@ class KitchenTracker(BaseTracker):
         self._reset_state()
 
     @classmethod
-    def from_config(cls, cfg, class_names=None):
+    def from_config(cls, cfg, class_names=None, camera_id=None):
         """cfg = yaml 的 tracker 區段 dict。"""
         kw = {k: cfg[k] for k in _BYTETRACK_KEYS if k in cfg}
         return cls(backend=cfg.get("backend", "bytetrack"),
                    history_len=cfg.get("history_len", 30),
-                   class_names=class_names, **kw)
+                   class_names=class_names, camera_id=camera_id, **kw)
 
     def _build_backend(self):
         if self.backend != "bytetrack":
@@ -123,6 +136,12 @@ class KitchenTracker(BaseTracker):
         lost_ids = {t.external_track_id for t in self._bt.lost_tracks}
         removed_ids = {t.external_track_id for t in self._bt.removed_tracks}
 
+        t_sec = float(timestamp) if timestamp is not None else frame_id / float(self.frame_rate)
+
+        def ev(kind, tid, box=None):
+            return TrackEvent(kind, tid, frame_id, self._last_class.get(tid), box,
+                              camera_id=self.camera_id, t_sec=t_sec)
+
         events = []
         # new_track:首次進入 active
         for tid in active_ids - self._seen_ids:
@@ -130,13 +149,21 @@ class KitchenTracker(BaseTracker):
             box = matched_map[tid][0] if tid in matched_map else (
                 tuple(float(v) for v in strack_by_id[tid].tlbr) if tid in strack_by_id else None)
             cid = matched_map[tid][1] if tid in matched_map else None
-            events.append(TrackEvent("new_track", tid, frame_id, cid, box))
+            events.append(TrackEvent("new_track", tid, frame_id, cid, box,
+                                     camera_id=self.camera_id, t_sec=t_sec))
+        # reacquired:上幀還在 lost、本幀回到 active(短暫遮擋後找回,人並沒有離開)
+        # 沒有這個事件的話,M5 會在 lost_track 時把該 chef 標成 gone 後永遠卡住
+        # ——因為 new_track 只認 active_ids - _seen_ids,而 _seen_ids 是累積的。
+        for tid in sorted(active_ids & self._prev_lost):
+            box = matched_map[tid][0] if tid in matched_map else (
+                tuple(float(v) for v in strack_by_id[tid].tlbr) if tid in strack_by_id else None)
+            events.append(ev("reacquired", tid, box))
         # lost_track:本幀新進 lost
         for tid in lost_ids - self._prev_lost:
-            events.append(TrackEvent("lost_track", tid, frame_id, self._last_class.get(tid)))
+            events.append(ev("lost_track", tid))
         # removed:本幀新進 removed(對累積清單做差集)
         for tid in removed_ids - self._prev_removed:
-            events.append(TrackEvent("removed", tid, frame_id, self._last_class.get(tid)))
+            events.append(ev("removed", tid))
             self._history.pop(tid, None)
             self._last_class.pop(tid, None)
         self._prev_lost = lost_ids

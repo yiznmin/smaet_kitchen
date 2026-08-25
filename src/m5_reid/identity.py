@@ -54,15 +54,28 @@ class IdentityManager:
                    recently_disappeared_ttl=cfg.get("recently_disappeared_ttl", 150),
                    embedding_ema=cfg.get("embedding_ema", 0.5), embedder=embedder)
 
+    def _key(self, track_id, camera_id=None):
+        """track↔chef 對照表的鍵。子類覆寫成 (camera_id, track_id)。"""
+        return track_id
+
+    def _forget(self, chef_id):
+        """chef 逾 TTL 永久移除時,子類在此清掉自己的附帶狀態(避免記憶體洩漏)。"""
+
     def tick(self, frame_id):
         """讓 recently_disappeared 逾 TTL 的廚師永久移除。回傳被移除的 chef_id。"""
         expired = [cid for cid, c in self.gone.items() if frame_id - c.last_seen > self.ttl]
         for cid in expired:
             self.gone.pop(cid, None)
+            self._forget(cid)
         return expired
 
-    def on_new_track(self, track_id, crop=None, frame_id=0, embedding=None):
-        """M4 出現新 track 時呼叫。回傳 MatchResult(含指派的 chef_id)。"""
+    def on_new_track(self, track_id, *, camera_id=None, frame_id=0, t_sec=None,
+                     crop=None, embedding=None, bbox=None):
+        """M4 出現新 track 時呼叫。回傳 MatchResult(含指派的 chef_id)。
+
+        track_id 之後全為關鍵字參數,與 SpatioTemporalIdentityManager 保持可互換
+        (本類為純外觀版,camera_id / t_sec / bbox 收下但不使用)。
+        """
         self.tick(frame_id)
         emb = l2norm(embedding if embedding is not None else self.embedder.extract(crop))
 
@@ -89,16 +102,21 @@ class IdentityManager:
         self.track_to_chef[track_id] = cid
         return MatchResult(track_id, cid, False, best_sim, frame_id)
 
-    def on_track_lost(self, track_id, frame_id):
-        """M4 track 消失時呼叫。該 chef 若無其他鏡頭仍看得到 → 移入 recently_disappeared。"""
-        cid = self.track_to_chef.pop(track_id, None)
+    def on_track_lost(self, track_id, *, camera_id=None, frame_id=0, t_sec=None):
+        """M4 track 消失時呼叫。該 chef 若無其他鏡頭仍看得到 → 移入 recently_disappeared。
+
+        ⚠ 本類為簡化語意:lost 立即視為離場,不區分「短暫遮擋」與「真的走了」。
+        時空版(SpatioTemporalIdentityManager)覆寫成 lost/reacquired/removed 三段語意。
+        """
+        gk = self._key(track_id, camera_id)
+        cid = self.track_to_chef.pop(gk, None)
         if cid is None:
             return None
         chef = self.active.get(cid)
         if chef is None:
             return None
-        if track_id in chef.track_ids:
-            chef.track_ids.remove(track_id)
+        if gk in chef.track_ids:
+            chef.track_ids.remove(gk)
         chef.last_seen = frame_id
         if not chef.track_ids:                                 # 無任何鏡頭還看得到
             chef.state = "gone"
@@ -106,9 +124,39 @@ class IdentityManager:
             self.gone[cid] = chef
         return cid
 
-    def chef_of(self, track_id):
-        return self.track_to_chef.get(track_id)
+    def on_track_reacquired(self, track_id, *, camera_id=None, frame_id=0, t_sec=None):
+        """M4 track 從 lost 找回時呼叫。本類:把 chef 從 gone 拉回 active。"""
+        gk = self._key(track_id, camera_id)
+        cid = self.track_to_chef.get(gk)
+        if cid is None:
+            return None
+        chef = self.gone.pop(cid, None)
+        if chef is not None:
+            chef.state = "active"
+            self.active[cid] = chef
+        chef = self.active.get(cid)
+        if chef is not None:
+            chef.last_seen = frame_id
+            if gk not in chef.track_ids:
+                chef.track_ids.append(gk)
+        return cid
+
+    def on_track_removed(self, track_id, *, camera_id=None, frame_id=0, t_sec=None):
+        """M4 lost buffer 到期時呼叫。本類等同 on_track_lost。"""
+        return self.on_track_lost(track_id, camera_id=camera_id, frame_id=frame_id, t_sec=t_sec)
+
+    def chef_of(self, track_id, camera_id=None):
+        return self.track_to_chef.get(self._key(track_id, camera_id))
 
     def stats(self):
         return {"active": len(self.active), "gone": len(self.gone),
                 "total_chefs": self._next - 1}
+
+    def resident_stats(self):
+        """常駐(未被 TTL 清掉)的物件數。對應 spec 驗收「記憶體不無限成長」。
+
+        stats() 回的 total_chefs 是累計值,會單調成長是正常的;
+        真正要盯的是這裡的每一項在長時間運作下必須有界。
+        """
+        return {"active": len(self.active), "gone": len(self.gone),
+                "track_to_chef": len(self.track_to_chef)}

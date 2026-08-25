@@ -21,49 +21,94 @@ class SpatioTemporalIdentityManager(IdentityManager):
         self.f = topology.fusion
         self._exit = {}         # chef_id -> (camera_id, t_sec) 離場資訊
         self._cam = {}          # chef_id -> (camera_id, t_sec) 目前所在(active)
+        self._pending_exit = {} # (camera_id, track_id) -> (camera_id, t_sec, frame_id)
+        # 診斷:每次綁定決策有幾個候選通過物理可能性檢查。索引 5 代表「5 個以上」。
+        # 這是本架構最關鍵的觀測量 —— 若幾乎總是 1,外觀品質對結果沒有影響。
+        self._cand_hist = [0] * 6
+        self.last_candidates = 0
 
     @classmethod
     def from_config(cls, topo_cfg, embedder=None, fps=30.0):
         return cls(CameraTopology.from_config(topo_cfg), embedder=embedder, fps=fps)
 
-    def _t(self, frame_id, t_sec):
-        return float(t_sec) if t_sec is not None else frame_id / self.fps
+    def _key(self, track_id, camera_id=None):
+        """track_id 各鏡頭不全域唯一 → 一律用 (camera_id, track_id) 當鍵。"""
+        return (camera_id, track_id)
 
-    def on_new_track(self, track_id, camera_id, frame_id=0, bbox=None,
-                     embedding=None, crop=None, t_sec=None):
+    def _forget(self, chef_id):
+        """chef 逾 TTL 被永久移除時,連帶清掉時空狀態。
+
+        沒有這個的話 _exit 會隨累計人次單調成長(tick() 只清 self.gone),
+        直接違反 spec「連續運作下活躍清單記憶體不無限成長」。
+        """
+        self._exit.pop(chef_id, None)
+        self._cam.pop(chef_id, None)
+
+    def resident_stats(self):
+        s = super().resident_stats()
+        s.update({"_exit": len(self._exit), "_cam": len(self._cam),
+                  "_pending_exit": len(self._pending_exit)})
+        return s
+
+    def _t(self, frame_id, t_sec, camera_id=None):
+        """事件時間(秒),已套用該相機的時鐘偏移校正。
+
+        所有跨鏡頭的 Δt 都由這裡產出,所以校正只需做在這一個點。
+        未校正的話,鏡頭間 2 秒漂移在 σ=1.5s 下等於 1.33σ,足以把幾乎所有
+        真實轉場推出時間窗 —— 見 analyze_gate_capacity.py §4。
+        """
+        raw = float(t_sec) if t_sec is not None else frame_id / self.fps
+        return self.topo.corrected(camera_id, raw) if camera_id is not None else raw
+
+    def on_new_track(self, track_id, *, camera_id=None, frame_id=0, t_sec=None,
+                     crop=None, embedding=None, bbox=None):
         self.tick(frame_id)
-        t = self._t(frame_id, t_sec)
+        t = self._t(frame_id, t_sec, camera_id)
         emb = l2norm(embedding if embedding is not None else self.embedder.extract(crop))
         w_st, w_app = self.f["w_st"], self.f["w_app"]
-        thr = self.f["combined_threshold"]
+        llr_mode = self.f["mode"] == "llr"
+        thr = self.topo.llr_threshold if llr_mode else self.f["combined_threshold"]
 
-        best_id, best_score, best_app = None, -1.0, 0.0
+        cands = []          # [(score, chef_id, app_cos)] 所有通過物理可能性檢查的候選
 
-        # (a) recently_disappeared:時空轉場門(不重疊跨時的主路徑)
+        # (a) recently_disappeared:跨時轉場(不重疊鏡頭的主路徑)
         for cid, chef in self.gone.items():
             ex = self._exit.get(cid)
             if ex is None:
                 continue
-            passed, sp = self.topo.transition_gate(ex[0], ex[1], camera_id, t)
-            if not passed:
-                continue
-            app = cosine(emb, chef.embedding)
-            score = w_st * sp + w_app * app
-            if score > best_score:
-                best_id, best_score, best_app = cid, score, app
+            app = None
+            if llr_mode:
+                ok, llr_t = self.topo.transit_llr(ex[0], ex[1], camera_id, t)
+                if not ok:
+                    continue
+                app = cosine(emb, chef.embedding)
+                score = llr_t + self.topo.app_lr.llr(app)
+            else:
+                ok, sp = self.topo.transition_gate(ex[0], ex[1], camera_id, t)
+                if not ok:
+                    continue
+                app = cosine(emb, chef.embedding)
+                score = w_st * sp + w_app * app
+            cands.append((score, cid, app))
 
-        # (b) active + 重疊相機 + 同時刻:幾何關聯(st_prob=1)
+        # (b) active + 重疊相機 + 同時刻:幾何關聯(不需靠時間分布)
         for cid, chef in self.active.items():
             ct = self._cam.get(cid)
             if ct is None or ct[0] == camera_id:
                 continue
             if self.topo.is_overlapping(ct[0], camera_id) and abs(t - ct[1]) <= self.f["overlap_window_s"]:
                 app = cosine(emb, chef.embedding)
-                score = w_st * 1.0 + w_app * app
-                if score > best_score:
-                    best_id, best_score, best_app = cid, score, app
+                score = (self.f["overlap_llr"] + self.topo.app_lr.llr(app)) if llr_mode \
+                    else (w_st * 1.0 + w_app * app)
+                cands.append((score, cid, app))
 
-        gk = (camera_id, track_id)
+        # 候選數是本架構最關鍵的診斷量:若幾乎總是 1,外觀品質根本不影響結果。
+        self.last_candidates = len(cands)
+        self._cand_hist[min(len(cands), 5)] += 1
+
+        best_score, best_id, _ = max(cands, default=(float("-inf"), None, None))
+
+        gk = self._key(track_id, camera_id)
         if best_id is not None and best_score >= thr:          # 綁到既有廚師
             chef = self.gone.pop(best_id, None) or self.active[best_id]
             chef.state = "active"
@@ -81,11 +126,60 @@ class SpatioTemporalIdentityManager(IdentityManager):
         self.active[cid] = ChefIdentity(cid, emb, [gk], "active", frame_id, frame_id)
         self.track_to_chef[gk] = cid
         self._cam[cid] = (camera_id, t)
-        return MatchResult(track_id, cid, False, round(max(best_score, 0.0), 4), frame_id)
+        # 無候選時 best_score 是 -inf;回 0.0 表示「沒有任何證據」而非「證據為負」
+        shown = 0.0 if best_score == float("-inf") else round(best_score, 4)
+        return MatchResult(track_id, cid, False, shown, frame_id)
 
-    def on_track_lost(self, track_id, camera_id, frame_id, bbox=None, t_sec=None):
-        t = self._t(frame_id, t_sec)
-        gk = (camera_id, track_id)
+    def candidate_histogram(self):
+        """回傳 {候選數: 次數}。'5' 代表 5 個以上。
+
+        典型廚房情境應該絕大多數落在 0(開新人)與 1(唯一候選)。
+        若 2 以上佔比高,表示外觀真的在仲裁,embedder 品質才會影響結果。
+        """
+        return {i: n for i, n in enumerate(self._cand_hist) if n}
+
+    # ── 離場語意三段式 ────────────────────────────────────────────────
+    # M4 的 lost_track 在「短暫遮擋」就會觸發,而 track 被救回時不會再發 new_track
+    # (new_track 只認 active_ids - _seen_ids,而 _seen_ids 是累積的)。
+    # 若在 lost 就標 gone,該 chef 會永遠卡在 gone、綁定永久遺失。
+    # 因此:lost → 只記預備出口;reacquired → 撤銷;removed → 才真的離場。
+
+    def on_track_lost(self, track_id, *, camera_id=None, frame_id=0, t_sec=None):
+        """進 ByteTrack lost。只記「預備出口」,不動 chef 狀態。"""
+        gk = self._key(track_id, camera_id)
+        cid = self.track_to_chef.get(gk)
+        if cid is None:
+            return None
+        self._pending_exit[gk] = (camera_id, self._t(frame_id, t_sec, camera_id), frame_id)
+        return cid
+
+    def on_track_reacquired(self, track_id, *, camera_id=None, frame_id=0, t_sec=None):
+        """從 lost 找回(人沒走,只是被擋住)→ 撤銷預備出口,chef 維持 active。"""
+        gk = self._key(track_id, camera_id)
+        self._pending_exit.pop(gk, None)
+        cid = self.track_to_chef.get(gk)
+        if cid is None:
+            return None
+        chef = self.active.get(cid)
+        if chef is not None:
+            chef.last_seen = frame_id
+            self._cam[cid] = (camera_id, self._t(frame_id, t_sec, camera_id))
+        return cid
+
+    def on_track_removed(self, track_id, *, camera_id=None, frame_id=0, t_sec=None):
+        """lost buffer 到期 → 真正離場。
+
+        ⚠ 出口時間戳取自 lost_track 當時,不是 removed 當時。用 removed 的話,
+        離場時間會系統性延後約 lost_track_buffer/fps,使所有轉場 Δt 偏小,
+        直接讓 transition_gate 的時間窗判斷失準。
+        """
+        gk = self._key(track_id, camera_id)
+        pending = self._pending_exit.pop(gk, None)
+        if pending is not None:
+            exit_cam, exit_t, exit_frame = pending
+        else:                              # 沒收到 lost 就直接 removed(理論上不該發生)
+            exit_cam, exit_t, exit_frame = camera_id, self._t(frame_id, t_sec, camera_id), frame_id
+
         cid = self.track_to_chef.pop(gk, None)
         if cid is None:
             return None
@@ -94,11 +188,11 @@ class SpatioTemporalIdentityManager(IdentityManager):
             return None
         if gk in chef.track_ids:
             chef.track_ids.remove(gk)
-        chef.last_seen = frame_id
+        chef.last_seen = exit_frame
         if not chef.track_ids:                                  # 無任何鏡頭還看得到 → 離場
             chef.state = "gone"
             self.active.pop(cid, None)
             self.gone[cid] = chef
-            self._exit[cid] = (camera_id, t)
+            self._exit[cid] = (exit_cam, exit_t)
             self._cam.pop(cid, None)
         return cid

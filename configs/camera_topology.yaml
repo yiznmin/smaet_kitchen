@@ -1,27 +1,97 @@
-# M5 v2 相機拓撲(Camera Link Model)——跨鏡頭「同一位廚師」關聯的時空依據。
-# ⚠ 這裡是「示例值」;真實佈署後要用實測填入:哪台接哪台、走過去平均幾秒。
-# 依據:Camera Link Model(相機拓撲 + 轉場時間高斯 + 方向 + 外觀輔助)。
+# M5 v3 相機拓撲(Camera Link Model)——跨鏡頭「同一位廚師」關聯的時空依據。
+# ⚠ links 的 mean_s / std_s 是「示例值」;真實佈署後要用實測填入。
+#   最低成本作法:量平面圖上兩鏡頭視野邊界之間的**步行路徑距離**(繞過障礙,非直線),
+#   mean_s = 距離 / 0.9(廚房內步速 m/s)、std_s = 0.35 × mean_s。
+#   之後可用 scripts/calibrate_topology.py 從實際影片無監督重估,取代估算值。
+#
+# 讀取方式:CameraTopology.from_yaml(path) —— 它會剝掉下面這層 `camera_topology:`。
+# (直接把整份檔案餵給 from_config 會靜默得到空拓撲,所有轉場都被拒。)
 camera_topology:
 
-  # 融合權重:時空為主、外觀(DINOv2 可商用但弱)為輔破平手
   fusion:
-    w_st: 0.7                 # 時空分數權重(主)
-    w_app: 0.3               # 外觀分數權重(輔)
-    k_sigma: 2.0             # 時間窗 = μ ± k·σ(超出視為不可能)
-    combined_threshold: 0.35 # fused 分數 ≥ 此值才綁定為同一人
-    overlap_window_s: 0.5    # 重疊相機「同時刻」容許誤差(秒)
+    # ── 融合模式 ───────────────────────────────────────────────────────
+    # llr          = v3 對數勝算比(預設)。時間與外觀轉成同一尺度的證據相加。
+    # weighted_sum = v2 加權和。保留供消融對照,不建議用於出貨。
+    #
+    # 為什麼換掉 v2:同一個 combined_threshold 同時控制「時間窗多寬」與
+    # 「外觀能不能單獨過門」,兩個需求互相拉扯,三個約束無法各自獨立滿足。
+    # 實測 v2 在最有利假設下碎裂率 11.6%(預算 5%),v3 為 0.2%。
+    # 量化證據:python scripts/analyze_gate_capacity.py
+    mode: llr
 
-  # 每台相機的入/出口 zone(名稱引用 configs/zones.json;真實佈署再標)
-  cameras:
-    cam1: { entry_zones: [門口], exit_zones: [走道] }
-    cam2: { entry_zones: [走道], exit_zones: [灶台區] }
-    cam3: { entry_zones: [門口], exit_zones: [走道] }
+    # ── v3 參數 ────────────────────────────────────────────────────────
+    # 「真正的新人」在單一鏡頭出現的速率(次/秒)。取代 v2 那個沒有物理意義的
+    # 魔數 0.35 —— 這個量是可觀測的:數一小時內有幾個不屬於任何已追蹤廚師的人入鏡。
+    # 值越小 = 系統越相信「新出現的人是某位剛離場的廚師」= 時間窗越寬。
+    background_arrival_hz: 0.00167      # ≈ 每 600 秒 1 位真新人
 
-  # 有向連結 + 轉場時間高斯(秒)。雙向請各寫一條(A→B 與 B→A 可不同)。
+    # 誤併(綁錯人)比碎裂(同一人拆成兩個 chef_id)嚴重幾倍 → 換算成 LLR 門檻。
+    # 誤併會替沒洗手的人偽造洗手紀錄 → 靜默漏報,下游 M7/M8 都驗不出來;
+    # 碎裂則可被「chef_id 數 > 排班人數」自動偵測。這個不對稱就是門檻偏保守的理由。
+    cost_false_merge_over_break: 5.0
+
+    # 轉場時間分布:loiter = 直走 + 逗留長尾(建議,廚房不是走廊,廚師會中途停下來
+    # 做事);gaussian = 單高斯(逗留會被判成不同人 → 碎裂)。
+    transit_model: loiter
+    p_loiter: 0.15                      # 中途停下來做事的比例
+    tau_loiter_s: 20.0                  # 停留時間尺度(秒)
+
+    # 外觀證據用哪組實測分布。鑑別力越差,LLR 自動越接近 0 → 發言權自動變小,
+    # 不需要人工指定權重。dinov2 最大證據約 1.31 nats(< 門檻 1.61,單獨過不了門);
+    # osnet 約 4.99 nats(> 門檻,可單獨推翻中等時間證據 → 屆時要設 appearance_clip)。
+    appearance_profile: dinov2
+    appearance_clip: null               # 夾住外觀 LLR 上下限(null = 不夾)
+
+    overlap_llr: 5.0                    # 重疊鏡頭同時觀測的幾何證據強度(nats)
+    max_z: 6.0                          # 轉場分布遠尾截斷(省算用,不是決策門)
+
+    # ── v2 參數(mode: weighted_sum 時才生效)────────────────────────
+    # ⚠ k_sigma 在 v2 中其實是死參數:只有外觀 cos ≥ 0.851 時它才是實際生效的門,
+    #   而 DINOv2(0.490)/ OSNet(0.618)都達不到。真正淘汰候選的是 combined_threshold。
+    w_st: 0.7
+    w_app: 0.3
+    k_sigma: 2.0
+    combined_threshold: 0.35
+
+    # ── 共用 ───────────────────────────────────────────────────────────
+    overlap_window_s: 0.5               # 重疊相機「同時刻」容許誤差(秒)
+
+  # 有向連結 + 轉場時間(秒)。雙向請各寫一條(A→B 與 B→A 可不同)。
+  # ⚠ 隱含約束:min(μ) 必須大於 M4 的 lost_track_buffer / fps(預設 30/30 = 1.0 秒),
+  #   否則走得快的廚師在進入 gone gallery 之前就抵達下一鏡頭 → 必定開新 chef_id。
+  #   這條約束目前沒有任何地方自動檢查,見 analyze_gate_capacity.py §3。
   links:
     - { from: cam1, to: cam2, mean_s: 4.0, std_s: 1.5 }
     - { from: cam2, to: cam1, mean_s: 4.5, std_s: 1.6 }
 
-  # 重疊相機對(同一時刻可用幾何關聯,不需靠外觀)
+  # 重疊相機對(同一時刻可用幾何關聯,不需靠轉場時間)
   overlapping:
     - [cam1, cam3]
+
+  # ── 時鐘同步(出貨阻斷項)───────────────────────────────────────────
+  # 整套 CLM 建立在「t_exit 與 t_enter 同一時基」上。NVR 若沒跑 NTP,鏡頭間
+  # 漂移 1~2 秒是常態,而 σ=1.5s 時 2 秒漂移 = 1.33σ,足以把幾乎所有真實轉場
+  # 推出時間窗 —— 症狀是「chef_id 一直開新的」,看起來像模型爛,實際是時鐘問題。
+  # 量化見 analyze_gate_capacity.py §4;自檢用 scripts/audit_m5_config.py。
+  #
+  # 部署需求:所有相機必須 NTP 同步,鏡頭間殘餘 skew ≤ max_skew_s。
+  # 若無法做到,用 audit_m5_config.py --estimate-skew 從重疊鏡頭的同時觀測反推
+  # 每台的殘餘偏移,填進下面的 clock_offset_s(校正後時間 = 原始時間 − offset)。
+  clock:
+    max_skew_s: 0.2
+
+  cameras:
+    cam1: { clock_offset_s: 0.0 }
+    cam2: { clock_offset_s: 0.0 }
+    cam3: { clock_offset_s: 0.0 }
+
+# ── 已移除的設定 ──────────────────────────────────────────────────────
+# 原本這裡有 `cameras: {cam1: {entry_zones: [...], exit_zones: [...]}}`,
+# 但**從未被任何程式讀取**(CameraTopology.from_config 只取 links/overlapping/fusion),
+# 且引用的 zone 名(門口/走道/灶台區)與 configs/zones.json 實際存在的
+# (地板/冰箱/灶台/洗手台/造台下方櫃)完全對不上,zones.json 也只有單一鏡頭、
+# 沒有 camera_id 維度。留著會誤導填寫者以為它有作用,故移除。
+#
+# 現況:方向線索只做到「有向連結」這一層(A→B 與 B→A 可有不同的轉場時間分布),
+# 沒有做到「從哪個門走出去」。要補這一層需要業主逐鏡頭標出入口多邊形,
+# 以目前只有平面圖的狀況不合理,且沒有實測資料無從驗證它有沒有幫助。
