@@ -165,19 +165,31 @@ class CameraTopology:
                                   n_zones=int(d.get("n_zones", 3)),
                                   clip=float(d.get("clip", 6.0))) if d.get("enabled") else None
         g = f.get("ground_plane") or {}
-        # σ 優先用實測殘差;config 的 sigma_m 只在沒有 homography 時當退路
-        sigma = self.calib_sigma_m if self.calib_sigma_m else float(g.get("sigma_m", 0.4))
-        # 有 homography 就自動啟用(既然標定了,就該用真實幾何而非常數)
+        # σ 優先用實測殘差;config 的 sigma_m 只在沒有 homography 時當退路。
+        # ⚠ `sigma_m: null` 是產生器的預設(意思是「自動從標定殘差推算」),
+        #   所以這裡不能用 dict.get 的預設值 —— 鍵存在但值是 None 會炸。
+        sigma = self.calib_sigma_m or (g.get("sigma_m") if g.get("sigma_m") else None)
         enabled = g.get("enabled", bool(self.homographies))
+        # ⚠ 不可以在「沒標定、也沒填 σ」時偷偷套一個預設 σ。
+        #   舊版套 0.4 m —— 那個 σ 下這條證據幾乎沒有鑑別力,但**看起來是開著的**,
+        #   業主會以為地面校正生效了。寧可明確停用並記下原因,讓自檢報出來。
+        self.calib_warning = None
+        if enabled and sigma is None:
+            self.calib_warning = (
+                "ground_plane 已啟用但沒有 homography、也沒填 sigma_m → 停用。"
+                "請完成地面校正(手冊步驟二);沒有它多人同時在場會被併成一個身份。")
+            enabled = False
+        sigma = float(sigma) if sigma is not None else None
         self.ground_lr = GroundPlaneLR(sigma_m=sigma,
                                        area_m2=float(g.get("area_m2", 30.0)),
                                        clip=float(g.get("clip", 8.0))) if enabled else None
         vc = f.get("velocity") or {}
+        # 速度是從地面座標差分而來,所以它繼承標定誤差,也繼承「沒標定就不能用」。
         self.vel_lr = VelocityLR(
-            sigma_pos_m=sigma if self.calib_sigma_m else 0.1,
+            sigma_pos_m=sigma,
             window_s=float(vc.get("window_s", 0.5)),
             max_speed_mps=float(vc.get("max_speed_mps", 1.5)),
-            clip=float(vc.get("clip", 6.0))) if vc.get("enabled") else None
+            clip=float(vc.get("clip", 6.0))) if (vc.get("enabled") and enabled) else None
         pos = f.get("position") or {}
         self.pos_lr = PositionLR(
             speed_bh_per_s=float(pos.get("speed_bh_per_s", 0.5)),

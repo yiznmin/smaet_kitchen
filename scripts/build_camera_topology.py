@@ -114,6 +114,14 @@ def to_yaml(links, overlapping, cameras):
          "    same_camera: { enabled: true, tau_break_s: 2.0, max_gap_s: 15.0 }",
          "    unknown_path: { enabled: false }",
          "    direction: { enabled: false, q: 0.85, n_zones: 3 }",
+         "    ground_plane: { enabled: true, sigma_m: null, area_m2: 30.0, clip: 8.0 }",
+         "      # sigma_m: null = 由各鏡頭的 homography 標定殘差自動推算(建議)",
+         "    velocity:",
+         "      enabled: true",
+         "      window_s: 1.0     # 累積速度的秒數。越長越準但 chef_id 指派延後越久",
+         "      max_speed_mps: 1.5",
+         "      # 實測(模擬):關閉→誤併 18.6%,窗 1.0s→7.9%,窗 2.0s→5.6%",
+         "      # ⚠ 需要 ground_plane 才有作用(速度是從世界座標差分而來)",
          "", "  links:"]
     for l in links:
         L.append(f"    # {l['from']}→{l['to']}:步行 {l['_distance_m']:.1f} m "
@@ -180,8 +188,9 @@ def main():
     print(f"\n已產生 {args.out}")
     print("\n下一步:")
     print("  1. python scripts/audit_m5_config.py --topology " + args.out)
-    print("  2. 每台鏡頭補上 homography(地面校正)—— 沒有它,多人同時在場時")
-    print("     系統分不出誰是誰(實測誤併率會從 14% 惡化到 72%)")
+    print("  2. 每台鏡頭補上 homography(地面校正)—— **這是整套最關鍵的一步**")
+    print("     沒有它,4 人同時在場時會被全部併成 1 個身份(誤併 72%)")
+    print("     有它 + 軌跡證據,誤併降到約 5%(模擬值,見 docs/M5_模擬預先登記_軌跡_*)")
 
 
 if __name__ == "__main__":
