@@ -1,0 +1,4 @@
+{"t_sec": 0.0, "camera_id": "cam1", "track_id": 1, "chef_id": 1, "matched": false, "score": 0.0, "n_candidates": 0, "bbox": [472.2, 140.8, 780.2, 600.3]}
+{"t_sec": 0.0, "camera_id": "cam3", "track_id": 1, "chef_id": 1, "matched": true, "score": 3.8063, "n_candidates": 1, "bbox": [754.6, -0.5, 976.9, 428.0]}
+{"t_sec": 0.0, "camera_id": "cam2", "track_id": 1, "chef_id": 2, "matched": false, "score": 0.0, "n_candidates": 0, "bbox": [288.8, 1.0, 618.6, 345.3]}
+{"t_sec": 1.067, "camera_id": "cam1", "track_id": 2, "chef_id": 1, "matched": true, "score": 3.8063, "n_candidates": 1, "bbox": [574.4, 166.0, 604.9, 226.9]}

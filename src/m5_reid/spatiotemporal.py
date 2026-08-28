@@ -69,6 +69,9 @@ _DEFAULT_FUSION = {
     # 跨鏡頭地面校正(homography)。開啟後取代 overlap_llr 常數 —— 它能回答
     # 「重疊視野裡的是哪一個人」,而 overlap_llr 只能說「那裡有人」。
     "ground_plane": {"enabled": False, "sigma_m": 0.4, "area_m2": 30.0, "clip": 8.0},
+    # 速度證據:專解「兩人站在同一位置」—— 位置分不出,但他們從不同方向走來。
+    # window_s 是觀測窗:越長證據越強但綁定延遲越久(事後查詢系統可接受)。
+    "velocity": {"enabled": False, "window_s": 0.5, "max_speed_mps": 1.5, "clip": 6.0},
     # 位置證據(僅同鏡頭適用)。F3 只用時間時誤併率翻倍,位置是收緊它的關鍵。
     "position": {"enabled": True, "speed_bh_per_s": 0.5, "noise_bh": 0.3,
                  "frame_span_bh": 6.0, "clip": 8.0},
@@ -129,7 +132,7 @@ class CameraTopology:
     def _build_evidence(self):
         """建 v3 需要的轉場模型與外觀 LR。mode=weighted_sum 時不會被用到。"""
         from m5_reid.evidence import (AppearanceLR, DirectionLR, GroundPlaneLR, PositionLR,
-                                      SameCameraTransit, UnknownPathTransit,
+                                      SameCameraTransit, UnknownPathTransit, VelocityLR,
                                       decision_threshold, make_transit)
         f = self.fusion
         kw = {}
@@ -169,6 +172,12 @@ class CameraTopology:
         self.ground_lr = GroundPlaneLR(sigma_m=sigma,
                                        area_m2=float(g.get("area_m2", 30.0)),
                                        clip=float(g.get("clip", 8.0))) if enabled else None
+        vc = f.get("velocity") or {}
+        self.vel_lr = VelocityLR(
+            sigma_pos_m=sigma if self.calib_sigma_m else 0.1,
+            window_s=float(vc.get("window_s", 0.5)),
+            max_speed_mps=float(vc.get("max_speed_mps", 1.5)),
+            clip=float(vc.get("clip", 6.0))) if vc.get("enabled") else None
         pos = f.get("position") or {}
         self.pos_lr = PositionLR(
             speed_bh_per_s=float(pos.get("speed_bh_per_s", 0.5)),

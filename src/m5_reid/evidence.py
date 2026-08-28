@@ -437,6 +437,55 @@ class GroundPlaneLR:
                 f"同人 {self.llr((0,0),(0,0)):+.2f} / 相距1.5m {self.llr((0,0),(1.5,0)):+.2f} nats)")
 
 
+class VelocityLR:
+    """速度證據 —— 專門解「兩個人站在同一個位置」的情況。
+
+    第六輪量化:剩下的誤併有 **76% 發生在兩人相距 < 0.5 m**(中位數 0.11 m)。
+    位置在 σ=0.05m 的近乎完美校正下仍分不出 —— 那是物理極限。
+
+    但那兩個人**是從不同方向走過來的**。速度與位置正交,而且全景鏡頭
+    本來就在連續追蹤,軌跡資料是現成的。
+
+        LLR = log V − log(2πσ_v²) − |Δv|² / (2σ_v²)
+
+        Δv  = 兩者速度向量之差(世界座標,m/s)
+        σ_v = 速度估計噪聲 ≈ σ_pos·√2 / 觀測窗
+        V   = 「不同人」時速度差的散布範圍 ≈ π·(最大步速)²
+
+    ⚠ 這是「延遲換精度」:觀測窗越長 σ_v 越小、證據越強,但綁定要等越久。
+      0.25s 只有 1.26 nats(低於門檻);0.5s 有 2.64 nats。
+      系統是事後查詢用的,所以延遲 0.5~1 秒可接受。
+    ⚠ 速度由地面校正後的世界座標差分而來,**繼承校正誤差**。
+    """
+
+    def __init__(self, sigma_pos_m=0.1, window_s=0.5, max_speed_mps=1.5, clip=6.0):
+        # 單次速度估計的噪聲:位置差分 → σ_pos·√2 / 窗長
+        single = sigma_pos_m * math.sqrt(2.0) / max(window_s, 1e-6)
+        # ⚠ 我們比的是**兩個**速度觀測的差,所以再乘 √2。
+        #   第六輪的 GroundPlaneLR 犯過同一個錯(用單次觀測的 σ 去比差值),
+        #   這裡又犯一次 —— 記錄下來:**凡是比較兩個有噪聲的量,
+        #   差值的標準差都是單次的 √2 倍**。少了它會系統性高估鑑別力,
+        #   結果把真的同一人判成「對不上」。
+        self.sigma_v = single * math.sqrt(2.0)
+        self.area = math.pi * float(max_speed_mps) ** 2
+        self.clip = float(clip)
+        # 同 PositionLR / GroundPlaneLR 的物理約束:「同一人」的速度分布
+        # 不可能比「均勻散布在所有合理速度」更分散
+        self.sigma_max = math.sqrt(self.area / 12.0)
+
+    def llr(self, v_a, v_b):
+        if v_a is None or v_b is None:
+            return 0.0
+        d = math.hypot(v_a[0] - v_b[0], v_a[1] - v_b[1])
+        s = min(self.sigma_v, self.sigma_max)
+        v = math.log(self.area) - math.log(2 * math.pi * s * s) - d * d / (2 * s * s)
+        return max(-self.clip, min(self.clip, v))
+
+    def describe(self):
+        return (f"VelocityLR(σ_v={self.sigma_v:.2f} m/s, 上限 "
+                f"{self.llr((0,0),(0,0)):+.2f} / 差 1 m/s 時 {self.llr((0,0),(1,0)):+.2f} nats)")
+
+
 # ── 方向證據(出入口 zone)────────────────────────────────────────────────
 
 class DirectionLR:

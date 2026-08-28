@@ -1,0 +1,38 @@
+{
+  "n_truth_intervals": 3,
+  "n_people": 1,
+  "n_events": 4,
+  "n_matched": 2,
+  "n_unmatched": 2,
+  "metrics": {
+    "idf1": 1.0,
+    "idtp": 2,
+    "n": 2,
+    "n_gt": 1,
+    "n_pred": 1,
+    "n_transitions": 1,
+    "p_break": 0.0,
+    "p_false_merge": 0.0,
+    "p_correct": 1.0,
+    "id_switches": 0,
+    "fragmentation": {
+      "mean": 1.0,
+      "max": 1,
+      "hist": {
+        "1": 1
+      }
+    },
+    "headcount": {
+      "n_pred_ids": 1,
+      "expected": 1,
+      "alarm": false,
+      "kind": null
+    }
+  },
+  "budget": {
+    "p_break": 0.05,
+    "p_false_merge": 0.01,
+    "idf1": 0.9
+  },
+  "passed": true
+}

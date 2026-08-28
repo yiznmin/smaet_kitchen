@@ -1,0 +1,66 @@
+{
+  "_note": "Arm C(混合訓練)實測結果。數值由 notebooks/m3_experiment_armC_mixed.ipynb 的輸出重建;Colab 原始檔為 armC_results.json。",
+  "_date": "2026-08-20",
+  "_setup": {
+    "model": "RF-DETR Nano",
+    "train_data": "EPFL train 360 圖 + Roboflow train 100 圖 = 460 圖 / 3554 框",
+    "valid_test": "純 EPFL(valid 90 圖 / test 90 圖),與 Arm A / Arm B 完全相同",
+    "hyperparams": "epochs=60, resolution=704, batch_size=4, grad_accum_steps=4, lr=1e-4",
+    "eval": "thr=0.3, iou_thr=0.5,評估函式與 Arm A/B 逐字相同",
+    "train_time": "2h43m (03:42:10 → 06:25:32) on Colab T4",
+    "clean_rf": false
+  },
+  "arm_C_mixed": {
+    "val_epoch60": {
+      "mAP_50_95": 0.7424,
+      "mAP_50": 0.9468,
+      "mAP_75": 0.8290,
+      "mAR_500": 0.8083,
+      "f1_sweep": { "f1": 0.9307, "precision": 0.9373, "recall": 0.9250 },
+      "best_ema_mAP_50_95": 0.7561,
+      "best_regular_mAP_50_95": 0.74508,
+      "per_class_AP_50_95": {
+        "人": 0.8513, "刀具": 0.7746, "砧板": 0.7538, "食材": 0.6664,
+        "鍋鏟": 0.7638, "鍋子": 0.7489, "手": 0.4723, "容器": 0.7773, "抹布": 0.8737
+      }
+    },
+    "test": {
+      "overall": { "precision": 0.809, "recall": 0.819, "f1": 0.814 },
+      "per_class": {
+        "人":   { "n_gt": 90,  "precision": 1.0,   "recall": 0.978, "f1": 0.989 },
+        "刀具": { "n_gt": 65,  "precision": 0.785, "recall": 0.785, "f1": 0.785 },
+        "砧板": { "n_gt": 40,  "precision": 0.722, "recall": 0.650, "f1": 0.684 },
+        "食材": { "n_gt": 141, "precision": 0.697, "recall": 0.752, "f1": 0.724 },
+        "鍋鏟": { "n_gt": 81,  "precision": 0.769, "recall": 0.741, "f1": 0.755 },
+        "鍋子": { "n_gt": 107, "precision": 0.819, "recall": 0.804, "f1": 0.811 },
+        "手":   { "n_gt": 92,  "precision": 0.789, "recall": 0.772, "f1": 0.780 },
+        "容器": { "n_gt": 164, "precision": 0.811, "recall": 0.866, "f1": 0.838 },
+        "抹布": { "n_gt": 48,  "precision": 0.980, "recall": 1.0,   "f1": 0.990 }
+      }
+    }
+  },
+  "arm_A_B_reference": {
+    "_source": "docs/M3_實驗_分階段vsEPFL_20260810.md(2026-08-10 實測,未重訓)",
+    "Arm A (EPFL-only)": {
+      "val_epoch60": { "mAP_50_95": 0.7356, "mAP_50": 0.9518, "best_ema_mAP_50_95": 0.7636 },
+      "test": {
+        "overall": { "precision": 0.795, "recall": 0.819, "f1": 0.807 },
+        "per_class": {
+          "刀具": { "precision": 0.773, "recall": 0.785, "f1": 0.779 },
+          "容器": { "precision": 0.841, "recall": 0.872, "f1": 0.856 }
+        }
+      }
+    },
+    "Arm B (Roboflow→EPFL 分階段)": {
+      "val_epoch60": { "mAP_50_95": 0.7327, "mAP_50": 0.9528, "best_ema_mAP_50_95": 0.7554 },
+      "test": {
+        "overall": { "precision": 0.857, "recall": 0.815, "f1": 0.835 },
+        "per_class": {
+          "刀具": { "precision": 0.836, "recall": 0.785, "f1": 0.810 },
+          "容器": { "precision": 0.892, "recall": 0.854, "f1": 0.872 }
+        }
+      }
+    }
+  },
+  "_conclusion": "三臂全部打平(test F1 全距 0.028,90 圖規模在雜訊內)。混合訓練沒有比分階段好,也沒有出現預期的漏標污染災難。這份 Roboflow 資料對模型的影響 ≈ 0,不論怎麼混。採用建議:維持 Arm A(純自標資料),最單純。"
+}

@@ -24,7 +24,8 @@ class SpatioTemporalIdentityManager(IdentityManager):
         self._exit = {}         # chef_id -> (camera_id, t_sec, bbox) 離場資訊
         self._cam = {}          # chef_id -> (camera_id, t_sec) 目前所在(active)
         self._pending_exit = {} # (cam, track) -> (cam, t_sec, frame_id, bbox)
-        self._world = {}        # chef_id -> 最近一次觀測到的世界座標(公尺)
+        self._world = {}        # chef_id -> (世界座標, 時間)
+        self._vel = {}          # chef_id -> 最近觀測到的速度向量(m/s)
         # 診斷:每次綁定決策有幾個候選通過物理可能性檢查。索引 5 代表「5 個以上」。
         # 這是本架構最關鍵的觀測量 —— 若幾乎總是 1,外觀品質對結果沒有影響。
         self._cand_hist = [0] * 6
@@ -47,11 +48,13 @@ class SpatioTemporalIdentityManager(IdentityManager):
         self._exit.pop(chef_id, None)
         self._cam.pop(chef_id, None)
         self._world.pop(chef_id, None)
+        self._vel.pop(chef_id, None)
 
     def resident_stats(self):
         s = super().resident_stats()
         s.update({"_exit": len(self._exit), "_cam": len(self._cam),
-                  "_pending_exit": len(self._pending_exit), "_world": len(self._world)})
+                  "_pending_exit": len(self._pending_exit), "_world": len(self._world),
+                  "_vel": len(self._vel)})
         return s
 
     def _t(self, frame_id, t_sec, camera_id=None):
@@ -65,7 +68,8 @@ class SpatioTemporalIdentityManager(IdentityManager):
         return self.topo.corrected(camera_id, raw) if camera_id is not None else raw
 
     def on_new_track(self, track_id, *, camera_id=None, frame_id=0, t_sec=None,
-                     crop=None, embedding=None, bbox=None, zone=None, world_xy=None):
+                     crop=None, embedding=None, bbox=None, zone=None, world_xy=None,
+                     world_v=None):
         self.tick(frame_id)
         t = self._t(frame_id, t_sec, camera_id)
         emb = l2norm(embedding if embedding is not None else self.embedder.extract(crop))
@@ -140,6 +144,9 @@ class SpatioTemporalIdentityManager(IdentityManager):
                     continue
                 score = (self.topo.ground_lr.llr(g[0], world_xy, dt=t - g[1])
                          + self.topo.app_lr.llr(app))
+                # 速度證據:位置相同時唯一還能分辨的線索
+                if self.topo.vel_lr is not None:
+                    score += self.topo.vel_lr.llr(self._vel.get(cid), world_v)
             else:
                 # 無校正:只知道「那台鏡頭裡有人」。若該鏡頭此刻有 K 位廚師,
                 # 這條證據只說得出「是 K 個之中的一個」→ 證據量除以 K。
@@ -166,6 +173,8 @@ class SpatioTemporalIdentityManager(IdentityManager):
             self._cam[best_id] = (camera_id, t)
             if world_xy is not None:
                 self._world[best_id] = (world_xy, t)
+            if world_v is not None:
+                self._vel[best_id] = world_v
             return MatchResult(track_id, best_id, True, round(best_score, 4), frame_id)
 
         cid = self._next                                        # 開新廚師
@@ -175,12 +184,14 @@ class SpatioTemporalIdentityManager(IdentityManager):
         self._cam[cid] = (camera_id, t)
         if world_xy is not None:
             self._world[cid] = (world_xy, t)
+        if world_v is not None:
+            self._vel[cid] = world_v
         # 無候選時 best_score 是 -inf;回 0.0 表示「沒有任何證據」而非「證據為負」
         shown = 0.0 if best_score == float("-inf") else round(best_score, 4)
         return MatchResult(track_id, cid, False, shown, frame_id)
 
     def on_track_update(self, track_id, *, camera_id=None, frame_id=0, t_sec=None,
-                        world_xy=None, bbox=None):
+                        world_xy=None, bbox=None, world_v=None):
         """M4 每幀(或每隔幾幀)回報「這條 track 還在,現在在這裡」。
 
         ⚠ 這個介面是**地面校正的前提**,不是可有可無的優化。
@@ -200,6 +211,8 @@ class SpatioTemporalIdentityManager(IdentityManager):
         self._cam[cid] = (camera_id, t)
         if world_xy is not None:
             self._world[cid] = (world_xy, t)
+        if world_v is not None:
+            self._vel[cid] = world_v
         return cid
 
     def candidate_histogram(self):

@@ -66,7 +66,7 @@ def run_once(wcfg, topo, ablation="full", ttl_s=600.0, refine=None):
 
     if ablation == "all_new":                      # 基線:從不綁定
         recs, seen, tags = [], set(), []
-        for kind, gt, cam, t, emb, tag, box, zn, wxy in events:
+        for kind, gt, cam, t, emb, tag, box, zn, wxy, wv in events:
             if kind == "enter":
                 recs.append((gt, f"new{len(recs)}", False, gt in seen))
                 tags.append(tag)
@@ -82,17 +82,17 @@ def run_once(wcfg, topo, ablation="full", ttl_s=600.0, refine=None):
                              use_headcount=refine.get("use_headcount", False),
                              use_refine=refine.get("use_refine", False))
     recs, tags, seen, tid = [], [], set(), {}
-    for kind, gt, cam, t, emb, tag, box, zn, wxy in events:
+    for kind, gt, cam, t, emb, tag, box, zn, wxy, wv in events:
         f = int(t)
         if kind == "update":                 # 心跳:只更新位置,不做綁定決策
             m.on_track_update(tid.get((gt, cam), 1) * 1000 + gt, camera_id=cam,
-                              frame_id=f, t_sec=t, world_xy=wxy)
+                              frame_id=f, t_sec=t, world_xy=wxy, world_v=wv)
             continue
         if kind == "enter":
             tid[(gt, cam)] = tid.get((gt, cam), 0) + 1
             key = tid[(gt, cam)] * 1000 + gt
             r = m.on_new_track(key, camera_id=cam, frame_id=f, t_sec=t, embedding=emb,
-                               bbox=box, zone=zn, world_xy=wxy)
+                               bbox=box, zone=zn, world_xy=wxy, world_v=wv)
             recs.append((gt, r.chef_id, r.matched, gt in seen))
             tags.append(tag)
             seen.add(gt)
@@ -338,25 +338,27 @@ def compare_fixes(wcfg, reps, budget_break, budget_fm):
     for gap in [5.0, 30.0]:
         v = {"same_camera": {**F3["same_camera"], "max_gap_s": gap}}
         variants.append((f"+F3(含位置), 上限={gap:.0f}s", build(**{**OFF, **v})))
-    # ── 第六輪登記網格:地面校正(docs/M5_模擬預先登記_地面校正_20260825.md §4)──
-    MASTER = dict(master_camera="master", master_fragment_rate=0.05)
+    # ── 第七輪登記網格:軌跡/速度(docs/M5_模擬預先登記_軌跡_20260828.md §5)──
+    MASTER = dict(master_camera="master", master_fragment_rate=0.05, calib_sigma_m=0.1)
+    GP = {"enabled": True, "sigma_m": 0.1, "area_m2": 30.0, "clip": 8.0}
 
     def with_master(**fusion):
-        tp = build(**{**OFF, **F3}, **fusion)
+        tp = build(**{**OFF, **F3}, ground_plane=GP, **fusion)
         tp.overlapping |= {frozenset(("master", c)) for c in ["cam1", "cam2", "cam3"]}
         tp.cameras.setdefault("master", {})
         return tp
 
-    variants.append(("[現況] 全景鏡頭,無地面校正", with_master(), {}, None, MASTER))
-    for sg in [0.05, 0.10, 0.15, 0.2, 0.4, 0.8, 1.5]:   # 0.05~0.15 為事後診斷,非登記網格
-        variants.append((f"+ 地面校正 σ={sg:.2f}m", with_master(
-            ground_plane={"enabled": True, "sigma_m": sg, "area_m2": 30.0, "clip": 8.0}),
-            {}, None, dict(MASTER, calib_sigma_m=sg)))
-    # 預測 3:人越多,地面校正的效益越大
-    variants.append(("[8人] 無地面校正", with_master(), {}, None, dict(MASTER, n_chefs=8)))
-    variants.append(("[8人] + 地面校正 σ=0.4m", with_master(
-        ground_plane={"enabled": True, "sigma_m": 0.4, "area_m2": 30.0, "clip": 8.0}),
-        {}, None, dict(MASTER, n_chefs=8, calib_sigma_m=0.4)))
+    for tv in [1.0, 3.0, 8.0]:
+        variants.append((f"[基準] 無軌跡 τv={tv:.0f}s", with_master(), {}, None,
+                         dict(MASTER, tau_v_s=tv)))
+        for wnd in [0.5, 1.0, 2.0]:
+            variants.append((f"+軌跡 窗={wnd:.1f}s τv={tv:.0f}s", with_master(
+                velocity={"enabled": True, "window_s": wnd, "max_speed_mps": 1.5, "clip": 6.0}),
+                {}, None, dict(MASTER, tau_v_s=tv, vel_window_s=wnd)))
+    variants.append(("[8人] 無軌跡", with_master(), {}, None, dict(MASTER, n_chefs=8, tau_v_s=3.0)))
+    variants.append(("[8人] +軌跡 窗=1.0s", with_master(
+        velocity={"enabled": True, "window_s": 1.0, "max_speed_mps": 1.5, "clip": 6.0}),
+        {}, None, dict(MASTER, n_chefs=8, tau_v_s=3.0, vel_window_s=1.0)))
 
     print(f"  {'設定':<28}{'碎裂率':>9}{'誤併率':>9}{'正常轉場碎裂':>13}{'等級':>6}")
     print("  " + "-" * 70)

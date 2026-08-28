@@ -1,0 +1,104 @@
+{
+  "embedder": "osnet",
+  "model_name": "default",
+  "num_identities": 6,
+  "num_crops": 449,
+  "cross_view": {
+    "within_id_crossview_mean": 0.6103,
+    "same_id_pair_mean": 0.6184,
+    "diff_id_pair_mean": 0.4877,
+    "n_groups_multiview": 90
+  },
+  "cmc_map": {
+    "rank1": 0.9265,
+    "rank5": 0.9755,
+    "mAP": 0.6444,
+    "num_query_valid": 449
+  },
+  "binding_sweep": [
+    {
+      "thr": 0.3,
+      "accuracy": 0.9599,
+      "false_merge": 0.0401,
+      "reject": 0.0
+    },
+    {
+      "thr": 0.35,
+      "accuracy": 0.9599,
+      "false_merge": 0.0401,
+      "reject": 0.0
+    },
+    {
+      "thr": 0.4,
+      "accuracy": 0.9599,
+      "false_merge": 0.0401,
+      "reject": 0.0
+    },
+    {
+      "thr": 0.45,
+      "accuracy": 0.9599,
+      "false_merge": 0.0401,
+      "reject": 0.0
+    },
+    {
+      "thr": 0.5,
+      "accuracy": 0.9599,
+      "false_merge": 0.0401,
+      "reject": 0.0
+    },
+    {
+      "thr": 0.55,
+      "accuracy": 0.9599,
+      "false_merge": 0.0401,
+      "reject": 0.0
+    },
+    {
+      "thr": 0.6,
+      "accuracy": 0.9599,
+      "false_merge": 0.0401,
+      "reject": 0.0
+    },
+    {
+      "thr": 0.65,
+      "accuracy": 0.9555,
+      "false_merge": 0.0379,
+      "reject": 0.0067
+    },
+    {
+      "thr": 0.7,
+      "accuracy": 0.922,
+      "false_merge": 0.0334,
+      "reject": 0.0445
+    },
+    {
+      "thr": 0.75,
+      "accuracy": 0.7572,
+      "false_merge": 0.0156,
+      "reject": 0.2272
+    },
+    {
+      "thr": 0.8,
+      "accuracy": 0.4655,
+      "false_merge": 0.0,
+      "reject": 0.5345
+    },
+    {
+      "thr": 0.85,
+      "accuracy": 0.1225,
+      "false_merge": 0.0,
+      "reject": 0.8775
+    },
+    {
+      "thr": 0.9,
+      "accuracy": 0.0,
+      "false_merge": 0.0,
+      "reject": 1.0
+    }
+  ],
+  "best_binding": {
+    "thr": 0.3,
+    "accuracy": 0.9599,
+    "false_merge": 0.0401,
+    "reject": 0.0
+  }
+}
