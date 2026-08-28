@@ -1,0 +1,916 @@
+<title>智慧廚房 M4/M5 驗證報告</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@500;600;700&display=swap">
+
+<style>
+:root{
+  --paper:#F4F5F8; --surface:#FFFFFF; --surface-2:#EDEFF3;
+  --ink:#161B23; --body:#2C333E; --muted:#5D6674; --faint:#8B94A2;
+  --rule:#D9DEE5; --rule-soft:#E7EAEF;
+  --accent:#1F5C8C; --accent-soft:#E3ECF4; --accent-ink:#164869;
+  --warn:#A9501C; --warn-soft:#F6E9DF;
+  --good:#2C6A4B; --good-soft:#E2EEE7;
+  --grade-c:#8A6A18; --grade-c-soft:#F5EEDA;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#11151B; --surface:#171C24; --surface-2:#1E242D;
+    --ink:#E9ECF1; --body:#C6CCD6; --muted:#98A2B0; --faint:#6D7887;
+    --rule:#2B323C; --rule-soft:#232A33;
+    --accent:#74AEDC; --accent-soft:#1B2B39; --accent-ink:#9CC8EA;
+    --warn:#DE9058; --warn-soft:#2E2119;
+    --good:#6EB68C; --good-soft:#17281F;
+    --grade-c:#C7A550; --grade-c-soft:#2A2416;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#11151B; --surface:#171C24; --surface-2:#1E242D;
+  --ink:#E9ECF1; --body:#C6CCD6; --muted:#98A2B0; --faint:#6D7887;
+  --rule:#2B323C; --rule-soft:#232A33;
+  --accent:#74AEDC; --accent-soft:#1B2B39; --accent-ink:#9CC8EA;
+  --warn:#DE9058; --warn-soft:#2E2119;
+  --good:#6EB68C; --good-soft:#17281F;
+  --grade-c:#C7A550; --grade-c-soft:#2A2416;
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--paper); color:var(--body);
+  font-family:"Noto Sans TC",system-ui,-apple-system,"Microsoft JhengHei",sans-serif;
+  font-weight:400; font-size:16px; line-height:1.85;
+  letter-spacing:.005em;
+}
+h1,h2,h3,h4{
+  font-family:"Noto Serif TC",Georgia,"Times New Roman",serif;
+  color:var(--ink); text-wrap:balance; line-height:1.4; margin:0;
+}
+.mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+code{
+  font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  font-size:.86em; background:var(--surface-2); color:var(--ink);
+  padding:.12em .38em; border-radius:3px; border:1px solid var(--rule-soft);
+}
+a{color:var(--accent); text-decoration-thickness:1px; text-underline-offset:2px}
+a:focus-visible,summary:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+
+/* ─── shell: notebook page with a ruled margin rail ─── */
+.wrap{max-width:1080px; margin:0 auto; padding:0 24px 96px}
+.sheet{display:grid; grid-template-columns:104px minmax(0,1fr); gap:0}
+.rail{
+  border-right:1px solid var(--rule); padding:0 20px 0 0;
+  text-align:right;
+}
+.rail-item{
+  position:sticky; top:24px;
+  font-family:"IBM Plex Mono",monospace; font-size:11px; line-height:1.5;
+  color:var(--faint); letter-spacing:.06em; text-transform:uppercase;
+  padding-top:6px;
+}
+.col{padding:0 0 0 32px; min-width:0}
+.col > * + *{margin-top:20px}
+.measure{max-width:66ch}
+
+section{padding:44px 0; border-bottom:1px solid var(--rule-soft)}
+section:last-of-type{border-bottom:0}
+
+/* ─── masthead ─── */
+.masthead{padding:56px 0 32px; border-bottom:2px solid var(--ink)}
+.eyebrow{
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; font-weight:500;
+  letter-spacing:.16em; text-transform:uppercase; color:var(--accent);
+}
+.masthead h1{
+  font-size:clamp(30px,4.6vw,46px); font-weight:700; letter-spacing:-.01em;
+  margin:14px 0 0;
+}
+.dek{font-size:17px; color:var(--muted); max-width:60ch; margin-top:14px; line-height:1.75}
+.meta-row{
+  display:flex; flex-wrap:wrap; gap:8px 28px; margin-top:26px;
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px;
+  color:var(--faint); letter-spacing:.05em;
+}
+.meta-row b{color:var(--muted); font-weight:500}
+
+/* ─── headline stat band ─── */
+.stats{
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(168px,1fr));
+  gap:1px; background:var(--rule); border:1px solid var(--rule); margin-top:36px;
+}
+.stat{background:var(--surface); padding:20px 18px}
+.stat-k{
+  font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.11em;
+  text-transform:uppercase; color:var(--faint);
+}
+.stat-v{
+  font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums;
+  font-size:30px; font-weight:600; color:var(--ink); line-height:1.15; margin-top:9px;
+}
+.stat-v .arrow{color:var(--faint); font-weight:400; font-size:20px; margin:0 3px}
+.stat-n{font-size:12.5px; color:var(--muted); margin-top:7px; line-height:1.55}
+.stat.is-good .stat-v{color:var(--good)}
+.stat.is-warn .stat-v{color:var(--warn)}
+
+h2{font-size:26px; font-weight:600; letter-spacing:-.005em}
+h3{font-size:18.5px; font-weight:600; margin-top:8px}
+h4{font-size:15px; font-weight:600; font-family:"Noto Sans TC",sans-serif; letter-spacing:.01em}
+p{margin:0}
+.col p + p{margin-top:14px}
+
+ul,ol{margin:0; padding-left:1.25em}
+li{margin:7px 0}
+li::marker{color:var(--faint)}
+
+/* ─── data tables ─── */
+.tw{overflow-x:auto; border:1px solid var(--rule); background:var(--surface)}
+table{border-collapse:collapse; width:100%; font-size:13.5px; min-width:min(100%,520px)}
+th,td{padding:10px 14px; text-align:left; border-bottom:1px solid var(--rule-soft); vertical-align:top}
+thead th{
+  font-family:"IBM Plex Mono",monospace; font-size:10.5px; font-weight:500;
+  letter-spacing:.09em; text-transform:uppercase; color:var(--faint);
+  background:var(--surface-2); border-bottom:1px solid var(--rule); white-space:nowrap;
+}
+tbody tr:last-child td{border-bottom:0}
+td.num,th.num{
+  font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums;
+  text-align:right; white-space:nowrap;
+}
+tbody tr.hl{background:var(--accent-soft)}
+tbody tr.hl td{color:var(--ink)}
+.cap{
+  font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--faint);
+  letter-spacing:.03em; line-height:1.6;
+}
+
+/* ─── verdict pills ─── */
+.pill{
+  display:inline-block; font-family:"IBM Plex Mono",monospace; font-size:10.5px;
+  font-weight:500; letter-spacing:.07em; padding:2px 8px; border-radius:2px;
+  white-space:nowrap; border:1px solid transparent;
+}
+.p-good{background:var(--good-soft); color:var(--good); border-color:var(--good)}
+.p-bad{background:var(--warn-soft); color:var(--warn); border-color:var(--warn)}
+.p-c{background:var(--grade-c-soft); color:var(--grade-c); border-color:var(--grade-c)}
+.p-n{background:var(--surface-2); color:var(--muted); border-color:var(--rule)}
+
+/* ─── round ledger ─── */
+.ledger{border-top:1px solid var(--rule)}
+.round{
+  display:grid; grid-template-columns:44px minmax(0,1fr) auto;
+  gap:0 18px; align-items:baseline;
+  padding:16px 0; border-bottom:1px solid var(--rule-soft);
+}
+.round-n{
+  font-family:"IBM Plex Mono",monospace; font-size:22px; font-weight:600;
+  font-variant-numeric:tabular-nums; color:var(--rule); line-height:1;
+}
+.round.ok .round-n{color:var(--good)}
+.round.no .round-n{color:var(--warn)}
+.round-t{font-weight:500; color:var(--ink); font-size:15px}
+.round-d{font-size:13.5px; color:var(--muted); margin-top:5px; line-height:1.65}
+.round-r{
+  font-family:"IBM Plex Mono",monospace; font-size:12px; text-align:right;
+  color:var(--muted); font-variant-numeric:tabular-nums; white-space:nowrap;
+}
+
+/* ─── chart ─── */
+.chart{background:var(--surface); border:1px solid var(--rule); padding:24px 22px 16px}
+.chart svg{display:block; width:100%; height:auto; overflow:visible}
+
+/* ─── callouts ─── */
+.note{
+  border-left:3px solid var(--accent); background:var(--surface);
+  padding:16px 20px; font-size:14.5px; line-height:1.75;
+}
+.note.warn{border-left-color:var(--warn)}
+.note.good{border-left-color:var(--good)}
+.note-h{
+  font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.11em;
+  text-transform:uppercase; color:var(--accent); margin-bottom:8px; font-weight:500;
+}
+.note.warn .note-h{color:var(--warn)}
+.note.good .note-h{color:var(--good)}
+.note p + p{margin-top:11px}
+
+/* ─── two-col cards ─── */
+.grid2{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:16px}
+.card{background:var(--surface); border:1px solid var(--rule); padding:18px 20px}
+.card h4{margin-bottom:9px; color:var(--ink)}
+.card p{font-size:14px; line-height:1.72; color:var(--muted)}
+
+details{
+  border:1px solid var(--rule); background:var(--surface); padding:0 20px;
+}
+summary{
+  cursor:pointer; padding:14px 0; font-weight:500; color:var(--ink); font-size:14.5px;
+  list-style:none; display:flex; justify-content:space-between; gap:16px; align-items:center;
+}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+"; font-family:"IBM Plex Mono",monospace; color:var(--faint); font-size:17px}
+details[open] summary::after{content:"–"}
+details[open] summary{border-bottom:1px solid var(--rule-soft)}
+.details-body{padding:16px 0 20px; font-size:14px; line-height:1.78; color:var(--muted)}
+.details-body > * + *{margin-top:13px}
+
+.foot{
+  padding:36px 0 0; border-top:2px solid var(--ink); margin-top:8px;
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--faint);
+  line-height:1.9; letter-spacing:.03em;
+}
+
+@media (max-width:760px){
+  .sheet{grid-template-columns:1fr}
+  .rail{border-right:0; border-bottom:1px solid var(--rule-soft); text-align:left; padding:0 0 10px}
+  .rail-item{position:static; padding-top:0}
+  .col{padding-left:0; padding-top:16px}
+  .round{grid-template-columns:34px 1fr; gap:0 14px}
+  .round-r{grid-column:2; text-align:left; margin-top:8px}
+  body{font-size:15.5px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
+</style>
+
+<div class="wrap">
+
+<header class="masthead">
+  <div class="eyebrow">產學合作 · 智慧廚房系統 · 階段驗證報告</div>
+  <h1>M4 多目標追蹤與 M5 跨鏡頭身份</h1>
+  <p class="dek">
+    把每一幀的偵測串成軌跡,再把各鏡頭的軌跡綁成同一位廚師的全域身分。
+    本報告記錄七輪預先登記實驗的完整歷程 —— 包含成功的、失敗的,以及我們自己算錯的地方。
+  </p>
+  <div class="meta-row">
+    <span><b>期間</b> 2026-08-11 → 2026-08-28</span>
+    <span><b>模組</b> M4 · M5</span>
+    <span><b>對象</b> 業界夥伴 / 指導教授</span>
+    <span><b>狀態</b> M4 完成 · M5 演算法收斂,待實地資料校準</span>
+  </div>
+
+  <div class="stats">
+    <div class="stat is-good">
+      <div class="stat-k">身份碎裂率</div>
+      <div class="stat-v">24.4<span class="arrow">→</span>5.2<span style="font-size:19px">%</span></div>
+      <div class="stat-n">預算 5% · <b style="color:var(--good)">已達標</b></div>
+    </div>
+    <div class="stat is-warn">
+      <div class="stat-k">身份誤併率</div>
+      <div class="stat-v">72<span class="arrow">→</span>5.6<span style="font-size:19px">%</span></div>
+      <div class="stat-n">預算 1% · <b style="color:var(--warn)">仍差 5 倍</b></div>
+    </div>
+    <div class="stat">
+      <div class="stat-k">預先登記輪次</div>
+      <div class="stat-v">7</div>
+      <div class="stat-n">判準均在執行前提交 git</div>
+    </div>
+    <div class="stat">
+      <div class="stat-k">授權風險</div>
+      <div class="stat-v">0</div>
+      <div class="stat-n">出貨路徑全數可商用</div>
+    </div>
+  </div>
+</header>
+
+<!-- ══════════ 摘要 ══════════ -->
+<section class="sheet">
+  <div class="rail"><div class="rail-item">摘要<br>Summary</div></div>
+  <div class="col">
+    <h2>三句話的結論</h2>
+    <div class="measure">
+      <p><b style="color:var(--ink)">一、M4 追蹤已完成並可驗證。</b>
+      採用 ByteTrack(ECCV 2022,MIT 授權),在合成情境與 EPFL 真實影片上均通過;
+      第三方可自行執行我們的驗證腳本重現結果。</p>
+      <p><b style="color:var(--ink)">二、M5 的答案不在「認長相」,而在「空間與時間」。</b>
+      實測顯示可商用的外觀模型跨視角認人的 Rank-1 只有 <span class="mono">11%</span>(比隨機猜還差),
+      而廚師穿同款制服只會更糟。我們把架構改成以相機拓撲、轉場時間、地面幾何與行走軌跡為主,
+      外觀退居輔助 —— 這個決定被蒙地卡羅實驗直接證實:把外觀品質從實測水準一路降到零,
+      碎裂率一個小數點都沒有動。</p>
+      <p><b style="color:var(--ink)">三、演算法已走到目前的極限,誠實的缺口是誤併率。</b>
+      七輪下來誤併從 72% 壓到 5.6%,碎裂從 24.4% 壓到 5.2%(達標)。
+      但誤併距離食安追責所需的 1% 還差 5 倍,且目前沒有已知的演算法解 ——
+      這一段必須靠現場流程手段或下游設計補償,我們已備妥三條方案供選擇。</p>
+    </div>
+
+    <div class="note">
+      <div class="note-h">為什麼這兩種錯誤要分開報</div>
+      <p><b style="color:var(--ink)">碎裂</b>(同一人被拆成多個身分)會讓事件序列斷掉、計時歸零 →
+      漏報。但它<b>抓得到</b>:系統報的身分數多於排班人數就會告警。</p>
+      <p><b style="color:var(--ink)">誤併</b>(綁到別人身上)會讓 A 的行為記到 B 頭上 ——
+      <b>冤枉一個、放過一個</b>。而它<b>完全靜默</b>,下游的事件判定與資料庫全盤繼承,沒有任何機制驗得出來。</p>
+      <p>所以本專案對誤併的容忍度訂為碎裂的 <span class="mono">1/5</span>,所有取捨都以此為準。
+      把兩者合併成單一「準確率」會系統性隱藏最大的風險。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ M4 ══════════ -->
+<section class="sheet">
+  <div class="rail"><div class="rail-item">M4<br>追蹤</div></div>
+  <div class="col">
+    <h2>M4 多目標追蹤</h2>
+    <p class="measure">單幀偵測(M3)只知道「這一幀有一個人」,不知道下一幀是不是同一個人。
+    追蹤就是幫每個對象發一個身分證號並逐幀維持 —— 這是「同一個人停留超時」「未洗手」這類判斷的前提。</p>
+
+    <h3>選型與依據</h3>
+    <div class="tw">
+      <table>
+        <thead><tr><th>項目</th><th>決定</th><th>理由</th></tr></thead>
+        <tbody>
+          <tr><td>追蹤器</td><td><b>ByteTrack</b></td><td>ECCV 2022(arXiv:2110.06864);純運動 Kalman + IoU + 匈牙利配對,CPU 即時</td></tr>
+          <tr><td>實作來源</td><td><code>supervision</code> 的 <code>sv.ByteTrack</code></td><td><b>MIT 授權,可合法閉源商用</b>;直接吃 RF-DETR 的偵測輸出</td></tr>
+          <tr><td>不含</td><td>外觀 / Re-ID 特徵</td><td>屬 M5。M4 維持純運動 → 授權乾淨、CPU 快</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="cap">ByteTrack 在公開權威評測 MOT17 測試集的成績:MOTA 80.3 / IDF1 77.3 / HOTA 63.1,單 GPU 30 FPS。這些是公開競賽數據,任何第三方都能自行查證。</p>
+
+    <h3>驗證結果</h3>
+    <div class="tw">
+      <table>
+        <thead><tr><th>情境</th><th>斷言</th><th class="num">結果</th></tr></thead>
+        <tbody>
+          <tr><td>S1 單一對象移動</td><td>全程維持同一 ID</td><td class="num"><span class="pill p-good">PASS</span></td></tr>
+          <tr><td><b>S2 兩對象交叉</b></td><td><b>交會後不互換,ID-switch = 0</b></td><td class="num"><span class="pill p-good">PASS</span></td></tr>
+          <tr><td>S3 短暫遮擋(小於緩衝)</td><td>復現時沿用同一 ID</td><td class="num"><span class="pill p-good">PASS</span></td></tr>
+          <tr><td>S3b 遮擋過久</td><td>正確判為新對象</td><td class="num"><span class="pill p-good">PASS</span></td></tr>
+          <tr><td>S4 真實影片(EPFL 廚房)</td><td>單一廚師全程同一編號</td><td class="num"><span class="pill p-good">PASS</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="cap">追蹤器本身耗時(排除偵測)遠低於規格要求的 5 ms/幀,純 CPU。S2 是單人資料集給不了的多目標檢查,用合成序列補上。</p>
+
+    <div class="note warn">
+      <div class="note-h">誠實的限制</div>
+      <p>可用的公開資料(EPFL)<b>是單人場景</b>,所以真實的多目標 ID-switch 率無法用它量化 ——
+      我們用合成序列當站位。真正的廚房驗證需要自錄多人跨工作站影片,這是交付給業主的測試套件要取得的東西。</p>
+    </div>
+
+    <h3>為了接上 M5 而修正的三個事件語意問題</h3>
+    <p class="measure">端到端串接才會浮現、單看 M4 驗不出來的問題:</p>
+    <div class="tw">
+      <table>
+        <thead><tr><th>問題</th><th>後果</th><th>修法</th></tr></thead>
+        <tbody>
+          <tr><td>軌跡從遮擋恢復時<b>不發任何事件</b></td><td>M5 把該廚師標成「已離開」後<b>永遠卡住</b>,綁定永久遺失 —— 最高頻且靜默</td><td>新增 <code>reacquired</code> 事件</td></tr>
+          <tr><td>離場時間戳取自 <code>removed</code></td><td>離場時間系統性延後約 1 秒,使所有轉場時間差偏小,時間窗判斷失準</td><td>改取自 <code>lost_track</code> 當下</td></tr>
+          <tr><td>離場紀錄從不清除</td><td>300 人次洩漏 500 筆 → 違反規格的記憶體驗收標準</td><td>加 <code>_forget()</code> 回收</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 外觀實測 ══════════ -->
+<section class="sheet">
+  <div class="rail"><div class="rail-item">M5 · 前提<br>外觀實測</div></div>
+  <div class="col">
+    <h2>先問一個該問的問題:靠「長得像」認得出人嗎?</h2>
+    <p class="measure">整個 M5 的架構選擇取決於這個答案。我們用 EPFL 廚房資料集的
+    <b>6 個真實身份 × 5 個視角 × 15 個時刻 = 449 張人形影像</b>,
+    以我們微調過的 RF-DETR 偵測人、再抽外觀特徵,做標準的 Re-ID 評測。</p>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>外觀模型</th><th>授權</th><th class="num">同人相似度</th><th class="num">不同人</th><th class="num">Rank-1</th><th>能否出貨</th></tr></thead>
+        <tbody>
+          <tr><td><b>DINOv2</b>(通用視覺)</td><td>Apache-2.0</td><td class="num">0.490</td><td class="num">0.465</td><td class="num" style="color:var(--warn)"><b>11%</b></td><td><span class="pill p-good">可</span></td></tr>
+          <tr><td><b>OSNet</b>(Re-ID 專用)</td><td>架構 MIT,<b>權重研究限定</b></td><td class="num">0.618</td><td class="num">0.488</td><td class="num" style="color:var(--good)"><b>92.7%</b></td><td><span class="pill p-bad">否</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="cap">隨機猜測的期望值約 17%。DINOv2 的同人與不同人相似度只差 0.025 —— 分不開。</p>
+
+    <div class="note warn">
+      <div class="note-h">這個結果構成一個兩難</div>
+      <p><b>能出貨的模型認不出人;認得出人的模型不能出貨。</b>
+      OSNet 的現成權重訓練於 Market-1501 / MSMT17 / DukeMTMC,這些資料集條款均寫明僅供研究、不可商用,
+      而且授權會傳染 —— 拿它們自訓再出貨同樣不行。</p>
+      <p>更關鍵的是:這 6 個人<b>穿著不同衣服</b>都認不準,而真實廚房的廚師穿同一款制服。
+      所以即使解決了授權,外觀路線在本場域的天花板也很低。</p>
+    </div>
+
+    <h3>那就別讓外觀當主角</h3>
+    <p class="measure">我們把架構改成<b>時空為主、外觀為輔</b>,並用蒙地卡羅實驗直接檢驗這個決定值不值得:
+    把外觀品質從實測水準一路調降到完全無資訊(模擬全員同制服)。</p>
+
+    <div class="grid2">
+      <div class="card">
+        <h4>碎裂率:24.8% → 24.8%</h4>
+        <p>外觀從實測水準降到零,<b>一個小數點都沒有動</b>。</p>
+      </div>
+      <div class="card">
+        <h4>誤併率:5.1% → 5.6%</h4>
+        <p>只惡化 0.5 個百分點,在雜訊帶邊緣。</p>
+      </div>
+    </div>
+
+    <p class="measure">解析式也印證:典型情境下「同時通過時間窗的假候選」期望值只有
+    <span class="mono">0.14</span> —— 絕大多數綁定決策<b>根本只有一個候選人</b>,外觀連被用到的機會都沒有。</p>
+
+    <div class="note good">
+      <div class="note-h">對投資決策的意涵</div>
+      <p>在這個架構下,無論是 NVIDIA TAO 模型的法務風險、或是自訓 Re-ID 模型的 GPU 工程成本,
+      <b>買到的效益接近於零</b>。這筆錢與時間應該投在相機佈設與地面校正上 —— 後面的數據會說明為什麼。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 方法論 ══════════ -->
+<section class="sheet">
+  <div class="rail"><div class="rail-item">方法<br>Method</div></div>
+  <div class="col">
+    <h2>我們怎麼確保這些數字不是自己說了算</h2>
+    <p class="measure">團隊無法自錄多人資料,所以 M5 的量化必須靠模擬。
+    模擬最大的風險是「用自己的假設出題、再用同一套假設答題」。我們用三個機制擋住它:</p>
+
+    <div class="grid2">
+      <div class="card">
+        <h4>一、預先登記</h4>
+        <p>每一輪實驗在<b>寫任何程式之前</b>,先把掃描網格、及格判準、以及可被否證的預測寫成文件<b>提交進 git</b>。
+        跑完只追加結果,不得回頭修改判準。七輪都留有時間戳可查。</p>
+      </div>
+      <div class="card">
+        <h4>二、世界模型刻意不一致</h4>
+        <p>模擬器的「真實世界」用長尾分布產生轉場時間,而受測系統仍用高斯分布去判斷,
+        且模擬器<b>刻意不引用系統的證據模組</b>。量到的是「模型失配時會壞成什麼樣」,不是「用高斯驗高斯」。</p>
+      </div>
+      <div class="card">
+        <h4>三、解析 → 對拍 → 模擬</h4>
+        <p>順序不可顛倒。先手算出理論門界,再用<b>真實的系統物件</b>反推同一個值來對拍
+        (誤差 0.002~0.004,等於掃描步長),確認實作與理論一致後才跑模擬。</p>
+      </div>
+      <div class="card">
+        <h4>四、消融夾擠</h4>
+        <p>五組消融(全開新 / 純外觀 / 純時空 / 完整 / 上帝視角)吃同一個世界。
+        完整系統必須落在消融組與上帝視角<b>之間</b>,否則是模擬器有問題,不是系統有進步。</p>
+      </div>
+    </div>
+
+    <div class="note warn">
+      <div class="note-h">這套方法抓到了什麼(否則我們會報出錯的數字)</div>
+      <p>第五輪修完之後,指標顯示「碎裂 0% / 誤併 0% / A 級」—— 看起來完美。
+      但同一份資料的 IDF1 只有 <span class="mono">0.264</span>,揭露了真相:<b>4 位廚師被全部併成 1 個身分</b>。</p>
+      <p>兩個指標同時瞎了。判定綁定正確與否的邏輯把「和上次同一個編號」當成正確
+      —— 全部併成一個時,這個條件每次都成立;而人數告警只檢查「身分數多於人數」,沒檢查「少於」。
+      兩者都已修正(改用編號的<b>歸屬</b>判斷 + 雙向告警)。</p>
+      <p><b>第五輪報出的數字因此作廢並已在文件中標註</b>(質性結論仍成立)。
+      教訓已寫進方法論:<b>當一個修法讓所有指標同時變完美時,先懷疑指標。</b></p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 七輪 ══════════ -->
+<section class="sheet">
+  <div class="rail"><div class="rail-item">M5 · 主體<br>七輪實驗</div></div>
+  <div class="col">
+    <h2>七輪實驗:每一輪的假設與結果</h2>
+    <p class="measure">輪次順序有因果意義 —— 每一輪的結果決定了下一輪要試什麼。
+    以下包含四次失敗,它們和成功的三次一樣重要。</p>
+
+    <div class="ledger">
+      <div class="round no">
+        <div class="round-n">01</div>
+        <div>
+          <div class="round-t">補三個結構缺口:繞路、逗留、同鏡頭斷軌重關聯</div>
+          <div class="round-d">診斷正確 —— 84% 的碎裂來自這三個架構沒建模的東西。但三個修法沒有一個改善加權成本,
+          同鏡頭重關聯反而讓誤併從 4.8% 惡化到 10.2%。</div>
+        </div>
+        <div class="round-r">碎裂 25.2%<br>誤併 4.8%<br><span class="pill p-bad">未改善</span></div>
+      </div>
+
+      <div class="round ok">
+        <div class="round-n">1b</div>
+        <div>
+          <div class="round-t">改為引入「位置」這條新證據</div>
+          <div class="round-d">同一鏡頭內,人不會瞬間移動。這是原本完全沒用到的資訊軸。</div>
+        </div>
+        <div class="round-r">加權成本 −3.1<br><span class="pill p-good">有效</span></div>
+      </div>
+
+      <div class="round no">
+        <div class="round-n">02</div>
+        <div>
+          <div class="round-t">換用重尾分布、重估背景到達率與逗留比例</div>
+          <div class="round-d">在既有證據上重新分配信任,結果是零和交換 —— 碎裂降多少,誤併就升多少。
+          登記時挑的旋鈕本身也選錯了方向。</div>
+        </div>
+        <div class="round-r"><span class="pill p-bad">零和</span></div>
+      </div>
+
+      <div class="round ok">
+        <div class="round-n">03</div>
+        <div>
+          <div class="round-t">引入「方向」證據:從哪個出入口離開、從哪個入口進來</div>
+          <div class="round-d">又一條新的證據軸。碎裂 19.2% → 13.7%。
+          <b>但登記的預測錯在危險的方向</b>:標錯的出入口區域不只是沒用,而是<b>主動有害</b>。</div>
+        </div>
+        <div class="round-r">碎裂 13.7%<br>誤併 6.2%<br><span class="pill p-good">−4.5</span></div>
+      </div>
+
+      <div class="round no">
+        <div class="round-n">04</div>
+        <div>
+          <div class="round-t">離線重關聯 + 排班人數約束</div>
+          <div class="round-d">事後回頭用「當下沒有的資訊」重新配對。又是零和交換。
+          其中一個登記的機制最終沒有執行,已如實記錄為執行落差。</div>
+        </div>
+        <div class="round-r"><span class="pill p-bad">零和</span></div>
+      </div>
+
+      <div class="round ok">
+        <div class="round-n">05</div>
+        <div>
+          <div class="round-t">全景鏡頭 —— 一台看得到整個廚房的鏡頭</div>
+          <div class="round-d">前四輪所有失敗都源自同一件事:<b>盲區</b>,系統只能猜「他走了幾秒」。
+          全景鏡頭讓身分在畫面裡連續維持,其他鏡頭靠幾何重疊掛上去。碎裂問題直接消失。</div>
+        </div>
+        <div class="round-r">碎裂 18.8% → 0.1%<br><span class="pill p-good">解決</span></div>
+      </div>
+
+      <div class="round ok">
+        <div class="round-n">06</div>
+        <div>
+          <div class="round-t">地面校正(homography):把畫面像素換算成廚房平面上的公尺</div>
+          <div class="round-d">讓「重疊鏡頭裡有人」升級為「就是站在那個座標的那一個人」。
+          誤併 72% → 14.5%。本輪修掉六個 bug,並發現前述的指標盲點。</div>
+        </div>
+        <div class="round-r">誤併 72% → 14.5%<br><span class="pill p-good">關鍵</span></div>
+      </div>
+
+      <div class="round ok">
+        <div class="round-n">07</div>
+        <div>
+          <div class="round-t">軌跡證據:兩個站在同一位置的人,是從不同方向走過來的</div>
+          <div class="round-d">位置分不出時,速度分得出。這是最後一條還沒動用的正交證據軸。
+          誤併 18.6% → 5.6%,而且碎裂同步從 7.3% 降到 5.2%。</div>
+        </div>
+        <div class="round-r">誤併 18.6% → 5.6%<br>碎裂 → 5.2%<br><span class="pill p-good">有效</span></div>
+      </div>
+    </div>
+
+    <div class="note good">
+      <div class="note-h">七輪最可複用的一條規律</div>
+      <p style="font-size:16px; color:var(--ink)">
+      <b>有效的改善,全部來自「加一條新的證據軸」</b>(位置、方向、全景鏡頭、地面幾何、行走軌跡)。<br>
+      <b>失敗的,全部是「在既有證據上重新分配信任」</b>(換分布、調門檻、改權重、強制合併)。</p>
+      <p>這條規律在七輪中沒有例外,也是我們判斷「還有沒有路可走」的依據 ——
+      目前可用的證據軸大致已經用盡,這正是誤併停在 5.6% 的原因。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 圖表 ══════════ -->
+<section class="sheet">
+  <div class="rail"><div class="rail-item">軌跡<br>Trend</div></div>
+  <div class="col">
+    <h2>誤併率的下降歷程</h2>
+
+    <div class="chart">
+      <svg viewBox="0 0 700 260" role="img" aria-label="誤併率從 72% 經地面校正降到 14.5%,再經軌跡證據降到 5.6%,與 1% 預算的比較">
+        <defs>
+          <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.22"/>
+            <stop offset="100%" stop-color="var(--accent)" stop-opacity="0.02"/>
+          </linearGradient>
+        </defs>
+        <!-- grid -->
+        <g stroke="var(--rule-soft)" stroke-width="1">
+          <line x1="70" y1="30" x2="660" y2="30"/>
+          <line x1="70" y1="80" x2="660" y2="80"/>
+          <line x1="70" y1="130" x2="660" y2="130"/>
+          <line x1="70" y1="180" x2="660" y2="180"/>
+        </g>
+        <line x1="70" y1="210" x2="660" y2="210" stroke="var(--rule)" stroke-width="1.5"/>
+        <g font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--faint)" text-anchor="end">
+          <text x="60" y="34">80%</text>
+          <text x="60" y="84">60%</text>
+          <text x="60" y="134">40%</text>
+          <text x="60" y="184">20%</text>
+          <text x="60" y="214">0%</text>
+        </g>
+        <!-- budget line at 1% -->
+        <line x1="70" y1="207.5" x2="660" y2="207.5" stroke="var(--good)" stroke-width="1.5" stroke-dasharray="5 4"/>
+        <text x="666" y="211" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--good)">預算 1%</text>
+
+        <!-- area under the curve: 72 -> 14.5 -> 5.6 ; y = 210 - v*2.25 -->
+        <path d="M 150 48.0 L 380 177.4 L 610 197.4 L 610 210 L 150 210 Z" fill="url(#fade)"/>
+        <polyline points="150,48.0 380,177.4 610,197.4" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>
+
+        <!-- points -->
+        <g>
+          <circle cx="150" cy="48.0" r="5.5" fill="var(--surface)" stroke="var(--warn)" stroke-width="2.5"/>
+          <circle cx="380" cy="177.4" r="5.5" fill="var(--surface)" stroke="var(--accent)" stroke-width="2.5"/>
+          <circle cx="610" cy="197.4" r="6" fill="var(--good)" stroke="var(--surface)" stroke-width="2"/>
+        </g>
+        <g font-family="IBM Plex Mono, monospace" font-size="17" font-weight="600" text-anchor="middle">
+          <text x="150" y="34" fill="var(--warn)">72%</text>
+          <text x="380" y="163" fill="var(--accent)">14.5%</text>
+          <text x="610" y="183" fill="var(--good)">5.6%</text>
+        </g>
+        <g font-family="Noto Sans TC, sans-serif" font-size="11.5" fill="var(--muted)" text-anchor="middle">
+          <text x="150" y="232">只有重疊鏡頭</text>
+          <text x="150" y="248" font-size="10" fill="var(--faint)">4 人被併成 1 個身分</text>
+          <text x="380" y="232">＋ 地面校正</text>
+          <text x="380" y="248" font-size="10" fill="var(--faint)">第六輪</text>
+          <text x="610" y="232">＋ 軌跡證據</text>
+          <text x="610" y="248" font-size="10" fill="var(--faint)">第七輪(現況)</text>
+        </g>
+      </svg>
+    </div>
+    <p class="cap">縱軸為誤併率(越低越好)。⚠ 這三個數字不是同一次執行的:世界模型在輪次之間有改動,
+    會改變隨機數流,所以<b>跨輪的絕對值嚴格來說不可直接相比</b>。輪內的對照(第七輪 18.6% → 5.6%)才是受控比較。</p>
+
+    <h3 style="margin-top:34px">第七輪完整掃描網格</h3>
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th>軌跡觀測窗</th>
+            <th class="num">τ<sub>v</sub> = 1.0s</th>
+            <th class="num">τ<sub>v</sub> = 3.0s</th>
+            <th class="num">τ<sub>v</sub> = 8.0s</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>無軌跡(基準)</td><td class="num">7.0 / <b style="color:var(--warn)">20.5%</b></td><td class="num">7.3 / <b style="color:var(--warn)">18.6%</b></td><td class="num">7.5 / <b style="color:var(--warn)">16.3%</b></td></tr>
+          <tr><td>0.5 秒</td><td class="num">6.1 / 13.1%</td><td class="num">6.0 / 11.5%</td><td class="num">6.0 / 10.2%</td></tr>
+          <tr class="hl"><td><b>1.0 秒(建議)</b></td><td class="num">5.3 / 7.8%</td><td class="num"><b>5.2 / 7.9%</b></td><td class="num">5.1 / 6.5%</td></tr>
+          <tr><td>2.0 秒</td><td class="num">5.4 / 6.7%</td><td class="num">5.2 / <b style="color:var(--good)">5.6%</b></td><td class="num">5.0 / <b style="color:var(--good)">5.1%</b></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="cap">格式:碎裂率 / 誤併率。τ<sub>v</sub> = 人走路方向的持續性(速度自相關時間)。8 位廚師時:29.1% → 11.2%。</p>
+
+    <div class="note">
+      <div class="note-h">軌跡證據比預期穩健 —— 對佈署是好消息</div>
+      <p>我們登記的預測是「效益依賴行走慣性,τ<sub>v</sub>=1 秒(接近隨機遊走)時幾乎無效」。
+      實際上 τ<sub>v</sub>=1 秒仍從 20.5% 降到 7.8%。</p>
+      <p>原因:我們比的是<b>同一瞬間</b>兩個人的速度,不是預測未來。即使一個人的走法完全沒有慣性,
+      兩個不同的人在同一瞬間的速度仍然不一樣。<b>因此不必先量測真實廚房的行走慣性才敢啟用這個功能。</b></p>
+    </div>
+
+    <details>
+      <summary>直接檢驗:軌跡證據到底解決了哪一類誤併?</summary>
+      <div class="details-body">
+        <p>第七輪登記的預測 1 是「效益集中在兩人相距 0.5 公尺以內那一類」。
+        我們寫了診斷腳本,用同一組隨機種子只切換軌跡開關,量出每次誤併發生時兩人的實際距離:</p>
+        <div class="tw">
+          <table>
+            <thead><tr><th>誤併時兩人距離</th><th class="num">軌跡關</th><th class="num">軌跡開</th><th class="num">變化</th></tr></thead>
+            <tbody>
+              <tr class="hl"><td><b>&lt; 0.5 公尺</b></td><td class="num">198</td><td class="num">38</td><td class="num" style="color:var(--good)"><b>−81%</b></td></tr>
+              <tr><td>0.5 ~ 1.5 公尺</td><td class="num">0</td><td class="num">4</td><td class="num">+4</td></tr>
+              <tr><td>1.5 ~ 3.0 公尺</td><td class="num">9</td><td class="num">3</td><td class="num" style="color:var(--good)">−67%</td></tr>
+              <tr><td><b>&gt; 3.0 公尺</b></td><td class="num">32</td><td class="num">57</td><td class="num" style="color:var(--warn)"><b>+78%</b></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p><b>預測成立</b> —— 近距離模糊正是被解決的那一類,證據接在該接的地方。</p>
+        <p><b>但同時量到一個新的失效模式:</b>相隔 3 公尺以上、剛好朝同方向以相近速度移動的兩個人,
+        誤併反而增加了 78%(絕對量約佔全部轉場的 1.7%,被近距離的改善淹沒)。
+        軌跡證據不是只會幫忙。這是下一步該處理的東西 —— 位置已判定「不可能是同一人」時,不該讓速度翻案。</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>我們自己犯的錯:同一個數學錯誤犯了兩次</summary>
+      <div class="details-body">
+        <p>第七輪登記時算出「0.5 秒的觀測窗已經足夠」,實跑卻只降到 11.5%,而 1.0 秒降到 7.9%
+        —— 邊際效益完全沒有遞減。<b>預測被自己的實驗否證。</b></p>
+        <p>根因:<b>比較兩個有噪聲的觀測時,差值的標準差是單次的 √2 倍。</b>
+        登記時用的是單次觀測的噪聲,系統性高估了鑑別力。</p>
+        <p>而這<b>不是第一次</b> —— 第六輪的地面校正證據犯過完全一樣的錯,當時修掉了,第七輪又犯一次。
+        高估鑑別力的後果是把真的同一個人判成「對不上」而拒絕綁定:修正前碎裂 9.5%,修正後 6.0%。</p>
+        <p>已在程式碼中留下註解記錄這個教訓。連同第六輪與第七輪各一處登記時的算術失誤,
+        全部保留在文件裡,未回頭修改。</p>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ══════════ 部署規格 ══════════ -->
+<section class="sheet">
+  <div class="rail"><div class="rail-item">佈署<br>Spec</div></div>
+  <div class="col">
+    <h2>這套系統要能運作,現場必須滿足什麼</h2>
+    <p class="measure">以下每一項都是實驗量出來的硬條件,不滿足就不必往下做。
+    這也是七輪實驗最有商業價值的產出 —— 它把「準不準」變成「在什麼條件下準」。</p>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>項目</th><th class="num">規格</th><th>不滿足的後果</th></tr></thead>
+        <tbody>
+          <tr class="hl">
+            <td><b>地面校正殘差</b></td><td class="num"><b>≤ 0.2 公尺</b></td>
+            <td><b>最關鍵的一項。</b>沒做的話 4 位廚師會被全部併成 1 個身分(誤併 72%,8 人時 85%)。
+            殘差 ≥ 0.8 公尺時這條證據的資訊量低於判定門檻,<b>完全無用</b>。實測隨手標也能達到 0.08 公尺,不難</td>
+          </tr>
+          <tr>
+            <td><b>全景/廣角鏡頭</b></td><td class="num">至少 1 台</td>
+            <td>俯瞰主要工作區。沒有它,系統只能猜「他走了幾秒」—— 前四輪所有失敗的共同根源</td>
+          </tr>
+          <tr>
+            <td><b>人在畫面中的大小</b></td><td class="num">≥ 畫面高度 18%</td>
+            <td>低於此偵測率掉到 0.88 以下。⚠ 要用畫面中<b>最遠最小</b>的那個人量,不是平均</td>
+          </tr>
+          <tr>
+            <td><b>推論解析度</b></td><td class="num">1280</td>
+            <td>704 只能做到 26%,1280 可到 18% → <b>單台涵蓋面積翻倍</b>。系統是事後查詢用,不需即時,所以這個成本可接受</td>
+          </tr>
+          <tr>
+            <td><b>鏡頭時鐘同步</b></td><td class="num">殘餘偏移 ≤ 0.2 秒</td>
+            <td>2 秒偏移會讓誤拒率從 18% 跳到 49%,而症狀是「一直開新身分」—— 現場看不出原因</td>
+          </tr>
+          <tr>
+            <td><b>視野重疊</b></td><td class="num">盡量有</td>
+            <td>重疊 = 直接看到同一個人;不重疊 = 只能推測轉場時間,誤差大得多</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note warn">
+      <div class="note-h">全景鏡頭的能力邊界(不可誤解)</div>
+      <p>全景鏡頭<b>只負責「人」</b>。我們的實驗顯示人的偵測相當耐得住縮小
+      (縮到四分之一時 Recall 仍保有 <span class="mono">89%</span>),但刀具那類小物件會崩(僅剩 <span class="mono">11%</span>)。</p>
+      <p>所以<b>細節事件仍然需要近距鏡頭,這筆預算不能省</b>。全景鏡頭是身分的骨幹,不是萬用鏡頭。</p>
+    </div>
+
+    <details>
+      <summary>證據的物理天花板:為什麼規格訂在這些數字</summary>
+      <div class="details-body">
+        <p>每一條證據能提供的資訊量都有數學上限,而綁定決策的門檻是 <span class="mono">1.61</span>(單位:nats)。
+        資訊量低於門檻的證據,再怎麼調參數都沒有用 —— 這就是規格數字的來源,不是拍腦袋訂的:</p>
+        <div class="tw">
+          <table>
+            <thead><tr><th>地面校正殘差</th><th class="num">證據上限</th><th>判定</th></tr></thead>
+            <tbody>
+              <tr><td>0.2 公尺</td><td class="num">4.09</td><td><span class="pill p-good">可用</span></td></tr>
+              <tr><td>0.4 公尺</td><td class="num">2.70</td><td><span class="pill p-c">鑑別力下降</span></td></tr>
+              <tr><td>0.8 公尺</td><td class="num">1.32</td><td><span class="pill p-bad">低於門檻,完全無用</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="tw" style="margin-top:13px">
+          <table>
+            <thead><tr><th>軌跡觀測窗</th><th class="num">證據上限</th><th>判定</th></tr></thead>
+            <tbody>
+              <tr><td>0.5 秒</td><td class="num">1.95</td><td><span class="pill p-c">勉強過門檻</span></td></tr>
+              <tr><td>1.0 秒</td><td class="num">3.34</td><td><span class="pill p-good">建議值</span></td></tr>
+              <tr><td>2.0 秒</td><td class="num">4.72</td><td><span class="pill p-good">最準,但身分指派延後 2 秒</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>軌跡證據的代價是<b>身分指派會延後約 1 秒</b>(要先累積速度)。
+        本系統的資料流是事後查詢、非同步寫入,所以可接受;若日後有即時告警需求則需重新評估。</p>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ══════════ 交付 ══════════ -->
+<section class="sheet">
+  <div class="rail"><div class="rail-item">交付<br>Handover</div></div>
+  <div class="col">
+    <h2>交付給業主的驗收套件</h2>
+    <p class="measure">業主手上只有平面圖,沒有我們的上下文。
+    所以交付物的設計目標是:<b>讓他們不需要理解演算法,也能自行量出可信的數字。</b>
+    共六個步驟,每一步都有「做完怎麼確認」的檢查點。</p>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th class="num">步驟</th><th>工具</th><th>業主要做的事</th></tr></thead>
+        <tbody>
+          <tr><td class="num">1</td><td>拓撲產生器</td><td>填一張表:哪台鏡頭走得到哪台、<b>步行路徑距離</b>幾公尺(繞過障礙,不是直線)、視野有無重疊。腳本自動換算成設定檔</td></tr>
+          <tr><td class="num">2</td><td>—</td><td>每台鏡頭在地面挑 4 個以上不共線的點,量平面圖座標 + 讀畫面像素座標。<b>不用填精度參數</b> —— 系統自己從這些點算出標定殘差</td></tr>
+          <tr><td class="num">3</td><td>設定自檢</td><td>還沒錄影就能跑。11 項檢查:拓撲填錯、單向連結、孤立鏡頭、轉場時間與追蹤模組衝突、時鐘容忍度、校正品質。<b>必須 0 個 ERROR 才能往下</b></td></tr>
+          <tr><td class="num">4</td><td>走動測試記錄器</td><td>單一 HTML 檔,手機平板都能開、離線可用。2~3 人穿實際制服來回走 20 分鐘,進出畫面時按一下,匯出真值 CSV</td></tr>
+          <tr><td class="num">5</td><td>端到端執行</td><td>影片 → 偵測 → 追蹤 → 身分,輸出每次綁定決策的分數與候選數明細,可事後查「為什麼綁成這樣」</td></tr>
+          <tr><td class="num">6</td><td>驗收評分</td><td>輸出 IDF1 / 碎裂率 / 誤併率,直接對照門檻。同時檢查「身分數 vs 實際人數」</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>驗收門檻與它的來源</h3>
+    <div class="tw">
+      <table>
+        <thead><tr><th>指標</th><th class="num">門檻</th><th>依據</th></tr></thead>
+        <tbody>
+          <tr><td><b>IDF1</b></td><td class="num">≥ 0.90</td><td>身分保持的整體品質,國際標準指標,第三方認得</td></tr>
+          <tr><td><b>碎裂率</b></td><td class="num">≤ 5%</td><td>「未洗手」這類事件鏈約含 3 次跨鏡頭交接,要達 80% 召回 → 每次交接碎裂率須 ≤ 7.2%,留給偵測與追蹤的誤差預算後訂 5%</td></tr>
+          <tr><td><b>誤併率</b></td><td class="num">≤ 1%</td><td>廚師每 2~5 分鐘跨一次鏡頭 → 8 小時班次 96~240 次決策。目標「每人每班身分污染少於 1 次」。因為靜默不可偵測,門檻嚴 5 倍</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note warn">
+      <div class="note-h">兩個「開了卻不生效、而且不報錯」的陷阱已補上防護</div>
+      <p>這類失效在本專案反覆出現,危險之處是<b>看起來一切正常</b>:</p>
+      <ul style="margin-top:6px">
+        <li>人的類別編號依權重而異(COCO 預訓 = 1,我們微調的 11 類 = 0)。接錯時<b>一個人都偵測不到,而且完全不報錯</b> → 已改為自動判斷,並在偵測數為 0 時明確提示</li>
+        <li>地面校正沒做時,舊版會偷偷套用一個預設精度值 —— 那個精度下證據幾乎沒有鑑別力,<b>但看起來是開著的</b> → 改為明確停用並記錄原因</li>
+        <li>軌跡證據開啟但沒做地面校正時完全不生效(速度是從地面座標算出來的)→ 新增自檢項目,直接報 ERROR</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 授權 ══════════ -->
+<section class="sheet">
+  <div class="rail"><div class="rail-item">法務<br>Licensing</div></div>
+  <div class="col">
+    <h2>授權盤點:出貨路徑全數乾淨</h2>
+    <p class="measure">本專案要出貨,所以每一個元件的授權都必須經得起檢視。
+    我們刻意排除了幾條看似方便的路。</p>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>元件</th><th>授權</th><th class="num">出貨</th><th>說明</th></tr></thead>
+        <tbody>
+          <tr><td>RF-DETR(偵測)</td><td>Apache-2.0</td><td class="num"><span class="pill p-good">可</span></td><td>M3 微調權重由我方自訓</td></tr>
+          <tr><td>ByteTrack / supervision(追蹤)</td><td>MIT</td><td class="num"><span class="pill p-good">可</span></td><td>純運動,不含任何預訓外觀模型</td></tr>
+          <tr><td>DINOv2(外觀輔助)</td><td>Apache-2.0</td><td class="num"><span class="pill p-good">可</span></td><td>主模型程式與權重皆為 Apache;CC-BY-NC 只適用於生物影像延伸版</td></tr>
+          <tr><td>EPFL 廚房資料集</td><td>CC-BY-NC</td><td class="num"><span class="pill p-bad">否</span></td><td><b>僅供驗證,絕不進入出貨品</b></td></tr>
+          <tr><td>OSNet 現成權重</td><td>研究限定</td><td class="num"><span class="pill p-bad">否</span></td><td>訓練於 Market-1501 / MSMT17 / DukeMTMC,授權會傳染,自訓再出貨同樣不行</td></tr>
+          <tr><td>YOLOv7 / v9</td><td>GPL</td><td class="num"><span class="pill p-bad">否</span></td><td>自始排除,避免傳染性開源義務</td></tr>
+          <tr><td>人臉辨識</td><td>—</td><td class="num"><span class="pill p-bad">否</span></td><td>可商用權重授權不乾淨,且涉及生物特徵個資。<b>本專案自始未採用</b></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 限制 ══════════ -->
+<section class="sheet">
+  <div class="rail"><div class="rail-item">限制<br>Caveats</div></div>
+  <div class="col">
+    <h2>誠實說明:目前已知的限制</h2>
+
+    <div class="note warn">
+      <div class="note-h">最大的缺口</div>
+      <p style="font-size:16px; color:var(--ink)"><b>誤併率約 5~8%,而食安追責所需的門檻是 1%。</b></p>
+      <p>七輪下來從 72% 壓到 5.6%,但剩下這 5 倍缺口<b>目前沒有已知的演算法解</b>。
+      現有的證據軸(拓撲、時間、位置、方向、幾何、軌跡、外觀)大致已經用盡,
+      而七輪的規律說得很清楚:只有新的證據軸能帶來改善,重新分配既有信任不會。</p>
+    </div>
+
+    <h3>若這個誤差不可接受,三條可行的補償路徑</h3>
+    <div class="tw">
+      <table>
+        <thead><tr><th>手段</th><th>作法</th><th>預期效果</th><th class="num">成本</th></tr></thead>
+        <tbody>
+          <tr><td><b>下游補償</b></td><td>事件標上信心度;彙總報表註明誤差範圍;針對性調查時人工複核影片</td><td>不降低誤併率,但讓它<b>可見</b>而非靜默</td><td class="num">最低</td></tr>
+          <tr><td><b>增加全景鏡頭</b></td><td>第二台不同角度的俯瞰鏡頭,消除單一視角的遮擋</td><td>未測,推估可再降三分之一</td><td class="num">一台鏡頭</td></tr>
+          <tr class="hl"><td><b>可辨識標記</b></td><td>帽子或圍裙上不同顏色色塊,或 AprilTag 之類的視覺標記</td><td><b>可望接近 0%</b> —— 把「認人」變成「認標記」</td><td class="num">需人員配合</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="cap">視覺標記路線沒有授權問題,也不涉及生物特徵個資,是三者中效果與風險比最好的一條。</p>
+
+    <h3 style="margin-top:32px">其他必須說清楚的四點</h3>
+    <ul class="measure">
+      <li><b>目前的準確率數字全部來自模擬,尚未用真實的多人資料校準。</b>
+      世界模型的行走過程、步速、慣性都是設定值不是實測值。我們量到的是「每條證據值多少」與「在什麼條件下會壞」,
+      不是絕對準確率。交付套件的步驟四到六就是為了取得那份資料 —— <b>業主的測試結果會用來修正這些預估。</b></li>
+      <li><b>跨輪的絕對數字不可直接相比。</b>世界模型在輪次之間有改動,會改變隨機數流。
+      輪內的受控對照才是有效比較,本報告中的 72% → 14.5% → 5.6% 是歷程敘述而非單次實驗結果。</li>
+      <li><b>第五輪報出的數字已作廢</b>(質性結論仍成立),原因是前述的指標盲點。已在原始文件中標註,未刪除。</li>
+      <li><b>新的失效模式已量到但尚未處理:</b>相隔 3 公尺以上、同方向同速度移動的兩人偶爾會被誤綁(約佔全部轉場的 1.7%)。</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ══════════ 下一步 ══════════ -->
+<section class="sheet">
+  <div class="rail"><div class="rail-item">下一步<br>Next</div></div>
+  <div class="col">
+    <h2>下一步</h2>
+    <div class="grid2">
+      <div class="card">
+        <h4>1 · 取得實地走動測試資料</h4>
+        <p><b>優先級最高。</b>所有模擬數字都需要它來校準,而且它是唯一能驗證真實廚房行為的來源。
+        交付套件已備妥,業主可自行執行。</p>
+      </div>
+      <div class="card">
+        <h4>2 · 用微調權重重跑端到端</h4>
+        <p>目前端到端串接已在真實影片上跑通,但尚未全面改用 M3 的微調權重驗證。</p>
+      </div>
+      <div class="card">
+        <h4>3 · 位置 × 速度的交叉閘控</h4>
+        <p>壓制第七輪量到的新失效模式 —— 位置已判定「不可能是同一人」時,不讓速度證據翻案。</p>
+      </div>
+      <div class="card">
+        <h4>4 · 接續 M6 粗事件</h4>
+        <p>身分是下游 M6 事件、M7 細事件、M8 資料庫、M9 報表的共同掛載點,M5 收斂後即可往下推進。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="foot">
+  <div>智慧廚房系統 · 產學合作專案 · M4 / M5 階段驗證報告</div>
+  <div>資料期間 2026-08-11 → 2026-08-28 · 七輪預先登記文件與原始輸出均存放於專案版本庫,可供查證</div>
+  <div style="margin-top:12px; color:var(--muted)">本報告所載之準確率數字來自蒙地卡羅模擬,尚未經真實多人資料校準;限制條件已列於前述章節。</div>
+</footer>
+
+</div>
