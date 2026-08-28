@@ -11,6 +11,7 @@
 
 用法:python scripts/diag_merge_distance.py
 """
+import json
 import math
 import sys
 from collections import Counter, defaultdict
