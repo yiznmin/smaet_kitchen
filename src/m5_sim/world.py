@@ -207,7 +207,13 @@ def generate(cfg, links, all_cameras, link_zones=None):
                            cfg.gamma_uniform, cfg.dim, rng)
     chefs = [Chef(i, anchors[i]) for i in range(cfg.n_chefs)]
     skew = cfg.clock_skew or {}
-    cams = sorted(all_cameras)
+    # ⚠ 全景鏡頭**不參與一般鏡頭的輪替**。它是「一直看得到整個廚房」,
+    #   不是「廚師會走過去的另一個station」。
+    #   踩過的坑:master 混在 cams 裡 → 廚師會「轉場到 master」,產生
+    #   normal/detour 事件,與那條連續的全景 track 互相衝突 →
+    #   master 的 detour 與 fragment 100% 碎裂,整體多出約 14% 的假碎裂。
+    #   這就是第六輪「近乎完美校正下仍有 14.5% 碎裂」的真正原因。
+    cams = sorted(c for c in all_cameras if c != cfg.master_camera)
     out_links = {}
     for (a, b) in links:
         out_links.setdefault(a, []).append(b)

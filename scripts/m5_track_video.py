@@ -127,6 +127,16 @@ def main():
         print("  → 它們之間沒有連結也不重疊,跨鏡頭一律開新 chef_id。")
         print(f"  拓撲裡有的是:{sorted(topo.all_cameras())}")
 
+    if topo.homographies:
+        print("地面校正:")
+        for h in topo.homographies.values():
+            print("  " + h.describe())
+        print(f"  → GroundPlaneLR 用實測殘差 σ={topo.calib_sigma_m:.3f}m"
+              f"(第六輪 R8:σ 需 ≤0.2m,≥0.8m 則此證據無用)")
+    else:
+        print("⚠ 沒有任何鏡頭做地面校正 → 重疊路徑退回常數證據 "
+              "(overlap_llr,已知過度自信,見第六輪 R8)")
+
     with open(args.tracker, encoding="utf-8") as f:
         tcfg = (yaml.safe_load(f) or {}).get("tracker", {})
 
@@ -171,7 +181,8 @@ def main():
             for c, (_frame, out) in per_cam.items():
                 for tr in out.tracks:
                     m5.on_track_update(tr.track_id, camera_id=c, frame_id=n_frames,
-                                       t_sec=t_sec, bbox=tr.bbox)
+                                       t_sec=t_sec, bbox=tr.bbox,
+                                       world_xy=topo.world_xy(c, tr.bbox))
 
             # ② 事件 → M5
             for c, (frame, out) in per_cam.items():
@@ -179,7 +190,8 @@ def main():
                     if ev.kind == "new_track":
                         cr = crop_of(frame, ev.bbox) if ev.bbox is not None else None
                         r = m5.on_new_track(ev.track_id, camera_id=c, frame_id=ev.frame_id,
-                                            t_sec=ev.t_sec, bbox=ev.bbox, crop=cr)
+                                            t_sec=ev.t_sec, bbox=ev.bbox, crop=cr,
+                                            world_xy=topo.world_xy(c, ev.bbox))
                         row = dict(t_sec=round(ev.t_sec, 3), camera_id=c,
                                    track_id=ev.track_id, chef_id=r.chef_id,
                                    matched=bool(r.matched), score=r.similarity,

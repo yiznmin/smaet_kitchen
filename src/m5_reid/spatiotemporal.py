@@ -96,8 +96,19 @@ class CameraTopology:
         self.clock_offset = {c: float(v.get("clock_offset_s", 0.0) or 0.0)
                              for c, v in self.cameras.items()}
         self.clock = {"max_skew_s": 0.2, **(clock or {})}
+        # 地面校正:有填點對應的鏡頭才有 homography。σ 由**實測殘差**決定,
+        # 不用人填 —— 第六輪 R8 證明 σ 直接決定這條證據有沒有用,讓系統自己量
+        # 比讓人猜可靠。
+        from m5_reid.calibration import load_homographies, suggest_sigma
+        self.homographies = load_homographies(self.cameras)
+        self.calib_sigma_m = suggest_sigma(self.homographies)
 
         self._build_evidence()
+
+    def world_xy(self, camera_id, bbox):
+        """影像 bbox → 世界座標(公尺)。該鏡頭沒校正就回 None。"""
+        h = self.homographies.get(camera_id)
+        return h.foot_to_world(bbox) if h is not None else None
 
     def offset(self, camera_id):
         """該相機時鐘相對基準的偏移(秒)。校正後時間 = 原始時間 − offset。"""
@@ -151,9 +162,13 @@ class CameraTopology:
                                   n_zones=int(d.get("n_zones", 3)),
                                   clip=float(d.get("clip", 6.0))) if d.get("enabled") else None
         g = f.get("ground_plane") or {}
-        self.ground_lr = GroundPlaneLR(sigma_m=float(g.get("sigma_m", 0.4)),
+        # σ 優先用實測殘差;config 的 sigma_m 只在沒有 homography 時當退路
+        sigma = self.calib_sigma_m if self.calib_sigma_m else float(g.get("sigma_m", 0.4))
+        # 有 homography 就自動啟用(既然標定了,就該用真實幾何而非常數)
+        enabled = g.get("enabled", bool(self.homographies))
+        self.ground_lr = GroundPlaneLR(sigma_m=sigma,
                                        area_m2=float(g.get("area_m2", 30.0)),
-                                       clip=float(g.get("clip", 8.0))) if g.get("enabled") else None
+                                       clip=float(g.get("clip", 8.0))) if enabled else None
         pos = f.get("position") or {}
         self.pos_lr = PositionLR(
             speed_bh_per_s=float(pos.get("speed_bh_per_s", 0.5)),

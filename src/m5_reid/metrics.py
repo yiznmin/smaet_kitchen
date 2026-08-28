@@ -65,6 +65,16 @@ def binding_outcomes(records):
     碎裂可偵測(chef_id 數 > 排班人數就會告警),誤併完全靜默且下游全盤繼承,
     所以兩者要分開報,不可合併成單一「錯誤率」。
     """
+    # ⚠ 「綁回上次同一個 id」不足以判定正確 —— 若**所有人**都被併成同一個 id,
+    #   那每個人的 last_pred 都等於 pred,於是每次都被算成正確,
+    #   碎裂與誤併雙雙變成 0%,但系統其實完全失效(實測 4 人併成 1 個,
+    #   兩個率都是 0.0% 而 IDF1 只有 0.264)。
+    #   所以還要看該 id 的**歸屬**:它主要屬於誰。綁到別人「擁有」的 id 就是誤併。
+    owner_votes = defaultdict(Counter)
+    for gt, pred, _m, _t in records:
+        owner_votes[pred][gt] += 1
+    owner = {p: v.most_common(1)[0][0] for p, v in owner_votes.items()}
+
     last_pred = {}
     n_tr = fm = brk = ok = 0
     for gt, pred, matched, is_tr in records:
@@ -72,10 +82,12 @@ def binding_outcomes(records):
             n_tr += 1
             if not matched:
                 brk += 1
+            elif owner.get(pred) != gt:
+                fm += 1                       # 綁到別人的身份
             elif last_pred.get(gt) == pred:
                 ok += 1
             else:
-                fm += 1
+                fm += 1                       # 換了一個 id,而且不是自己的
         last_pred[gt] = pred
     if n_tr == 0:
         return dict(n_transitions=0, p_break=None, p_false_merge=None, p_correct=None)
@@ -113,14 +125,19 @@ def fragmentation(observations):
 
 
 def headcount_alarm(observations, expected_headcount):
-    """碎裂的**可偵測性**:預測身份數 > 排班人數就該告警。
+    """身份數與排班人數對不上就告警 —— **兩個方向都要看**。
 
-    這是唯一能自動抓到的失效訊號 —— 誤併不會讓身份數變多,所以抓不到。
-    這個不對稱是「寧可碎裂也不要誤併」的根據。
+    · 多於人數 → 碎裂(同一人被拆成多個)
+    · 少於人數 → **整體誤併**(多人被併成一個)
+
+    ⚠ 原本只檢查「多於」,結果 4 人被併成 1 個時 alarm=False,
+      完全沒抓到。而那正是最嚴重的失效。
     """
     n_pred = len({p for _, p in observations})
+    kind = ("碎裂" if n_pred > expected_headcount else
+            "整體誤併" if n_pred < expected_headcount else None)
     return dict(n_pred_ids=n_pred, expected=expected_headcount,
-                alarm=n_pred > expected_headcount)
+                alarm=kind is not None, kind=kind)
 
 
 def summarize(records, expected_headcount=None):

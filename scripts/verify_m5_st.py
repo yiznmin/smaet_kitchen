@@ -279,6 +279,56 @@ def s13_optional_paths_work_when_enabled():
     return ok
 
 
+def s14_homography():
+    """地面校正:σ 由**實測殘差**決定,不用人填;有校正就自動啟用。
+
+    第六輪 R8:證據上限 = log(A / 2πσ²),σ≤0.2m 可用、≥0.8m 完全無用。
+    讓系統自己從標定點量 σ,比讓人猜一個數字可靠得多。
+    """
+    print("S14 地面校正(homography)")
+    from m5_reid.calibration import Homography
+    import numpy as np
+
+    world = [[0, 0], [6, 0], [6, 4], [0, 4], [3, 2], [1.5, 3]]
+    Ht = np.array([[110., -20., 180.], [8., -95., 690.], [0.0, -0.012, 1.0]])
+
+    def proj(w):
+        v = Ht @ np.array([w[0], w[1], 1.0])
+        return (v[0] / v[2], v[1] / v[2])
+
+    img = [proj(w) for w in world]
+    h = Homography(img, world, "cam1")
+    ok = check("乾淨標定的殘差 ≈ 0", h.sigma_m < 1e-6, f"{h.sigma_m:.2e} m")
+    ok &= check("腳點取框底中點(不是中心)",
+                abs(h.foot_to_world((600, 400, 680, 690))[0]
+                    - h.project([(600 + 680) / 2, 690])[0]) < 1e-9)
+
+    rng = np.random.RandomState(0)
+    noisy = [(u + rng.randn() * 15, v + rng.randn() * 15) for u, v in img]
+    hn = Homography(noisy, world, "cam1")
+    ok &= check("點位誤差 ±15px 的殘差仍 < 0.2m 上限", hn.sigma_m < 0.2,
+                f"{hn.sigma_m:.3f} m")
+
+    ok &= check("點太少要報錯", _raises(lambda: Homography(img[:3], world[:3], "x")))
+    # 退化標定必須明確報錯,不能靜默接受後在真實資料上給出荒謬座標
+    ok &= check("四點共線要報錯(退化標定)",
+                _raises(lambda: Homography([[0, 0], [1, 1], [2, 2], [3, 3]],
+                                           [[0, 0], [1, 0], [2, 0], [3, 0]], "x")))
+
+    t = topo()
+    ok &= check("沒填 homography 時 world_xy 回 None",
+                t.world_xy("cam1", (100, 100, 200, 300)) is None)
+    return ok
+
+
+def _raises(fn):
+    try:
+        fn()
+        return False
+    except Exception:
+        return True
+
+
 def s11_clock_skew_correction():
     """鏡頭時鐘不同步會讓所有轉場 Δt 整體偏移 → chef_id 一直開新的。
 
@@ -345,7 +395,7 @@ def main():
                s7_occlusion_recovery(), s8_exit_timestamp_from_lost(),
                s9_resident_memory_bounded(), s10_gate_boundary_sweep(),
                s11_clock_skew_correction(), s12_config_audit_catches_bad_config(),
-               s13_optional_paths_work_when_enabled()]
+               s13_optional_paths_work_when_enabled(), s14_homography()]
     print()
     if all(results):
         print("[ALL PASS] 全部通過(時空為主、外觀破平手、物理約束)")

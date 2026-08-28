@@ -146,6 +146,29 @@ def audit_topology(topo, tracker_cfg=None, expected_headcount=None):
                 f"設 appearance_clip: {topo.llr_threshold*0.6:.2f} 夾住外觀發言權,"
                 "或重新推導 cost_false_merge_over_break。"))
 
+    # ── A10 地面校正品質 ───────────────────────────────────────────────
+    if not getattr(topo, "homographies", None):
+        out.append(Finding(
+            WARN, "A10_NO_HOMOGRAPHY",
+            "沒有任何鏡頭做地面校正 → 重疊路徑只能用常數證據,"
+            "多人同時在場時分不出是哪一位(實測誤併 6.8%)。",
+            "在每台重疊鏡頭的地面挑 ≥4 個不共線的點,填進 cameras.*.homography。"))
+    else:
+        for cam, h in sorted(topo.homographies.items()):
+            r = h.report()
+            lvl = (ERROR if r["rms_m"] >= 0.8 else
+                   WARN if r["rms_m"] > 0.2 else INFO)
+            msg = (f"{cam} 標定殘差 RMS {r['rms_m']:.3f}m(最大 {r['max_m']:.3f}m,"
+                   f"{r['inliers']}/{r['n_points']} inlier)")
+            fix = None
+            if lvl is ERROR:
+                msg += " —— 證據上限已低於判定門檻,地面校正**完全無用**。"
+                fix = "重新標定:確認點位量測、鏡頭畸變校正、地面是否真的是平面。"
+            elif lvl is WARN:
+                msg += " —— 超過 0.2m 的建議上限,鑑別力明顯下降。"
+                fix = "增加標定點、改用更容易辨識的地面特徵、或先做鏡頭畸變校正。"
+            out.append(Finding(lvl, "A10_CALIB_QUALITY", msg, fix))
+
     # ── A9 headcount 自檢提示 ──────────────────────────────────────────
     if expected_headcount:
         out.append(Finding(
