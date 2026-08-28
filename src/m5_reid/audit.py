@@ -151,7 +151,8 @@ def audit_topology(topo, tracker_cfg=None, expected_headcount=None):
         out.append(Finding(
             WARN, "A10_NO_HOMOGRAPHY",
             "沒有任何鏡頭做地面校正 → 重疊路徑只能用常數證據,"
-            "多人同時在場時分不出是哪一位(實測誤併 6.8%)。",
+            "多人同時在場時分不出是哪一位。實測 4 位廚師會被**全部併成 1 個身份**"
+            "(誤併 72%,8 人時 85%);加了地面校正降到 14%。",
             "在每台重疊鏡頭的地面挑 ≥4 個不共線的點,填進 cameras.*.homography。"))
     else:
         for cam, h in sorted(topo.homographies.items()):
