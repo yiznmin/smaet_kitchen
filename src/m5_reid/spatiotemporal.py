@@ -222,8 +222,12 @@ class CameraTopology:
         with open(path, encoding="utf-8") as f:
             raw = yaml.safe_load(f) or {}
         cfg = raw.get("camera_topology", raw)
-        if not cfg.get("links"):
-            raise ValueError(f"{path} 沒有任何 links → 所有跨鏡頭轉場都會被拒絕")
+        # 這個守衛是為了擋「忘了填 links」的靜默失效。但**全部鏡頭兩兩重疊**時
+        # links 本來就該是空的(重疊路徑不需要轉場時間),所以只在同時也沒有
+        # overlapping 時才算設定錯誤。
+        if not cfg.get("links") and not cfg.get("overlapping"):
+            raise ValueError(
+                f"{path} 既沒有 links 也沒有 overlapping → 所有跨鏡頭關聯都會被拒絕")
         return cls.from_config(cfg)
 
     def is_overlapping(self, a, b):

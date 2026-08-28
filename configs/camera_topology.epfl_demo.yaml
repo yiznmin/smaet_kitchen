@@ -1,0 +1,38 @@
+# EPFL 示範用拓撲 —— 只用於驗證管線,不是任何真實場域的設定。
+#
+# 為什麼要獨立一份:configs/camera_topology.yaml 是給業主的範本,
+# 裡面 overlapping 只填 [cam1, cam3]。用它跑 EPFL 三視角時 cam2 會開新身份,
+# 因為 cam1↔cam2 被當成「要走 4 秒」的連結,而三個視角其實是**同時**的。
+# 那次碎裂的成因是 config 沒填,不是演算法 —— 這份 config 就是拿來證明這件事。
+#
+# EPFL 的 9 個視角全部同步且視野重疊,所以三對全列為 overlapping。
+camera_topology:
+  fusion:
+    mode: llr
+    background_arrival_hz: 0.00167
+    cost_false_merge_over_break: 5.0
+    transit_model: loiter
+    p_loiter: 0.15
+    tau_loiter_s: 20.0
+    appearance_profile: dinov2
+    appearance_clip: null
+    overlap_llr: 5.0
+    overlap_window_s: 0.5
+    same_camera: { enabled: true, tau_break_s: 2.0, max_gap_s: 15.0 }
+    unknown_path: { enabled: false }
+    direction: { enabled: false }
+
+  links: []
+
+  overlapping:
+    - [cam1, cam2]
+    - [cam1, cam3]
+    - [cam2, cam3]
+
+  clock:
+    max_skew_s: 0.2
+
+  cameras:
+    cam1: { clock_offset_s: 0.0 }
+    cam2: { clock_offset_s: 0.0 }
+    cam3: { clock_offset_s: 0.0 }

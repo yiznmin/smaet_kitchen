@@ -57,6 +57,10 @@ class WorldConfig:
                  #   小 = 隨機遊走(速度不預測下一步)、大 = 直線行走。
                  #   原本的 step_world 等於 tau_v→0,會讓軌跡證據因為錯的理由失效。
                  tau_v_s=3.0, walk_speed_mps=0.9, vel_window_s=0.5,
+                 # 軌跡取樣間隔(秒)。預設 None = 只在事件時記錄(既有行為)。
+                 # ⚠ 設了它會**改變隨機數流** → 與先前輪次的數字不可比。
+                 #   只用於視覺化(scripts/render_fake_kitchen.py),不要用在量指標的跑。
+                 traj_dt_s=None,
                  # 全景鏡頭:一台看得到整個廚房的鏡頭。每位廚師全程在它畫面裡,
                  # 唯一的身份遺失路徑是它自己因遮擋而斷軌(master_fragment_rate)。
                  master_camera=None, master_fragment_rate=0.05,
@@ -216,7 +220,30 @@ def sample_transit(cfg, rng, want_tag=False):
     return (float(dt), loitered) if want_tag else float(dt)
 
 
-def generate(cfg, links, all_cameras, link_zones=None):
+def advance(cfg, wst, dt, rng, traj=None, gt=None, t0=0.0):
+    """把世界推進 dt 秒。cfg.traj_dt_s 有設時,沿途以固定間隔記錄軌跡。
+
+    OU 過程對子步是自洽的(exp(−dt/τ) 可分解),所以細取樣不改變統計性質,
+    只是多記了中間點 —— 但**會改變隨機數的抽取次數**,故預設關閉。
+    """
+    step = cfg.traj_dt_s
+    if step is None or dt <= step:
+        wst = step_world(cfg, wst, dt, rng)
+        if traj is not None:
+            traj[gt].append((t0 + dt, wst))
+        return wst
+    n = int(dt // step)
+    for i in range(n):
+        wst = step_world(cfg, wst, step, rng)
+        traj[gt].append((t0 + (i + 1) * step, wst))
+    rest = dt - n * step
+    if rest > 1e-9:
+        wst = step_world(cfg, wst, rest, rng)
+        traj[gt].append((t0 + dt, wst))
+    return wst
+
+
+def generate(cfg, links, all_cameras, link_zones=None, return_traj=False):
     """產生事件流。
 
     回傳 [(kind, ..., bbox, zone, world_xy, world_v)]。
@@ -264,8 +291,7 @@ def generate(cfg, links, all_cameras, link_zones=None):
             if t_leave > cfg.duration_s:
                 break
             pos = step_pos(cfg, pos, t_leave - t, rng)      # 停留期間有走動
-            wst = step_world(cfg, wst, t_leave - t, rng)
-            traj[chef.gt_id].append((t_leave, wst))
+            wst = advance(cfg, wst, t_leave - t, rng, traj, chef.gt_id, t)
             nxt = out_links.get(cam, [])
             detour = rng.rand() < cfg.p_detour or not nxt
             if detour:                                  # 走了拓撲沒建模的路徑
@@ -291,8 +317,8 @@ def generate(cfg, links, all_cameras, link_zones=None):
                 continue
             cam = dest
             pos = rand_pos(cfg, rng)                        # 換鏡頭 → 新影像座標系,重抽
-            wst = step_world(cfg, wst, dt, rng)             # 世界座標是連續的
-            traj[chef.gt_id].append((t, wst))
+            # 世界座標是連續的(人在鏡頭之間仍在走)
+            wst = advance(cfg, wst, dt, rng, traj, chef.gt_id, t - dt)
             events.append(("enter", chef.gt_id, cam, t + skew.get(cam, 0.0),
                            observe(chef.anchor, cfg.app_mu_same, cfg.app_sigma_same, rng),
                            tag, to_bbox(cfg, pos),
@@ -321,7 +347,7 @@ def generate(cfg, links, all_cameras, link_zones=None):
     # 同一時刻時,「心跳」必須排在「進場」之前 —— 否則位置資訊到得太晚,
     # 綁定決策當下拿到的還是舊位置,地面校正等於沒接上。
     events.sort(key=lambda e: (e[3], 0 if e[0] == "update" else 1))
-    return events
+    return (events, traj) if return_traj else events
 
 
 def _world_at(traj_pts, t):

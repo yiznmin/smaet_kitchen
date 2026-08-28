@@ -35,3 +35,6 @@ __pycache__/
 .venv/
 venv/
 .env
+
+# 假廚房動畫的逐幀圖(數百張,可由 scripts/render_fake_kitchen.py 重新產生)
+results/m5_sim/kitchen/
