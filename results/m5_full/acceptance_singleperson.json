@@ -1,0 +1,50 @@
+{
+  "n_truth_intervals": 3,
+  "n_people": 1,
+  "n_events": 18,
+  "n_matched": 18,
+  "n_unmatched": 0,
+  "metrics": {
+    "idf1": 1.0,
+    "idtp": 18,
+    "n": 18,
+    "n_gt": 1,
+    "n_pred": 1,
+    "n_transitions": 17,
+    "p_break": 0.0,
+    "p_false_merge": null,
+    "p_correct": 1.0,
+    "fm_unmeasurable_reason": "ground-truth 只有一個身份 → 誤併分支是死碼,任何數字都不是誤併率",
+    "id_switches": 0,
+    "fragmentation": {
+      "mean": 1.0,
+      "max": 1,
+      "hist": {
+        "1": 1
+      }
+    },
+    "headcount": {
+      "n_pred_ids": 1,
+      "expected": 1,
+      "alarm": false,
+      "kind": null
+    },
+    "measurable": {
+      "p_break": true,
+      "p_false_merge": false,
+      "idf1": false,
+      "fragmentation": true,
+      "headcount": true
+    }
+  },
+  "budget": {
+    "p_break": 0.05,
+    "p_false_merge": 0.01,
+    "idf1": 0.9
+  },
+  "verdict": "incomplete",
+  "unmeasurable": [
+    "誤併率"
+  ],
+  "passed": null
+}

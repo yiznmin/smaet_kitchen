@@ -1,0 +1,316 @@
+{
+  "meta": {
+    "camera_video_map": {
+      "cam1": "data/epfl/Boutput0.mp4",
+      "cam2": "data/epfl/output0.mp4",
+      "cam3": "data/epfl/Aoutput0.mp4"
+    },
+    "videos": {
+      "cam1": {
+        "width": 1280,
+        "height": 720,
+        "fps": 30.0,
+        "nb_frames": 23400
+      },
+      "cam2": {
+        "width": 1280,
+        "height": 720,
+        "fps": 30.0,
+        "nb_frames": 23400
+      },
+      "cam3": {
+        "width": 1280,
+        "height": 720,
+        "fps": 30.0,
+        "nb_frames": 23400
+      }
+    },
+    "topology_path": "configs/camera_topology.epfl_demo.yaml",
+    "n_links": 0,
+    "n_overlapping_pairs": 3,
+    "n_homographies": 0,
+    "world_xy_available": false,
+    "ground_plane_effective": false,
+    "velocity_effective": false,
+    "weights": null,
+    "person_cls": 1,
+    "embedder": "none",
+    "stride": 5,
+    "max_frames": -1,
+    "ttl_loops": 600,
+    "ttl_seconds": 100.0,
+    "lost_track_buffer_loops": 30,
+    "lost_track_buffer_seconds": 5.0,
+    "n_loops": 4680,
+    "n_loops_full": 4680,
+    "coverage": 1.0,
+    "truncated": false,
+    "per_cam_loops": {
+      "cam1": 4680,
+      "cam2": 4680,
+      "cam3": 4680
+    },
+    "n_det": 14530,
+    "n_det_per_cam": {
+      "cam1": 4728,
+      "cam2": 4704,
+      "cam3": 5098
+    },
+    "ms_per_loop": {
+      "p50": 541.7,
+      "p95": 1176.5,
+      "max": 2119.4
+    },
+    "wall_seconds": 3297.4,
+    "total_chefs": 1,
+    "candidate_histogram": {
+      "0": 1,
+      "1": 17
+    },
+    "resident_final": {
+      "active": 1,
+      "gone": 0,
+      "track_to_chef": 3,
+      "_exit": 0,
+      "_cam": 1,
+      "_pending_exit": 0,
+      "_world": 0,
+      "_vel": 0
+    },
+    "llr_threshold": 1.6094379124341003
+  },
+  "selfcheck": [
+    {
+      "ok": true,
+      "name": "跑完整支影片",
+      "detail": "coverage=1.0 truncated=False —— 防的是 --max-frames 預設 120 的靜默 0.3% 截斷"
+    },
+    {
+      "ok": true,
+      "name": "每台鏡頭都偵測到人",
+      "detail": "{'cam1': 4728, 'cam2': 4704, 'cam3': 5098} —— 防的是 person_cls 接錯(COCO=1/微調=0)時靜默輸出 0 筆"
+    },
+    {
+      "ok": true,
+      "name": "各鏡頭迴圈數一致",
+      "detail": "{'cam1': 4680, 'cam2': 4680, 'cam3': 4680} —— 防的是某支影片提前耗盡、t_sec 靜默倒退"
+    },
+    {
+      "ok": true,
+      "name": "四個輸出檔都有資料",
+      "detail": "tracks=14403 events=361 bindings=18 resident=94 —— 防的是空評估被當成完美"
+    },
+    {
+      "ok": true,
+      "name": "讀到正確的拓撲 config",
+      "detail": "links=0 overlapping=3 —— 讀成 camera_topology.yaml 會讓 cam2 必然碎裂,而症狀看起來像演算法爛"
+    },
+    {
+      "ok": true,
+      "name": "地面校正/軌跡證據的狀態自洽",
+      "detail": "沒有 homography 就必須兩條都不生效 —— 「開了卻不生效」與「沒開卻聲稱生效」兩個方向都要擋"
+    },
+    {
+      "ok": true,
+      "name": "沒有異常長停頓",
+      "detail": "max=2119.4 vs p50=541.7 —— 防的是 swap/記憶體壓力"
+    }
+  ],
+  "m4": {
+    "cam1": {
+      "n_tracks": 5,
+      "tracks_per_min": 0.38,
+      "active_per_loop": {
+        "1": 4668,
+        "2": 10,
+        "3": 2
+      },
+      "miss_rate": 0.0,
+      "ghost_rate": 0.0026,
+      "lifetime_s": {
+        "median": 0.8,
+        "p10": 0.2,
+        "p90": 780.0,
+        "max": 780.0
+      },
+      "short_lived_pct": 0.8,
+      "kalman_idle_pct": 0.0019,
+      "events": {
+        "new_track": 5,
+        "lost_track": 5,
+        "removed": 12,
+        "reacquired": 1
+      },
+      "occlusion_recovery": 0.2
+    },
+    "cam2": {
+      "n_tracks": 5,
+      "tracks_per_min": 0.38,
+      "active_per_loop": {
+        "0": 6,
+        "1": 4666,
+        "2": 8
+      },
+      "miss_rate": 0.0013,
+      "ghost_rate": 0.0017,
+      "lifetime_s": {
+        "median": 0.7,
+        "p10": 0.2,
+        "p90": 741.3,
+        "max": 741.3
+      },
+      "short_lived_pct": 0.6,
+      "kalman_idle_pct": 0.0034,
+      "events": {
+        "new_track": 5,
+        "removed": 12,
+        "lost_track": 4
+      },
+      "occlusion_recovery": 0.0
+    },
+    "cam3": {
+      "n_tracks": 8,
+      "tracks_per_min": 0.62,
+      "active_per_loop": {
+        "1": 4333,
+        "2": 347
+      },
+      "miss_rate": 0.0,
+      "ghost_rate": 0.0741,
+      "lifetime_s": {
+        "median": 16.2,
+        "p10": 0.8,
+        "p90": 780.0,
+        "max": 780.0
+      },
+      "short_lived_pct": 0.25,
+      "kalman_idle_pct": 0.0004,
+      "events": {
+        "new_track": 8,
+        "removed": 22,
+        "lost_track": 147,
+        "reacquired": 140
+      },
+      "occlusion_recovery": 0.952
+    }
+  },
+  "m5": {
+    "total_chefs": 1,
+    "expected_chefs": 1,
+    "fragmentation_count": 0,
+    "n_bindings": 18,
+    "n_transitions": 17,
+    "n_opened_new": 0,
+    "p_break": 0.0,
+    "p_false_merge": null,
+    "p_false_merge_reason": "資料只有一個人 → 誤併結構上不可量測,任何數字都不是誤併率",
+    "candidate_histogram": {
+      "0": 1,
+      "1": 17
+    },
+    "llr_threshold": 1.609,
+    "score_margin": {
+      "median": 2.2,
+      "min": 1.5,
+      "within_1nat_pct": 0.0
+    },
+    "opened_new_detail": []
+  },
+  "memory": {
+    "rss_mb": {
+      "max": 1216.4,
+      "final": 397.3,
+      "per_hour": -46.616
+    },
+    "total_chefs": {
+      "max": 1.0,
+      "final": 1.0,
+      "per_hour": 0.0
+    },
+    "active": {
+      "max": 1.0,
+      "final": 1.0,
+      "per_hour": 0.0
+    },
+    "gone": {
+      "max": 0.0,
+      "final": 0.0,
+      "per_hour": 0.0
+    },
+    "track_to_chef": {
+      "max": 5.0,
+      "final": 3.0,
+      "per_hour": -3.647
+    },
+    "_exit": {
+      "max": 0.0,
+      "final": 0.0,
+      "per_hour": 0.0
+    },
+    "_cam": {
+      "max": 1.0,
+      "final": 1.0,
+      "per_hour": 0.0
+    },
+    "_pending_exit": {
+      "max": 2.0,
+      "final": 0.0,
+      "per_hour": -2.947
+    },
+    "_world": {
+      "max": 0.0,
+      "final": 0.0,
+      "per_hour": 0.0
+    },
+    "_vel": {
+      "max": 0.0,
+      "final": 0.0,
+      "per_hour": 0.0
+    },
+    "m4_seen_cam1": {
+      "max": 5.0,
+      "final": 5.0,
+      "per_hour": 0.0
+    },
+    "m4_seen_cam2": {
+      "max": 5.0,
+      "final": 5.0,
+      "per_hour": 0.0
+    },
+    "m4_seen_cam3": {
+      "max": 8.0,
+      "final": 8.0,
+      "per_hour": 19.582
+    },
+    "m4_history_cam1": {
+      "max": 2.0,
+      "final": 1.0,
+      "per_hour": 0.0
+    },
+    "m4_history_cam2": {
+      "max": 2.0,
+      "final": 1.0,
+      "per_hour": 0.0
+    },
+    "m4_history_cam3": {
+      "max": 3.0,
+      "final": 1.0,
+      "per_hour": -3.647
+    },
+    "m4_prev_removed_cam1": {
+      "max": 2.0,
+      "final": 0.0,
+      "per_hour": 0.0
+    },
+    "m4_prev_removed_cam2": {
+      "max": 0.0,
+      "final": 0.0,
+      "per_hour": 0.0
+    },
+    "m4_prev_removed_cam3": {
+      "max": 0.0,
+      "final": 0.0,
+      "per_hour": 0.0
+    }
+  }
+}

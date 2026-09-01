@@ -38,3 +38,7 @@ venv/
 
 # 假廚房動畫的逐幀圖(數百張,可由 scripts/render_fake_kitchen.py 重新產生)
 results/m5_sim/kitchen/
+
+# 全長跑的逐幀輸出(可由 scripts/m5_track_video.py 重新產生)
+results/m5_full/frames/
+results/m5_full/tracks.csv

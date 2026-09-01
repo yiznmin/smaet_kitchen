@@ -1,0 +1,80 @@
+{
+  "camera_video_map": {
+    "cam1": "data/epfl/Boutput0.mp4",
+    "cam2": "data/epfl/output0.mp4",
+    "cam3": "data/epfl/Aoutput0.mp4"
+  },
+  "videos": {
+    "cam1": {
+      "width": 1280,
+      "height": 720,
+      "fps": 30.0,
+      "nb_frames": 23400
+    },
+    "cam2": {
+      "width": 1280,
+      "height": 720,
+      "fps": 30.0,
+      "nb_frames": 23400
+    },
+    "cam3": {
+      "width": 1280,
+      "height": 720,
+      "fps": 30.0,
+      "nb_frames": 23400
+    }
+  },
+  "topology_path": "configs/camera_topology.epfl_demo.yaml",
+  "n_links": 0,
+  "n_overlapping_pairs": 3,
+  "n_homographies": 0,
+  "world_xy_available": false,
+  "ground_plane_effective": false,
+  "velocity_effective": false,
+  "weights": null,
+  "person_cls": 1,
+  "embedder": "none",
+  "stride": 5,
+  "max_frames": -1,
+  "ttl_loops": 600,
+  "ttl_seconds": 100.0,
+  "lost_track_buffer_loops": 30,
+  "lost_track_buffer_seconds": 5.0,
+  "n_loops": 4680,
+  "n_loops_full": 4680,
+  "coverage": 1.0,
+  "truncated": false,
+  "per_cam_loops": {
+    "cam1": 4680,
+    "cam2": 4680,
+    "cam3": 4680
+  },
+  "n_det": 14530,
+  "n_det_per_cam": {
+    "cam1": 4728,
+    "cam2": 4704,
+    "cam3": 5098
+  },
+  "ms_per_loop": {
+    "p50": 541.7,
+    "p95": 1176.5,
+    "max": 2119.4
+  },
+  "wall_seconds": 3297.4,
+  "total_chefs": 1,
+  "candidate_histogram": {
+    "0": 1,
+    "1": 17
+  },
+  "resident_final": {
+    "active": 1,
+    "gone": 0,
+    "track_to_chef": 3,
+    "_exit": 0,
+    "_cam": 1,
+    "_pending_exit": 0,
+    "_world": 0,
+    "_vel": 0
+  },
+  "llr_threshold": 1.6094379124341003
+}

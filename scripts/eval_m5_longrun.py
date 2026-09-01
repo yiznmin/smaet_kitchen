@@ -141,8 +141,14 @@ def analyse_m4(tracks, tevents, meta):
 # ── §2 M5 ─────────────────────────────────────────────────────────────
 def analyse_m5(events, meta):
     thr = meta.get("llr_threshold") or 1.609
-    opened = [e for e in events if not e["matched"]]
-    scores = [e["score"] for e in events if e["matched"]]
+    # ⚠ **第一次**綁定必然「開新身份」—— 那是建立初始身份,不是碎裂。
+    #   第一版把它算進分母與分子,於是同一份報告同時印出「碎裂 0 次」與
+    #   「碎裂率 5.6%」(= 1/18)。自相矛盾就是指標寫錯的訊號。
+    #   metrics.binding_outcomes 用 `gt in seen` 表達同一件事;這裡沒有 gt,
+    #   但「全片單人」意味著整場只有第一次是初始化,其餘都是轉場。
+    decisions = events[1:] if events else []
+    opened = [e for e in decisions if not e["matched"]]
+    scores = [e["score"] for e in decisions if e["matched"]]
     margins = [s - thr for s in scores]
     return {
         # 主判準:全片一人 → 理想是 1 個 chef_id。不需要任何標註。
@@ -150,8 +156,9 @@ def analyse_m5(events, meta):
         "expected_chefs": 1,
         "fragmentation_count": meta["total_chefs"] - 1,
         "n_bindings": len(events),
+        "n_transitions": len(decisions),      # 扣掉第一次的初始化
         "n_opened_new": len(opened),
-        "p_break": round(len(opened) / len(events), 4) if events else None,
+        "p_break": round(len(opened) / len(decisions), 4) if decisions else None,
         # ⚠ 永遠是 None。單一 gt 身份時誤併分支是死碼(見 metrics.binding_outcomes)。
         "p_false_merge": None,
         "p_false_merge_reason": "資料只有一個人 → 誤併結構上不可量測,任何數字都不是誤併率",
@@ -264,8 +271,11 @@ def main():
     L.append("─" * 74)
     L.append(f"  chef_id 總數        {m5['total_chefs']}(理想 1,全片單人)"
              f"  → 碎裂 {m5['fragmentation_count']} 次")
-    L.append(f"  綁定決策            {m5['n_bindings']} 次,其中開新身份 {m5['n_opened_new']} 次")
-    L.append(f"  碎裂率              {m5['p_break']*100:.1f}%(以綁定決策為分母)")
+    L.append(f"  綁定決策            {m5['n_bindings']} 次(首次為初始化,"
+             f"其餘 {m5['n_transitions']} 次是真正的重新綁定)")
+    L.append(f"  開新身份            {m5['n_opened_new']} 次(不含初始化)")
+    L.append(f"  碎裂率              {m5['p_break']*100:.1f}%"
+             f"(分母是 {m5['n_transitions']} 次重新綁定)")
     L.append(f"  誤併率              **不可量測** —— {m5['p_false_merge_reason']}")
     L.append(f"  候選數分布          {m5['candidate_histogram']}")
     if (m5["candidate_histogram"].get("2", 0) + m5["candidate_histogram"].get("3", 0)) == 0:
