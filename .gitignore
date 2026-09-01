@@ -42,3 +42,7 @@ results/m5_sim/kitchen/
 # 全長跑的逐幀輸出(可由 scripts/m5_track_video.py 重新產生)
 results/m5_full/frames/
 results/m5_full/tracks.csv
+
+# Re-ID 訓練產物(權重不入庫;CHIRLA 為 CC-BY-4.0 但模型檔體積大)
+model_result/reid/
+chirla_index.json

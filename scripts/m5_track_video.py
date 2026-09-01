@@ -89,6 +89,10 @@ def build_embedder(name):
         #   寫錯會在 --embedder dinov2 時直接 ImportError,而預設是 none 所以一直沒被觸發。
         from m5_reid.dino_embedder import DINOv2Embedder
         return DINOv2Embedder()
+    if name.startswith("chirla:"):
+        # chirla:<checkpoint 路徑> —— 自訓的 Re-ID 模型(CC-BY-4.0 資料訓練,可出貨)
+        from m5_reid.chirla_embedder import ChirlaEmbedder
+        return ChirlaEmbedder(name.split(":", 1)[1])
     raise ValueError(f"未知的 embedder: {name}")
 
 
@@ -177,7 +181,10 @@ def main():
                     help="要處理幾個**迴圈**(不是影片幀數;一個迴圈 = stride 幀)。"
                          "-1 = 跑到影片結束。⚠ 預設 120 對 780 秒的影片只有 0.3%%,"
                          "而舊版摘要不會提示 —— 量出來的東西完全代表不了整支影片。")
-    ap.add_argument("--embedder", default="none", choices=["none", "color", "dinov2"])
+    # ⚠ 不用 choices —— chirla 需要帶 checkpoint 路徑(chirla:/path/to/best.pth),
+    #   固定選項清單容納不了。未知名稱由 build_embedder 明確報錯。
+    ap.add_argument("--embedder", default="none",
+                    help="none | color | dinov2 | chirla:<checkpoint 路徑>")
     ap.add_argument("--fps", type=float, default=30.0)
     ap.add_argument("--ttl", type=int, default=600,
                     help="recently_disappeared_ttl。⚠ 單位是**迴圈計數**不是影片幀 —— "

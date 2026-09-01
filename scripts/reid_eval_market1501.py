@@ -113,6 +113,13 @@ def build_embedder(name, model_name, device):
     if name == "osnet":
         from m5_reid.osnet_embedder import OSNetEmbedder
         return OSNetEmbedder(model_name=model_name or "osnet_x1_0", device=device)
+    if name == "chirla":
+        # 自訓的 Re-ID 模型。model_name 這裡當 checkpoint 路徑用
+        # (沿用既有介面,不為了一個參數改所有呼叫端的簽章)。
+        from m5_reid.chirla_embedder import ChirlaEmbedder
+        if not model_name:
+            raise ValueError("chirla embedder 需要用 --model-name 指定 checkpoint 路徑")
+        return ChirlaEmbedder(model_name, device=device)
     raise ValueError(name)
 
 
