@@ -1,0 +1,23 @@
+# CHIRLA 人物 Re-ID 訓練/評估的額外相依(第一階段,交期 2026-09-11)
+#
+# 用法(遠端 GPU 機器):
+#   conda create -n reid python=3.11 -y && conda activate reid
+#   # 或 python3.11 -m venv .venv && source .venv/bin/activate
+#   pip install -r requirements.txt -r requirements-reid.txt
+#   # torch 要另外裝,見下
+#   python scripts/check_reid_env.py --data-dir <打算放 CHIRLA 的路徑>
+#
+# ⚠ **Python 用 3.10~3.12,不要用 3.13+。**
+#   本專案在 3.14 上已經有 YOLOX / DAMO-YOLO / LW-DETR 三個模型直接匯不出來
+#   (2021 年的程式碼與 numpy 2.3 / torch 2.10 不相容)。Re-ID 生態的框架
+#   (torchreid、fast-reid)多半也是 2019~2022 年的碼,同一個風險。
+#
+# ⚠ **torch 不列在這裡,必須依機器的 CUDA 版本手動裝**,否則 pip 會給你 CPU 版,
+#   而 CPU 版的症狀是「跑得動但慢 50 倍」—— 不會報錯,很容易到訓練跑一半才發現。
+#   先在遠端跑 `nvidia-smi` 看 CUDA 版本,再到 pytorch.org 挑對應指令,例如:
+#     pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
+#   裝完務必確認 `torch.cuda.is_available()` 是 True(check_reid_env.py 會驗)。
+
+h5py>=3.10               # CHIRLA 官方 benchmark 要求的 embedding 格式(HDF5)
+huggingface_hub>=0.23    # 下載 CHIRLA。⚠ 資料集是 gated,要先 huggingface-cli login
+tqdm>=4.66               # 訓練進度
