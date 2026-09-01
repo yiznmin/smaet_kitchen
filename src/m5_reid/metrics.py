@@ -75,6 +75,17 @@ def binding_outcomes(records):
         owner_votes[pred][gt] += 1
     owner = {p: v.most_common(1)[0][0] for p, v in owner_votes.items()}
 
+    # ⚠ 只有一個 ground-truth 身份時,誤併率**結構上不可量測**,不是 0。
+    #   上面的 owner 判定會讓 owner[pred] 恆等於那唯一的 gt,於是下面
+    #   「綁到別人身上」那條分支永遠不成立;剩下唯一會加到 fm 的是
+    #   「matched 但換了個 id」,而那是自己碎裂後又被回收 —— 語意上是回收不是誤併。
+    #   回傳 0.0 會讓報表印出「誤併率 0.0% ✅ 通過」,而那正是本專案踩過最嚴重的坑
+    #   (4 人被併成 1 個,兩個率同時報 0%,IDF1 卻只有 0.264)的同一種形狀:
+    #   指標瞎掉時給出好看的數字。寧可回 None,強迫上游處理「量不到」這件事。
+    single_identity = len({g for g, _, _, _ in records}) < 2
+    why_fm = ("ground-truth 只有一個身份 → 誤併分支是死碼,任何數字都不是誤併率"
+              if single_identity else None)
+
     last_pred = {}
     n_tr = fm = brk = ok = 0
     for gt, pred, matched, is_tr in records:
@@ -90,11 +101,13 @@ def binding_outcomes(records):
                 fm += 1                       # 換了一個 id,而且不是自己的
         last_pred[gt] = pred
     if n_tr == 0:
-        return dict(n_transitions=0, p_break=None, p_false_merge=None, p_correct=None)
+        return dict(n_transitions=0, p_break=None, p_false_merge=None, p_correct=None,
+                    fm_unmeasurable_reason="沒有任何轉場,三個率都沒有樣本")
     return dict(n_transitions=n_tr,
                 p_break=round(brk / n_tr, 4),
-                p_false_merge=round(fm / n_tr, 4),
-                p_correct=round(ok / n_tr, 4))
+                p_false_merge=None if single_identity else round(fm / n_tr, 4),
+                p_correct=round(ok / n_tr, 4),
+                fm_unmeasurable_reason=why_fm)
 
 
 def id_switches(observations_in_time_order):
@@ -133,6 +146,9 @@ def headcount_alarm(observations, expected_headcount):
     ⚠ 原本只檢查「多於」,結果 4 人被併成 1 個時 alarm=False,
       完全沒抓到。而那正是最嚴重的失效。
     """
+    # ⚠ expected=1(單人資料)時,「整體誤併」方向需要 n_pred < 1 即 n_pred == 0,
+    #   而 observations 非空就不可能 → 那個方向是死碼。單人資料上唯一有效的是
+    #   「碎裂」方向,而它正好就是這次要用的主判準(chef_id 數應為 1)。
     n_pred = len({p for _, p in observations})
     kind = ("碎裂" if n_pred > expected_headcount else
             "整體誤併" if n_pred < expected_headcount else None)
@@ -150,4 +166,18 @@ def summarize(records, expected_headcount=None):
     out["fragmentation"] = fragmentation(obs)
     if expected_headcount:
         out["headcount"] = headcount_alarm(obs, expected_headcount)
+
+    # 把「這個數字能不能拿來下判斷」跟數字本身綁在一起,不靠讀報告的人自己記得。
+    # 單人資料上有兩個指標會退化成無意義但**看起來正常**的值,這裡明講。
+    n_gt = len({g for g, _ in obs})
+    out["measurable"] = {
+        "p_break": (out.get("n_transitions") or 0) > 0,
+        "p_false_merge": n_gt >= 2 and (out.get("n_transitions") or 0) > 0,
+        # 單一 gt 時 IDF1 的匈牙利指派只有一列,退化成「最大單一 chef_id 佔全部
+        # 觀測的比例」。那個數字有意義(= 1 − 碎裂造成的觀測損失),但**不是**
+        # MTMC 領域的 IDF1,不可拿去跟文獻或別的系統比。
+        "idf1": n_gt >= 2,
+        "fragmentation": True,          # 單人下唯一完全有效的主指標
+        "headcount": True,
+    }
     return out

@@ -135,10 +135,17 @@ def main():
     rows = [("IDF1", s["idf1"], BUDGET["idf1"], "ge"),
             ("碎裂率", s["p_break"], BUDGET["p_break"], "le"),
             ("誤併率", s["p_false_merge"], BUDGET["p_false_merge"], "le")]
-    passed = True
+    # ⚠ 「沒量到」必須與「通過」分開,而且要是不同的 exit code。
+    #   舊版在 val is None 時只印「無資料」然後 continue,**完全不碰 passed**
+    #   (初始化為 True)→ 印出「✅ 通過驗收」exit 0,實際什麼都沒量到。
+    #   results/m5_track/acceptance.json 就是這樣來的:4 筆事件裡 2 筆對不上真值,
+    #   兩個率都 None,卻 passed: true。單人資料會 100% 觸發這條路徑。
+    passed, unmeasurable = True, []
     for name, val, thr, direction in rows:
         if val is None:
-            print(f"  {name:<14}{'—':>10}{thr:>10.2f}   無資料")
+            why = s.get("fm_unmeasurable_reason") or "沒有樣本"
+            print(f"  {name:<14}{'不可量測':>10}{thr:>10.2f}   ⚠ {why}")
+            unmeasurable.append(name)
             continue
         ok = (val >= thr) if direction == "ge" else (val <= thr)
         passed &= ok
@@ -160,15 +167,31 @@ def main():
     print("    兩者不可加總:碎裂可被「身份數 ≠ 人數」抓到,誤併完全靜默,")
     print("    所以誤併的門檻嚴 5 倍。")
 
+    # 對不上真值的事件也讓結果不完整 —— 舊版只印警告,不影響判定。
+    if unmatched:
+        unmeasurable.append(f"{unmatched} 筆事件對不上真值")
+
+    verdict = "incomplete" if unmeasurable else ("pass" if passed else "fail")
+
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     Path(args.out).write_text(json.dumps(
         {"n_truth_intervals": len(truth), "n_people": n_people,
          "n_events": len(events), "n_matched": len(recs), "n_unmatched": unmatched,
-         "metrics": s, "budget": BUDGET, "passed": bool(passed)},
+         "metrics": s, "budget": BUDGET, "verdict": verdict,
+         "unmeasurable": unmeasurable,
+         # ⚠ passed 只在真的量到全部指標時才是布林;不完整時是 null,
+         #   否則任何讀 JSON 的下游都會把「沒量到」讀成「沒通過」或「通過」。
+         "passed": None if verdict == "incomplete" else bool(passed)},
         ensure_ascii=False, indent=2, default=str), encoding="utf-8")
     print(f"\n  已存 {args.out}")
-    print(f"\n  總判定:{'✅ 通過驗收' if passed else '❌ 未達驗收標準'}")
-    sys.exit(0 if passed else 1)
+
+    if verdict == "incomplete":
+        print(f"\n  總判定:⚠ **不完整** —— {'、'.join(unmeasurable)}")
+        print("    這**不是**通過驗收。要判定通過,必須三個指標都真的量到。")
+        print("    (單人資料一定會走到這裡:誤併率結構上量不到,見 metrics.py 的說明。)")
+    else:
+        print(f"\n  總判定:{'✅ 通過驗收' if passed else '❌ 未達驗收標準'}")
+    sys.exit({"pass": 0, "fail": 1, "incomplete": 2}[verdict])
 
 
 if __name__ == "__main__":
