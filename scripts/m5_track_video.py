@@ -85,8 +85,10 @@ def build_embedder(name):
         from m5_reid.embedder import ColorHistogramEmbedder
         return ColorHistogramEmbedder()
     if name == "dinov2":
-        from m5_reid.dino_embedder import DinoV2Embedder
-        return DinoV2Embedder()
+        # ⚠ 類別名是 DINOv2Embedder(大寫 IN),不是 DinoV2Embedder。
+        #   寫錯會在 --embedder dinov2 時直接 ImportError,而預設是 none 所以一直沒被觸發。
+        from m5_reid.dino_embedder import DINOv2Embedder
+        return DINOv2Embedder()
     raise ValueError(f"未知的 embedder: {name}")
 
 
