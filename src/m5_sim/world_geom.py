@@ -118,8 +118,20 @@ class WorldConfig:
                  # ── 幾何(本模組特有)──
                  layout="GAP", cameras=None,
                  sim_dt_s=0.2,            # 位置推進步長
-                 heartbeat_dt_s=1.0,      # 可見期間多久回報一次位置
+                 # 可見期間多久回報一次位置。⚠ 預設對齊 sim_dt_s —— 真實的 M4
+                 # 每幀都輸出 tracks,m5_track_video 也是每個迴圈呼叫 on_track_update。
+                 # 設成 1 秒的話系統手上的位置最多過時 0.9 公尺,而地面校正的 σ 只有
+                 # 0.1 公尺 → 等於 6 個標準差,真正的那個人反而被判成「位置對不上」。
+                 # 實測:心跳 1.0s → 0.2s 讓 FULL 臂的誤併從 48% 降到 21.7%。
+                 heartbeat_dt_s=None,
                  min_visible_s=0.4,       # 短於這個的可見片段視為雜訊,不發事件
+                 # ⚠ 離開視野的遲滯。**沒有它模擬會嚴重失真**:人在 FOV 邊緣
+                 #   晃動會不斷進進出出,實測 4 人 0.2 小時跑出 1704 次轉場
+                 #   (每人每 0.4 秒跨一次),誤併率因此衝到 59%。
+                 #   真實的 M4 有 lost_track_buffer(configs/tracker.yaml 是 30 幀
+                 #   @30fps = 1.0 秒)正是在做這件事 —— 模擬本來缺了它。
+                 #   這不是為了讓數字好看而調的旋鈕,是補一個本來就該有的機制。
+                 min_gone_s=1.0,
                  fragment_gap_s=0.5,      # M4 斷軌後多久才可能重新被追上
                  # ── 走動(與 world.py 同義)──
                  tau_v_s=3.0, walk_speed_mps=0.9, vel_window_s=0.5,
@@ -144,7 +156,15 @@ class WorldConfig:
                  traj_dt_s=None, dim=64, seed=0):
         self.__dict__.update(locals())
         del self.__dict__["self"]
-        self.rng = np.random.RandomState(seed)
+        # ⚠ **兩條獨立的隨機數流**。動作(位置)與觀測(缺陷/外觀/噪聲)分開,
+        #   這樣同一個 seed 在不同佈局下會產生**完全相同的行走軌跡** ——
+        #   兩臂的差異就只剩鏡頭幾何,是真正的配對比較。
+        #   共用一條流的話,缺陷判定消耗的隨機數次數不同,軌跡會分岔,
+        #   量到的差異裡混進了「走的路不一樣」這個無關變因。
+        if heartbeat_dt_s is None:
+            self.heartbeat_dt_s = sim_dt_s
+        self.rng = np.random.RandomState(seed)            # 觀測流(相容既有介面)
+        self.rng_motion = np.random.RandomState(seed ^ 0x5EED)   # 動作流
         if cameras is None:
             self.cameras = corner_cameras(kitchen_m, **LAYOUTS[layout])
             # 全景鏡頭統一成幾何的特例:360° 視角 + 無限射程。
@@ -186,7 +206,8 @@ def generate(cfg, links=None, all_cameras=None, link_zones=None, return_traj=Fal
     回傳 10 欄 tuple:(kind, gt, cam, t, emb, tag, box, zone, world_xy, world_v)
     排序 key=(t, update 優先) —— 心跳必須排在 enter 之前,否則位置資訊到得太晚。
     """
-    rng = cfg.rng
+    rng = cfg.rng                                  # 觀測:缺陷、外觀、座標噪聲
+    mrng = getattr(cfg, "rng_motion", None) or rng  # 動作:起始位置與 OU 行走
     cams = cfg.cameras
     anchors = [rng.randn(cfg.dim) for _ in range(cfg.n_chefs)]
     anchors = [a / max(np.linalg.norm(a), 1e-9) for a in anchors]
@@ -197,18 +218,19 @@ def generate(cfg, links=None, all_cameras=None, link_zones=None, return_traj=Fal
                   if cfg.traj_dt_s else None)
 
     for gt in range(cfg.n_chefs):
-        st = ((float(rng.rand() * cfg.kitchen_m[0]),
-               float(rng.rand() * cfg.kitchen_m[1])), (0.0, 0.0))
+        st = ((float(mrng.rand() * cfg.kitchen_m[0]),
+               float(mrng.rand() * cfg.kitchen_m[1])), (0.0, 0.0))
         traj[gt] = [(0.0, st)]
         # 每台鏡頭獨立的追蹤狀態:是否正在被追蹤、上次心跳時間、第幾次進場
         active = {c.name: None for c in cams}      # None 或 進場時間
         last_beat = {c.name: -1e9 for c in cams}
         pending = {c.name: None for c in cams}     # 可見但尚未確認(去抖動)
         cooldown = {c.name: -1e9 for c in cams}    # 斷軌後的冷卻,見下方說明
+        gone_since = {c.name: None for c in cams}  # 離開視野多久了(遲滯用)
 
         for i in range(1, n_steps + 1):
             t = i * cfg.sim_dt_s
-            st = step(cfg, st, cfg.sim_dt_s, rng)
+            st = step(cfg, st, cfg.sim_dt_s, mrng)
             if traj_every and i % traj_every == 0:
                 traj[gt].append((t, st))
             xy, v = st
@@ -233,6 +255,7 @@ def generate(cfg, links=None, all_cameras=None, link_zones=None, return_traj=Fal
                                              xy, v, rng))
                         last_beat[nm] = t
                 elif vis and active[nm] is not None:
+                    gone_since[nm] = None          # 又看到了,取消離場倒數
                     if active[nm] > 0 and t - last_beat[nm] >= cfg.heartbeat_dt_s:
                         events.append(("update", gt, nm, t, None, "", None, None,
                                        observe_world(cfg, xy, nm, rng),
@@ -251,9 +274,22 @@ def generate(cfg, links=None, all_cameras=None, link_zones=None, return_traj=Fal
                 elif not vis:
                     pending[nm] = None
                     if active[nm] is not None:
-                        if active[nm] > 0:
-                            events.append(_leave(cfg, gt, nm, t, xy, v, rng))
-                        active[nm] = None
+                        # 遲滯:離開視野要超過 min_gone_s 才算真的離場。
+                        # 對應 M4 的 lost_track_buffer —— 短暫看不到會撐住不斷軌。
+                        if gone_since[nm] is None:
+                            gone_since[nm] = t
+                        elif t - gone_since[nm] >= cfg.min_gone_s:
+                            if active[nm] > 0:
+                                # ⚠ 時間戳用「**實際消失的時刻**」而不是遲滯到期的時刻。
+                                #   用到期時刻的話出口時間會晚 min_gone_s,所有跨鏡頭
+                                #   Δt 系統性少 1 秒 —— 而估出的 mean_s 只有 0.6 秒,
+                                #   於是幾乎所有真實轉場都被判成「還沒離開就到了」而拒絕。
+                                #   這正是 M4/M5 當初的教訓(出口時間戳取自 lost_track
+                                #   當時而非 removed 當時),同一個坑在新世界又出現一次。
+                                events.append(_leave(cfg, gt, nm, gone_since[nm],
+                                                     xy, v, rng))
+                            active[nm] = None
+                            gone_since[nm] = None
 
         # 收尾:結束時仍在畫面裡的,補一個 leave
         for c in cams:
@@ -290,16 +326,27 @@ def estimate_topology(cfg, walk_speed_mps=None, sigma_ratio=0.35):
     """
     speed = walk_speed_mps or cfg.walk_speed_mps
     cams = [c for c in cfg.cameras if c.fov_deg < 360.0]
+    cent = {c.name: _coverage_centroid(c, cfg.kitchen_m) for c in cams}
     links, overlapping = [], []
 
     for i, a in enumerate(cams):
         for b in cams[i + 1:]:
             if _fov_overlap(a, b, cfg.kitchen_m):
                 overlapping.append([a.name, b.name])
+                # ⚠ **重疊也要給 link。** 兩台只在一小塊區域重疊時,人可以離開 A、
+                #   走幾秒才進 B,全程沒有同時可見 —— 那時重疊路徑幫不上忙,
+                #   而沒有 link 的話 transit_llr 會落到停用的 unknown_path,
+                #   直接回絕。實測 cam1↔cam4 被判重疊,但真實轉場中位 3.2 秒、
+                #   p90 8.0 秒,結果全部被拒。兩條路徑並存才對:
+                #   同時可見走幾何、不同時可見走轉場時間。
+            ca, cb = cent[a.name], cent[b.name]
+            if ca is None or cb is None:
                 continue
-            # 視野邊界之間的距離 ≈ 圓心距 − 兩個射程(負值表示幾乎相接)
-            gap = math.hypot(a.x - b.x, a.y - b.y) - a.range_m - b.range_m
-            d = max(gap, 0.5)                     # 至少 0.5 m,避免 mean_s → 0
+            # ⚠ 用**兩台涵蓋區域的形心距離**,不是「圓心距 − 兩個射程」。
+            #   後者對朝向彼此的扇形會算出接近 0 的距離(實測估出 0.6 秒而
+            #   真實中位是 1.2 秒,只有四成的轉場落在窗內)。形心距才是
+            #   「人從被 A 看到走到被 B 看到」實際要走的距離。
+            d = max(math.hypot(ca[0] - cb[0], ca[1] - cb[1]), 0.5)
             mean_s = round(d / speed, 1)
             std_s = round(mean_s * sigma_ratio, 1)
             links += [{"from": a.name, "to": b.name, "mean_s": mean_s, "std_s": std_s},
@@ -309,6 +356,16 @@ def estimate_topology(cfg, walk_speed_mps=None, sigma_ratio=0.35):
     for m in master:
         overlapping += [[m.name, c.name] for c in cams]
     return links, overlapping
+
+
+def _coverage_centroid(cam, kitchen_m, n=80):
+    """該鏡頭在廚房範圍內實際看得到的區域的形心(公尺)。"""
+    W, H = kitchen_m
+    pts = [(x, y) for x in np.linspace(0, W, n)
+           for y in np.linspace(0, H, max(2, int(n * H / W))) if cam.sees((x, y))]
+    if not pts:
+        return None
+    return (sum(p[0] for p in pts) / len(pts), sum(p[1] for p in pts) / len(pts))
 
 
 def _fov_overlap(a, b, kitchen_m, n=120):

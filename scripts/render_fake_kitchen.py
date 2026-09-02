@@ -25,13 +25,14 @@ from pathlib import Path
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt              # noqa: E402
-from matplotlib.patches import Circle, FancyBboxPatch   # noqa: E402
+from matplotlib.patches import Circle, FancyBboxPatch, Wedge  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "scripts"))
 from m5_reid.identity_st import SpatioTemporalIdentityManager   # noqa: E402
 from m5_sim import world as W                                   # noqa: E402
+from m5_sim import world_geom as G                              # noqa: E402
 from sim_m5_montecarlo import _base_topo                        # noqa: E402
 
 # 經 dataviz validator 驗過的類別色
@@ -52,6 +53,30 @@ plt.rcParams["axes.unicode_minus"] = False
 
 def color_of(i):
     return PALETTE[int(i) % len(PALETTE)] if i is not None else "#b9b7b1"
+
+
+def build_geom_topo(cfg):
+    """幾何世界的拓撲 —— ⚠ 由 estimate_topology 從**幾何估**出來,
+    不是把世界的真實轉場分布餵給系統(那就回到自問自答)。
+    這正是業主拿平面圖會做的事:距離 / 0.9 m/s。
+    """
+    from m5_reid.spatiotemporal import CameraTopology
+    links, overlapping = G.estimate_topology(cfg)
+    fusion = {"mode": "llr", "background_arrival_hz": 1 / 600.0,
+              "cost_false_merge_over_break": 5.0, "transit_model": "loiter",
+              "p_loiter": 0.15, "tau_loiter_s": 20.0,
+              "unknown_path": {"enabled": False},
+              "same_camera": {"enabled": True, "tau_break_s": 2.0, "max_gap_s": 15.0},
+              "position": {"enabled": True}, "direction": {"enabled": False},
+              # ⚠ 模擬路徑不經 homography,sigma_m 必須顯式給,
+              #   否則 spatiotemporal.py:171-185 會判「啟用但無 σ」並靜默停用。
+              "ground_plane": {"enabled": True, "sigma_m": 0.1,
+                               "area_m2": 30.0, "clip": 8.0},
+              "velocity": {"enabled": True, "window_s": 1.0,
+                           "max_speed_mps": 1.5, "clip": 6.0}}
+    t = CameraTopology(links=links, overlapping=overlapping, fusion=fusion,
+                       cameras={c.name: {} for c in cfg.cameras})
+    return t
 
 
 def build_topo():
@@ -78,7 +103,11 @@ def simulate(cfg, topo):
       frames = [(t, {gt: (xy, cam, chef_id)}, 事件說明)]
       stats  = 綁定/碎裂/誤併的累計
     """
-    events, traj = W.generate(cfg, topo.links, topo.all_cameras(), {}, return_traj=True)
+    # 事件式與幾何式共用這個函式 —— 差別只在 generate 是誰。
+    # 幾何世界會忽略 links/all_cameras(鏡頭歸屬由視野決定)。
+    mod = G if hasattr(cfg, "cameras") else W
+    events, traj = mod.generate(cfg, topo.links, topo.all_cameras(), {},
+                                return_traj=True)
     m = SpatioTemporalIdentityManager(topo, fps=1.0, recently_disappeared_ttl=600.0)
 
     # 先跑一遍事件流,記下「每個 gt 在每個時刻被系統指派成哪個 chef_id」
@@ -157,13 +186,31 @@ def render(cfg, traj, assign, where, notes, stats, out_dir, fps=4, seconds=None)
         fig.patch.set_facecolor("white")
 
         # ── 廚房平面 ──
-        ax.add_patch(FancyBboxPatch((-0.38, -0.38), kw + 0.76, kh + 0.76,
-                                    boxstyle="round,pad=0,rounding_size=0.18",
-                                    fc=FLOOR, ec=WALL, lw=2.5, zorder=1))
+        room = FancyBboxPatch((-0.38, -0.38), kw + 0.76, kh + 0.76,
+                              boxstyle="round,pad=0,rounding_size=0.18",
+                              fc=FLOOR, ec=WALL, lw=2.5, zorder=1)
+        ax.add_patch(room)
         for gx in range(1, int(kw)):
             ax.plot([gx, gx], [0, kh], color=GRID, lw=0.6, zorder=2)
         for gy in range(1, int(kh)):
             ax.plot([0, kw], [gy, gy], color=GRID, lw=0.6, zorder=2)
+
+        # ── 攝影機視野。zorder 2~3,在網格之上、廚師(5)之下 ──
+        for ci, c in enumerate(getattr(cfg, "cameras", []) or []):
+            if c.fov_deg >= 360:                      # 全景鏡頭不畫扇形(會蓋滿)
+                continue
+            col = color_of(ci)
+            h = c.fov_deg / 2
+            # ⚠ 用房間輪廓裁切 —— 物理上鏡頭看不穿牆,而且 FULL 佈局的射程 12m
+            #   在 10×6 的房間裡會畫到框外,視覺上完全糊掉。
+            w = Wedge((c.x, c.y), c.range_m, c.heading_deg - h, c.heading_deg + h,
+                      fc=col, alpha=0.13, ec=col, lw=1.0, zorder=3)
+            ax.add_patch(w)
+            w.set_clip_path(room)
+            ax.plot([c.x], [c.y], marker="s", ms=9, color=col,
+                    mec="white", mew=1.5, zorder=6)
+            ax.text(c.x, c.y, c.name.replace("cam", ""), ha="center", va="center",
+                    fontsize=7.5, color="white", fontweight="bold", zorder=7)
 
         n_wrong = 0
         for gt in sorted(traj):
@@ -190,8 +237,16 @@ def render(cfg, traj, assign, where, notes, stats, out_dir, fps=4, seconds=None)
             ax.text(x, y - 0.62, f"chef {cid}" if cid else "—",
                     ha="center", fontsize=9.5, color=BAD if wrong else INK,
                     fontweight="bold" if wrong else "normal", zorder=6)
-            ax.text(x, y + 0.50, cam or "", ha="center", fontsize=8,
-                    color=MUTED, zorder=6)
+            # 幾何世界:直接列出此刻真的看得到他的鏡頭(可能 0 台 = 在死角)
+            cams_now = [c.name for c in (getattr(cfg, "cameras", []) or [])
+                        if c.sees((x, y))]
+            seen_txt = ("／".join(n.replace("cam", "C") for n in cams_now)
+                        if cams_now else "死角")
+            ax.text(x, y + 0.50, seen_txt if hasattr(cfg, "cameras") else (cam or ""),
+                    ha="center", fontsize=8,
+                    color=BAD if (hasattr(cfg, "cameras") and not cams_now) else MUTED,
+                    fontweight="bold" if (hasattr(cfg, "cameras") and not cams_now)
+                    else "normal", zorder=6)
 
         ax.set_xlim(-0.7, kw + 0.7)
         ax.set_ylim(-1.1, kh + 0.9)
@@ -244,6 +299,11 @@ def render(cfg, traj, assign, where, notes, stats, out_dir, fps=4, seconds=None)
         panel.text(0, .075, "說明", fontsize=10, fontweight="bold", color=INK)
         panel.text(0, .028, "實心 = 真的是誰   外圈 = 系統認為是誰",
                    fontsize=8.5, color=MUTED)
+        if hasattr(cfg, "cameras"):
+            # 死角不用網底標 —— 沒有扇形覆蓋的白色區域本身就是死角,
+            # 再加網底反而會蓋掉軌跡。用一行文字說明就夠。
+            panel.text(0, -.058, "彩色扇形 = 鏡頭視野   白色區域 = 死角(沒人看得到)",
+                       fontsize=8.5, color=MUTED)
         panel.text(0, -.015, "兩色不同 = 系統認錯人(誤併)", fontsize=8.5, color=BAD)
 
         fig.tight_layout()
@@ -262,16 +322,32 @@ def main():
                     help="平均多久轉場一次(秒)。預設 60 太慢,看不到綁定")
     ap.add_argument("--out", default=str(ROOT / "results" / "m5_sim" / "kitchen"))
     ap.add_argument("--gif", action="store_true", help="另存 GIF")
+    ap.add_argument("--world", choices=["event", "geom"], default="event",
+                    help="event = 舊的事件式(鏡頭歸屬與位置無關);"
+                         "geom = 幾何式(鏡頭有視野,歸屬由位置決定)")
+    ap.add_argument("--layout", choices=sorted(G.LAYOUTS), default="GAP",
+                    help="--world geom 時的視野佈局")
     args = ap.parse_args()
 
-    cfg = W.WorldConfig(
-        n_chefs=args.chefs, duration_s=args.seconds, seed=args.seed,
-        transition_interval_s=args.interval,
-        master_camera="master", master_fragment_rate=0.05,
-        calib_sigma_m=0.1, tau_v_s=3.0, vel_window_s=1.0,
-        traj_dt_s=1.0 / args.fps)          # 視覺化才開,見 world.py 的警告
-
-    topo = build_topo()
+    if args.world == "geom":
+        cfg = G.WorldConfig(
+            n_chefs=args.chefs, duration_s=args.seconds, seed=args.seed,
+            layout=args.layout, calib_sigma_m=0.1, tau_v_s=3.0, vel_window_s=1.0,
+            sim_dt_s=1.0 / args.fps, traj_dt_s=1.0 / args.fps)
+        topo = build_geom_topo(cfg)
+        cov = cfg.coverage(200)
+        print(f"佈局 {args.layout}:死角 {cov['blind']:.1%} / "
+              f"單鏡頭 {cov['single']:.1%} / 重疊 {cov['multi']:.1%}")
+        for c in cfg.cameras:
+            print("  ", c)
+    else:
+        cfg = W.WorldConfig(
+            n_chefs=args.chefs, duration_s=args.seconds, seed=args.seed,
+            transition_interval_s=args.interval,
+            master_camera="master", master_fragment_rate=0.05,
+            calib_sigma_m=0.1, tau_v_s=3.0, vel_window_s=1.0,
+            traj_dt_s=1.0 / args.fps)      # 視覺化才開,見 world.py 的警告
+        topo = build_topo()
     traj, assign, where, notes, stats = simulate(cfg, topo)
     print(f"模擬 {args.chefs} 位廚師 / {args.seconds:.0f} 秒:"
           f"轉場 {stats['n_transitions']} 次、"
@@ -285,7 +361,8 @@ def main():
     if args.gif:
         from PIL import Image
         imgs = [Image.open(p) for p in sorted(out.glob("k*.png"))]
-        gif = out.parent / "fake_kitchen.gif"
+        tag = f"_{args.layout}" if args.world == "geom" else ""
+        gif = out.parent / f"fake_kitchen{tag}.gif"
         imgs[0].save(gif, save_all=True, append_images=imgs[1:],
                      duration=int(1000 / args.fps), loop=0, optimize=True)
         print(f"已產生 {gif}({gif.stat().st_size / 1e6:.1f} MB)")
