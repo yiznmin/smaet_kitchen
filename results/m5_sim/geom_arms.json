@@ -13,11 +13,11 @@
   },
   "topology": {
     "GAP": {
-      "links": 8,
+      "links": 12,
       "overlapping": 2
     },
     "FULL": {
-      "links": 0,
+      "links": 12,
       "overlapping": 6
     }
   },
@@ -25,21 +25,41 @@
     "GAP_4": {
       "arm": "GAP",
       "chefs": 4,
-      "n_transitions": 1229,
-      "p_break": 0.1742,
-      "p_false_merge": 0.5817,
-      "idf1": 0.0606,
-      "weighted_cost": 308.27,
+      "n_transitions": 46479,
+      "p_break": 0.06695,
+      "p_false_merge": 0.67135,
+      "idf1": 0.02535,
+      "weighted_cost": 342.36999999999995,
+      "grade": "C"
+    },
+    "GAP_8": {
+      "arm": "GAP",
+      "chefs": 8,
+      "n_transitions": 92695,
+      "p_break": 0.0429,
+      "p_false_merge": 0.82145,
+      "idf1": 0.02105,
+      "weighted_cost": 415.0150000000001,
       "grade": "C"
     },
     "FULL_4": {
       "arm": "FULL",
       "chefs": 4,
-      "n_transitions": 1351,
-      "p_break": 0.0983,
-      "p_false_merge": 0.5157,
-      "idf1": 0.16485,
-      "weighted_cost": 267.68,
+      "n_transitions": 52607,
+      "p_break": 0.04201,
+      "p_false_merge": 0.3015,
+      "idf1": 0.19218,
+      "weighted_cost": 154.951,
+      "grade": "C"
+    },
+    "FULL_8": {
+      "arm": "FULL",
+      "chefs": 8,
+      "n_transitions": 105039,
+      "p_break": 0.03596,
+      "p_false_merge": 0.39422,
+      "idf1": 0.18093,
+      "weighted_cost": 200.70600000000002,
       "grade": "C"
     }
   },
@@ -48,7 +68,8 @@
     "p_false_merge": 0.01
   },
   "transit_ratio": {
-    "GAP": 1.444444444444457
+    "GAP": 0.37931034482763326,
+    "FULL": 1.1111111111111112
   },
   "args": {
     "arms": [
@@ -56,10 +77,11 @@
       "FULL"
     ],
     "chefs": [
-      4
+      4,
+      8
     ],
-    "reps": 2,
-    "hours": 0.2,
+    "reps": 10,
+    "hours": 1.5,
     "coverage_only": false,
     "out": "D:\\產學合作\\智慧廚房\\smart_test\\results\\m5_sim\\geom_arms.json"
   }
