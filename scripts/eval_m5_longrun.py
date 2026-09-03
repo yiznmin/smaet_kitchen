@@ -73,11 +73,18 @@ def selfcheck(meta, tracks, tevents, resident, events):
         "四個輸出檔都有資料",
         f"tracks={len(tracks)} events={len(tevents)} bindings={len(events)} "
         f"resident={len(resident)} —— 防的是空評估被當成完美")
-    chk(str(meta.get("topology_path", "")).endswith("epfl_demo.yaml")
-        and meta.get("n_links") == 0 and meta.get("n_overlapping_pairs") == 3,
-        "讀到正確的拓撲 config",
-        f"links={meta.get('n_links')} overlapping={meta.get('n_overlapping_pairs')} "
-        f"—— 讀成 camera_topology.yaml 會讓 cam2 必然碎裂,而症狀看起來像演算法爛")
+    # EPFL 的 9 支影片是同一場次同步錄製、視野全部重疊,所以正確的 config
+    # 必然是「links 為空、所有鏡頭對都 overlapping」。
+    # ⚠ 第一版把數字硬編成 3(為三台跑寫的),擴到九台就誤判成失敗。
+    #   斷言要寫成**不變量**(C(n,2) 對全重疊)而不是某一次的實際值。
+    n_cam = len(meta.get("per_cam_loops") or {})
+    want_pairs = n_cam * (n_cam - 1) // 2
+    chk(meta.get("n_links") == 0 and meta.get("n_overlapping_pairs") == want_pairs,
+        "讀到正確的拓撲 config(全重疊、無 links)",
+        f"{n_cam} 台 → 應有 {want_pairs} 個重疊對,實際 "
+        f"overlapping={meta.get('n_overlapping_pairs')} links={meta.get('n_links')}"
+        f" —— 讀成範本 camera_topology.yaml 會讓多數鏡頭必然碎裂,"
+        f"而症狀看起來像演算法爛")
     chk(meta.get("n_homographies") == 0
         and meta.get("ground_plane_effective") is False
         and meta.get("velocity_effective") is False,
