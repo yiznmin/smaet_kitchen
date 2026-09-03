@@ -46,10 +46,20 @@ from m5_reid.evidence import AppearanceLR                     # noqa: E402
 from m5_sim import world as W                                 # noqa: E402
 from sim_m5_montecarlo import _base_topo, run_once            # noqa: E402
 
-# 世界端的外觀品質。數字來自 EPFL 449 crops 的實測(evidence.AppearanceLR.MEASURED)
+# 世界端的外觀品質,與 evidence.AppearanceLR.MEASURED 的同名項**逐字對應**
+# (世界產生什麼品質的特徵,系統就用對應的分布去判斷;不同步的話量到的是模型失配)。
+#
+# ⚠ 前兩組量自 EPFL、後兩組量自 CHIRLA 跨相機,**難度不同,不可直接比 mu**。
+#   要跨組比較請看 d' = (mu_same − mu_diff) / sigma:
+#     dinov2 0.25 · osnet 1.08 · chirla_armS 0.118 · chirla_armR 0.421
+#   也就是說 CHIRLA 實際訓出來的可出貨模型(armS)在跨相機上的可分性
+#   **比 EPFL 的 DINOv2 還低**,離 osnet 等級差一個數量級。
 QUALITY = {
     "dinov2": dict(app_mu_same=0.490, app_sigma_same=0.10, app_mu_diff=0.465),
     "osnet": dict(app_mu_same=0.618, app_sigma_same=0.12, app_mu_diff=0.488),
+    # 2026-09-03 加入:CHIRLA 實測,scripts/calib_appearance_chirla.py
+    "chirla_armS": dict(app_mu_same=0.3989, app_sigma_same=0.1865, app_mu_diff=0.3769),
+    "chirla_armR": dict(app_mu_same=0.7398, app_sigma_same=0.1342, app_mu_diff=0.6833),
 }
 
 LAYOUTS = {
@@ -83,6 +93,12 @@ def main():
     ap.add_argument("--chefs", type=int, default=4)
     ap.add_argument("--reps", type=int, default=8)
     ap.add_argument("--hours", type=float, default=1.0)
+    # ⚠ 換一組種子重跑同一份設定,是唯一能量出雜訊帶的辦法。
+    #   §6 記過:reps=3 時曾把 −2.4pp 高估成 −7.0pp。要主張「兩格有差」之前,
+    #   先用不同 seed-base 跑一次,確認差距大於同設定換種子的抖動。
+    ap.add_argument("--seed-base", type=int, default=2000)
+    ap.add_argument("--only", nargs="+", default=None,
+                    help="只跑這幾個 profile(量雜訊帶時用,省時間)")
     ap.add_argument("--out", default=str(ROOT / "results" / "m5_reid" / "appearance_value.json"))
     args = ap.parse_args()
 
@@ -97,7 +113,8 @@ def main():
               f"  → 典型同人 {a.llr(q['app_mu_same']):+.2f}"
               f" / 最大 {a.llr(0.95):+.2f}")
 
-    print(f"\n  跑法:{args.reps} 次重複 × {args.hours} 小時 × {args.chefs} 位廚師\n")
+    print(f"\n  跑法:{args.reps} 次重複 × {args.hours} 小時 × {args.chefs} 位廚師"
+          f"(seed-base {args.seed_base})\n")
     print(f"  {'佈局':<14}{'外觀':<10}{'轉場':>8}{'碎裂':>9}{'誤併':>9}"
           f"{'IDF1':>8}{'候選>1':>9}")
     print("  " + "-" * 68)
@@ -105,10 +122,12 @@ def main():
     out = {}
     for lay_name, lay in LAYOUTS.items():
         for prof, qual in QUALITY.items():
+            if args.only and prof not in args.only:
+                continue
             brks, fms, idfs, ntr, multi, tot = [], [], [], 0, 0, 0
             for rep in range(args.reps):
                 cfg = W.WorldConfig(n_chefs=args.chefs, duration_s=args.hours * 3600,
-                                    seed=2000 + rep, calib_sigma_m=0.1,
+                                    seed=args.seed_base + rep, calib_sigma_m=0.1,
                                     tau_v_s=3.0, vel_window_s=1.0, **qual, **lay)
                 topo = build_topo(prof, lay["master_camera"] is not None)
                 recs, _tags = run_once(cfg, topo)

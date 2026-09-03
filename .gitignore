@@ -46,3 +46,7 @@ results/m5_full/tracks.csv
 # Re-ID 訓練產物(權重不入庫;CHIRLA 為 CC-BY-4.0 但模型檔體積大)
 model_result/reid/
 chirla_index.json
+# 匯出的 embedding。⚠ 2026-09-03 差點誤入庫 —— 16 個 h5 共數十 MB,
+# 而且它是 checkpoint + chirla_index.json 的衍生物,重跑 export 就有。
+# ⚠ model_result/reid/external/ 底下的外部權重更不能入庫(Market-1501 研究限定授權)。
+embeddings/

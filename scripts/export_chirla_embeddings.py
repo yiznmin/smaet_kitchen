@@ -42,11 +42,20 @@ def build_id_map(index_path, scenario):
     ⚠ 這是整個格式最容易出錯的地方:若 gallery 與 query 各自建表,
       同一個人會拿到不同整數 → 評估結果全錯,而且症狀只是「分數很低」,
       不會有任何錯誤訊息。所以一次把所有 split 的身份收齊再編號。
+
+    ⚠⚠ 2026-09-03 修正(資料到手後才看得出來):原本是 `enumerate(sorted(idents))`,
+      把 "-1" 編成某個**正整數**。但官方 `evaluate_reid.py:known_mask = query_ids >= 0`
+      是**靠負號認 distractor**(benchmark/reid/README:「Negative IDs represent
+      unknown identities」),而論文的基線數字是 closed-set(排除 distractor)。
+      流水號會讓 21 個 distractor 全被當成正常身份丟進 closed-set 評估,
+      **數字直接不可與論文對照,而且不會報錯,只會看起來比較低**。
+      CHIRLA 的 identity 目錄名本來就是整數字串,直接 int() 就同時滿足
+      「跨 split 一致」與「保留負號」。
     """
     d = json.loads(Path(index_path).read_text(encoding="utf-8"))
     subs = d["index"][scenario]
-    idents = sorted({r[1] for rows in subs.values() for r in rows})
-    return {s: i for i, s in enumerate(idents)}, d["root"]
+    idents = sorted({r[1] for rows in subs.values() for r in rows}, key=int)
+    return {s: int(s) for s in idents}, d["root"]
 
 
 def extract(rows, root, embedder, batch=64, quiet=False):

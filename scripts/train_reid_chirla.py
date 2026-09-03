@@ -247,6 +247,24 @@ def main():
                 p.requires_grad_(False)
         print(f"  已凍結骨幹前 {args.freeze_until} 個 stage")
 
+    # --epochs 0:不訓練,直接把「起始權重」本身存成 checkpoint。
+    # 為什麼需要:CHIRLA 論文的基線全部是**零樣本**(拿在 Market-1501/CION 上
+    # 預訓好的模型直接抽特徵,沒有在 CHIRLA 上訓練過)。所以「arm R 微調後」
+    # 與論文數字並不是同一件事。有了這個零樣本參照點,才答得出
+    # 「在 23~65 張影像上微調,到底是幫忙還是傷害」——本輪最關鍵的問題之一。
+    # ⚠ 這是**額外參照點**,不改動預先登記的 S/R 雙臂設定。
+    if args.epochs == 0:
+        out = Path(args.out); out.mkdir(parents=True, exist_ok=True)
+        torch.save({"model": model.state_dict(), "pid_map": pid_map,
+                    "arm": args.arm, "provenance": provenance + "(零樣本,未微調)",
+                    "dim": 2048, "epoch": -1}, out / "best.pth")
+        (out / "train_log.json").write_text(json.dumps(
+            {"args": vars(args), "provenance": provenance + "(零樣本,未微調)",
+             "n_ids": len(pid_map), "n_train": len(tr), "n_val": len(va),
+             "history": []}, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(f"\n--epochs 0:未訓練,已存起始權重到 {out/'best.pth'}")
+        return 0
+
     ce = nn.CrossEntropyLoss(label_smoothing=0.1)
     opt = torch.optim.Adam([p for p in model.parameters() if p.requires_grad], lr=args.lr,
                            weight_decay=5e-4)

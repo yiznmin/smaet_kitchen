@@ -271,10 +271,36 @@ class AppearanceLR:
       業主現場資料重估。詳見 docs/M5_可行性驗證與模型選型.md。
     """
 
-    # 實測值(EPFL 6 身份 / 449 crops),見 reid_epfl_*.json
+    # 實測值。⚠ **兩組來源、兩種難度,不可直接比大小**:
+    #
+    #  · dinov2 / osnet —— EPFL 6 身份 / 449 crops,見 reid_epfl_*.json。
+    #    EPFL 有 session confound(一個場次一人 → 同一人所有 crop 同衣服同光照),
+    #    而且九台鏡頭**同步且重疊** → 同一時刻不同視角。數字偏樂觀。
+    #
+    #  · chirla_* —— CHIRLA benchmark 的 **multi_camera** scenario,
+    #    gallery×query 的**跨實體相機**配對(closed-set,排除負號 distractor),
+    #    18,121 組同人 / 152,659 組不同人。7 台**非重疊**鏡頭,是 M5 真正的部署情境。
+    #    由 scripts/calib_appearance_chirla.py 產生(2026-09-03),
+    #    原始資料在 results/m5_reid/appearance_calib_chirla.json。
+    #
+    # ⚠ 每一組的 sigma_same 與 sigma_diff **刻意相同(合併 σ)**,不是懶得分開量。
+    #   兩個 σ 不等時高斯 LLR 變成二次式,在遠離平均處會外插出幾十 nats
+    #   (判定門檻才 1.61),而且 σ_same > σ_diff 時 llr(mu_same) 會變成負的 ——
+    #   「剛好等於同人平均的 cosine 反而是不同人的證據」,自相矛盾。
+    #   合併 σ 下 llr(mu_same) = d'^2 / 2,乾淨且與世界端的單一 σ 同步。
+    #
+    # 括號內是 d' = (mu_same - mu_diff) / sigma,**跨資料集比較請只看它**。
     MEASURED = {
-        "dinov2": dict(mu_same=0.490, mu_diff=0.465, sigma_same=0.10, sigma_diff=0.10),
-        "osnet": dict(mu_same=0.618, mu_diff=0.488, sigma_same=0.12, sigma_diff=0.12),
+        "dinov2": dict(mu_same=0.490, mu_diff=0.465, sigma_same=0.10, sigma_diff=0.10),      # d'=0.25
+        "osnet": dict(mu_same=0.618, mu_diff=0.488, sigma_same=0.12, sigma_diff=0.12),       # d'=1.08
+        # 可出貨(CC-BY-4.0 資料 + ImageNet 權重)
+        "chirla_armS": dict(mu_same=0.3989, mu_diff=0.3769,
+                            sigma_same=0.1865, sigma_diff=0.1865),                            # d'=0.118
+        "chirla_armS0": dict(mu_same=0.7682, mu_diff=0.7599,
+                             sigma_same=0.0634, sigma_diff=0.0634),                           # d'=0.131
+        # ⚠ 研究限定(起始權重訓練於 Market-1501),對照用,不可出貨
+        "chirla_armR": dict(mu_same=0.7398, mu_diff=0.6833,
+                            sigma_same=0.1342, sigma_diff=0.1342),                            # d'=0.421
     }
 
     def __init__(self, mu_same, sigma_same, mu_diff, sigma_diff, clip=None):

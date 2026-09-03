@@ -132,6 +132,16 @@ def verify(root, n_sample=30, seed=0):
         checks.append(_ok(f"找到 {len(csvs)} 個 scenario 的切分"))
 
     # 3. 對帳:身份數 / 相機數 / 序列數
+    #
+    # 2026-09-03 修正(實際資料到手後):原本這裡直接數目錄字串,數出來
+    # 「身份 42 / 相機 58」而報 ❌,但兩個數字都是**指標寫錯**不是資料壞掉:
+    #   · 身份:官方對同一個人在 distractor 角色下用**負號 id**(benchmark/reid/
+    #     README:「Negative IDs (e.g. -1, -4) in queries represent unknown
+    #     identities」)。-1 與 1 被當成兩個身份,21 個人就數成 42。
+    #   · 相機:目錄名是 `camera_3_2023-06-02-11:14:26`,**帶錄影時間戳**,
+    #     同一台實體相機在 10 個序列裡有 10 個名字,7 台就數成 58。
+    # 所以改成:身份取絕對值、相機取 `camera_N` 前綴,並且**兩個原始數字照印**,
+    # 不要因為改了計數就把原始事實藏起來。
     print("\n[3] 與論文規格對帳")
     all_paths, idents, cams, seqs = [], set(), set(), set()
     for subs in csvs.values():
@@ -144,17 +154,33 @@ def verify(root, n_sample=30, seed=0):
                     cams.add(meta["camera"])
                     if meta["sequence"]:
                         seqs.add(meta["sequence"])
-    print(f"      {'項目':<14}{'實際':>10}{'論文':>10}")
-    print("      " + "-" * 34)
-    for name, got, want in (("身份", len(idents), PAPER["identities"]),
-                            ("相機", len(cams), PAPER["cameras"]),
+    persons = {i.lstrip("-") for i in idents}                      # 去掉 distractor 負號
+    phys_cams = {"_".join(c.split("_")[:2]) for c in cams}         # camera_N
+    print(f"      {'項目':<20}{'實際':>10}{'論文':>10}")
+    print("      " + "-" * 40)
+    for name, got, want in (("身份(去負號)", len(persons), PAPER["identities"]),
+                            ("實體相機", len(phys_cams), PAPER["cameras"]),
                             ("序列", len(seqs), PAPER["sequences"])):
         mark = "✅" if got == want else ("⚠" if got else "❌")
-        print(f"      {name:<14}{got:>10}{want:>10}   {mark}")
+        print(f"      {name:<20}{got:>10}{want:>10}   {mark}")
+    print(f"      (原始 id 值 {len(idents)} 個 = {len(persons)} 人 × 正/負 distractor;"
+          f"相機目錄字串 {len(cams)} 個 = 實體相機 × 序列時間戳)")
     print(f"      CSV 列出的影像共 {len(all_paths):,} 筆")
-    checks.append(_ok("身份數對得上論文") if len(idents) == PAPER["identities"]
-                  else _fail(f"身份數 {len(idents)} ≠ 論文的 {PAPER['identities']} "
-                             "—— 可能只下載了部分 scenario,或路徑解析錯了"))
+    if len(persons) != PAPER["identities"]:
+        # ⚠ 這條差異是真的,不要蓋掉:benchmark 的 10 個序列裡只出現 21 個人
+        #   (id 17 與 20~23 從未出現,annotations/ 全掃也是 21)。論文的 22
+        #   是**整個資料集**的身份數,benchmark 子集比它少一個。
+        print(f"      ⚠ 身份 {len(persons)} ≠ 論文 {PAPER['identities']}:"
+              "benchmark 的 10 個序列只涵蓋部分身份,已用 annotations/ 全掃交叉確認,"
+              "**不是下載不完整**。報告要照實寫 benchmark 子集的身份數。")
+    # 硬性判準改看結構性的兩項 —— 這兩項才是「只下載了部分 scenario」會壞掉的地方
+    checks.append(_ok(f"實體相機 {len(phys_cams)} 台對得上論文")
+                  if len(phys_cams) == PAPER["cameras"]
+                  else _fail(f"實體相機 {len(phys_cams)} ≠ 論文的 {PAPER['cameras']}"))
+    checks.append(_ok(f"序列 {len(seqs)} 個對得上論文")
+                  if len(seqs) == PAPER["sequences"]
+                  else _fail(f"序列 {len(seqs)} ≠ 論文的 {PAPER['sequences']} "
+                             "—— 可能只下載了部分 scenario"))
 
     # 4. identity leakage —— 這是 PDF 訓練設計的第一條
     print("\n[4] identity leakage 檢查(train 與 gallery/query 的身份不可重疊)")
@@ -229,8 +255,11 @@ def verify(root, n_sample=30, seed=0):
     meta_out.write_text(json.dumps(
         {"root": str(root), "scenarios": {k: {s: str(v) for s, v in d.items()}
                                           for k, d in csvs.items()},
-         "n_identities": len(idents), "n_cameras": len(cams), "n_sequences": len(seqs),
-         "identities": sorted(idents), "cameras": sorted(cams),
+         "n_identities": len(persons), "n_cameras": len(phys_cams),
+         "n_sequences": len(seqs),
+         "n_raw_id_values": len(idents), "n_camera_dirnames": len(cams),
+         "identities": sorted(persons, key=lambda x: int(x)),
+         "cameras": sorted(phys_cams), "camera_dirnames": sorted(cams),
          "n_images_listed": len(all_paths), "paper": PAPER},
         ensure_ascii=False, indent=2), encoding="utf-8")
 
