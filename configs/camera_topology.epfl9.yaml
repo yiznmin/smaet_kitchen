@@ -1,0 +1,80 @@
+# EPFL 九視角全長評估用的拓撲(2026-09-03)。
+#
+# EPFL 的 9 支影片是**同一場次、同一時間、9 台固定相機同步錄製**,
+# 視野全部重疊 → 36 個鏡頭對全部列為 overlapping,links 為空。
+#
+# ⚠ cam1~cam3 刻意沿用 9/1 三台跑的對應,兩次結果才可以直接比較。
+#   9/1 那次的 cam3=Aoutput0 是**沿用 8/25 串接的設定,不是挑選出來的** ——
+#   它正好是視角偏差的一台(只拍到上半身),幽靈率 7.4% 是意外撿到的。
+#   這次加入 cam4(Aoutput1,全身清楚)當對照,以及 cam7/cam8(只拍得到腿)
+#   當壓力測試,把「幽靈率高是機位造成的」從推論變成受控對照。
+camera_topology:
+
+  fusion:
+    mode: llr
+    background_arrival_hz: 0.00167
+    cost_false_merge_over_break: 5.0
+    transit_model: loiter
+    p_loiter: 0.15
+    tau_loiter_s: 20.0
+    appearance_profile: dinov2
+    appearance_clip: null
+    overlap_llr: 5.0
+    overlap_window_s: 0.5
+    same_camera: { enabled: true, tau_break_s: 2.0, max_gap_s: 15.0 }
+    unknown_path: { enabled: false }
+    direction: { enabled: false }
+
+  links: []
+
+  overlapping:
+    - [cam1, cam2]
+    - [cam1, cam3]
+    - [cam1, cam4]
+    - [cam1, cam5]
+    - [cam1, cam6]
+    - [cam1, cam7]
+    - [cam1, cam8]
+    - [cam1, cam9]
+    - [cam2, cam3]
+    - [cam2, cam4]
+    - [cam2, cam5]
+    - [cam2, cam6]
+    - [cam2, cam7]
+    - [cam2, cam8]
+    - [cam2, cam9]
+    - [cam3, cam4]
+    - [cam3, cam5]
+    - [cam3, cam6]
+    - [cam3, cam7]
+    - [cam3, cam8]
+    - [cam3, cam9]
+    - [cam4, cam5]
+    - [cam4, cam6]
+    - [cam4, cam7]
+    - [cam4, cam8]
+    - [cam4, cam9]
+    - [cam5, cam6]
+    - [cam5, cam7]
+    - [cam5, cam8]
+    - [cam5, cam9]
+    - [cam6, cam7]
+    - [cam6, cam8]
+    - [cam6, cam9]
+    - [cam7, cam8]
+    - [cam7, cam9]
+    - [cam8, cam9]
+
+  clock:
+    max_skew_s: 0.2
+
+  cameras:
+    cam1: { clock_offset_s: 0.0 }   # Boutput0
+    cam2: { clock_offset_s: 0.0 }   # output0
+    cam3: { clock_offset_s: 0.0 }   # Aoutput0 —— 只拍到上半身與手臂(3 台跑時幽靈率 7.4%)
+    cam4: { clock_offset_s: 0.0 }   # Aoutput1 —— 全身清楚 —— 好視角的對照組
+    cam5: { clock_offset_s: 0.0 }   # Aoutput2
+    cam6: { clock_offset_s: 0.0 }   # Aoutput3
+    cam7: { clock_offset_s: 0.0 }   # Boutput1 —— 只拍得到腿
+    cam8: { clock_offset_s: 0.0 }   # Boutput2 —— 只拍得到腿
+    cam9: { clock_offset_s: 0.0 }   # Boutput3
