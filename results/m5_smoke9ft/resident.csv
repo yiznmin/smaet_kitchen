@@ -1,0 +1,6 @@
+loop_i,t_sec,rss_mb,total_chefs,active,gone,track_to_chef,_exit,_cam,_pending_exit,_world,_vel,m4_seen_cam1,m4_seen_cam2,m4_seen_cam3,m4_seen_cam4,m4_seen_cam5,m4_seen_cam6,m4_seen_cam7,m4_seen_cam8,m4_seen_cam9,m4_history_cam1,m4_history_cam2,m4_history_cam3,m4_history_cam4,m4_history_cam5,m4_history_cam6,m4_history_cam7,m4_history_cam8,m4_history_cam9,m4_prev_removed_cam1,m4_prev_removed_cam2,m4_prev_removed_cam3,m4_prev_removed_cam4,m4_prev_removed_cam5,m4_prev_removed_cam6,m4_prev_removed_cam7,m4_prev_removed_cam8,m4_prev_removed_cam9
+0,0.0,1307.4,1,1,0,11,0,1,0,0,0,1,1,1,1,1,1,1,2,2,1,1,1,1,1,1,1,2,2,0,0,0,0,0,0,0,0,0
+5,0.83,1093.8,1,1,0,11,0,1,0,0,0,1,1,1,1,1,1,1,2,2,1,1,1,1,1,1,1,2,2,0,0,0,0,0,0,0,0,0
+10,1.67,1113.1,1,1,0,11,0,1,0,0,0,1,1,1,1,1,1,1,2,2,1,1,1,1,1,1,1,2,2,0,1,0,0,0,0,0,0,0
+15,2.5,1122.7,1,1,0,11,0,1,0,0,0,1,1,1,1,1,1,1,2,2,1,1,1,1,1,1,1,2,2,0,0,0,0,0,0,0,0,0
+20,3.33,1119.5,1,1,0,11,0,1,0,0,0,1,1,1,1,1,1,1,2,2,1,1,1,1,1,1,1,2,2,0,0,0,0,0,0,0,0,0
