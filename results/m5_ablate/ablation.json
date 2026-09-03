@@ -1,0 +1,86 @@
+{
+  "conditions": [
+    {
+      "tag": "A",
+      "topo": "epfl_demo",
+      "embedder": "none",
+      "label": "三對重疊 / 無外觀",
+      "why": "主實驗(基準)"
+    },
+    {
+      "tag": "B",
+      "topo": "epfl_blind",
+      "embedder": "none",
+      "label": "無拓撲 / 無外觀",
+      "why": "負對照"
+    },
+    {
+      "tag": "C",
+      "topo": "epfl_blind_unknown",
+      "embedder": "none",
+      "label": "無拓撲+未建模路徑 / 無外觀",
+      "why": "讓候選進得了門"
+    },
+    {
+      "tag": "D",
+      "topo": "epfl_blind_unknown",
+      "embedder": "dinov2",
+      "label": "無拓撲+未建模路徑 / DINOv2",
+      "why": "純外觀能不能認人"
+    },
+    {
+      "tag": "E",
+      "topo": "epfl_demo",
+      "embedder": "dinov2",
+      "label": "三對重疊 / DINOv2",
+      "why": "有拓撲時外觀有沒有加分"
+    }
+  ],
+  "results": {
+    "A": {
+      "n_ids": 1,
+      "n_bind": 9,
+      "n_matched": 8,
+      "avg_score": 3.8063,
+      "topo": "epfl_demo",
+      "embedder": "none",
+      "label": "三對重疊 / 無外觀"
+    },
+    "B": {
+      "n_ids": 9,
+      "n_bind": 9,
+      "n_matched": 0,
+      "avg_score": 0.0,
+      "topo": "epfl_blind",
+      "embedder": "none",
+      "label": "無拓撲 / 無外觀"
+    },
+    "C": {
+      "n_ids": 9,
+      "n_bind": 9,
+      "n_matched": 0,
+      "avg_score": 0.0,
+      "topo": "epfl_blind_unknown",
+      "embedder": "none",
+      "label": "無拓撲+未建模路徑 / 無外觀"
+    },
+    "D": {
+      "n_ids": 9,
+      "n_bind": 9,
+      "n_matched": 0,
+      "avg_score": 0.0,
+      "topo": "epfl_blind_unknown",
+      "embedder": "dinov2",
+      "label": "無拓撲+未建模路徑 / DINOv2"
+    },
+    "E": {
+      "n_ids": 1,
+      "n_bind": 9,
+      "n_matched": 8,
+      "avg_score": 5.2925375,
+      "topo": "epfl_demo",
+      "embedder": "dinov2",
+      "label": "三對重疊 / DINOv2"
+    }
+  }
+}

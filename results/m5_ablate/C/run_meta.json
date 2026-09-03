@@ -1,0 +1,80 @@
+{
+  "camera_video_map": {
+    "cam1": "data/epfl/Boutput0.mp4",
+    "cam2": "data/epfl/output0.mp4",
+    "cam3": "data/epfl/Aoutput0.mp4"
+  },
+  "videos": {
+    "cam1": {
+      "width": 1280,
+      "height": 720,
+      "fps": 30.0,
+      "nb_frames": 23400
+    },
+    "cam2": {
+      "width": 1280,
+      "height": 720,
+      "fps": 30.0,
+      "nb_frames": 23400
+    },
+    "cam3": {
+      "width": 1280,
+      "height": 720,
+      "fps": 30.0,
+      "nb_frames": 23400
+    }
+  },
+  "topology_path": "D:\\產學合作\\智慧廚房\\smart_test\\configs\\camera_topology.epfl_blind_unknown.yaml",
+  "n_links": 1,
+  "n_overlapping_pairs": 0,
+  "n_homographies": 0,
+  "world_xy_available": false,
+  "ground_plane_effective": false,
+  "velocity_effective": false,
+  "weights": null,
+  "person_cls": 1,
+  "embedder": "none",
+  "stride": 10,
+  "max_frames": 120,
+  "ttl_loops": 600,
+  "ttl_seconds": 200.0,
+  "lost_track_buffer_loops": 30,
+  "lost_track_buffer_seconds": 10.0,
+  "n_loops": 120,
+  "n_loops_full": 2340,
+  "coverage": 0.0513,
+  "truncated": true,
+  "per_cam_loops": {
+    "cam1": 120,
+    "cam2": 120,
+    "cam3": 120
+  },
+  "n_det": 379,
+  "n_det_per_cam": {
+    "cam1": 124,
+    "cam2": 119,
+    "cam3": 136
+  },
+  "ms_per_loop": {
+    "p50": 975.9,
+    "p95": 1118.0,
+    "max": 1244.8
+  },
+  "wall_seconds": 125.5,
+  "total_chefs": 9,
+  "candidate_histogram": {
+    "0": 8,
+    "1": 1
+  },
+  "resident_final": {
+    "active": 8,
+    "gone": 1,
+    "track_to_chef": 8,
+    "_exit": 1,
+    "_cam": 8,
+    "_pending_exit": 5,
+    "_world": 0,
+    "_vel": 0
+  },
+  "llr_threshold": 1.6094379124341003
+}

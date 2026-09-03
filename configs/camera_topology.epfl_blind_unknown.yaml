@@ -1,0 +1,50 @@
+# 盲測 + 允許未建模路徑(unknown_path)。
+#
+# 與 epfl_blind 的唯一差別:unknown_path 從 false 改成 true。
+# 目的:epfl_blind 裡 transit_llr 直接回絕(-1e9),候選**根本進不了評分階段**,
+# 所以外觀連發言機會都沒有(分數全是 0.00)。開了 unknown_path 之後,
+# 未建模路徑會拿到一個帶負先驗的分數,外觀就能加上去 ——
+# 這樣才問得出「純外觀到底能不能認出同一個人」。
+#
+# 原始負對照的說明:
+#
+# 為什麼需要這個:主實驗用 camera_topology.epfl_demo.yaml,把 cam1/cam2/cam3
+# 三對都宣告為重疊 —— 那是**我們給系統的資訊**。於是「780 秒只開 1 個 chef_id」
+# 這個結果裡,分不出多少來自系統的能力、多少來自我們給的答案。
+#
+# 這份 config 讓 cam1/cam2/cam3 之間**沒有任何連結、沒有任何重疊**。
+# 預期:三台鏡頭各自開一個 chef_id(共 3 個)。
+#   · 若真的是 3 個 → 證明主實驗的「1 個」確實來自拓撲證據,不是碰巧
+#   · 若仍然是 1 個 → **主實驗的結論不可信**,系統是靠別的東西綁的
+#
+# ⚠ from_yaml 要求 links 與 overlapping 至少有一個非空(防「忘了填」的靜默失效),
+#   所以放一對與本次無關的假鏡頭來滿足守衛。
+camera_topology:
+  fusion:
+    mode: llr
+    background_arrival_hz: 0.00167
+    cost_false_merge_over_break: 5.0
+    transit_model: loiter
+    p_loiter: 0.15
+    tau_loiter_s: 20.0
+    appearance_profile: dinov2
+    appearance_clip: null
+    overlap_llr: 5.0
+    overlap_window_s: 0.5
+    same_camera: { enabled: true, tau_break_s: 2.0, max_gap_s: 15.0 }
+    unknown_path: { enabled: true, median_multiplier: 2.0,
+                    log_sigma: 0.8, logprior: -2.0 }
+    direction: { enabled: false }
+
+  links:
+    - { from: _dummy_a, to: _dummy_b, mean_s: 4.0, std_s: 1.5 }
+
+  overlapping: []
+
+  clock:
+    max_skew_s: 0.2
+
+  cameras:
+    cam1: { clock_offset_s: 0.0 }
+    cam2: { clock_offset_s: 0.0 }
+    cam3: { clock_offset_s: 0.0 }
