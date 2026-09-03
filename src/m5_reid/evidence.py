@@ -279,7 +279,10 @@ class AppearanceLR:
     #
     #  · chirla_* —— CHIRLA benchmark 的 **multi_camera** scenario,
     #    gallery×query 的**跨實體相機**配對(closed-set,排除負號 distractor),
-    #    18,121 組同人 / 152,659 組不同人。7 台**非重疊**鏡頭,是 M5 真正的部署情境。
+    #    18,121 組同人 / 152,659 組不同人。7 台分佈在不同房間的鏡頭,接近 M5 的部署情境。
+    #    ⚠ 論文寫「非重疊」但實測不成立(cam2/cam3 同一個房間),所以這組分布
+    #      **混合了重疊與非重疊兩種路徑**,比純轉場路徑樂觀。
+    #      見 docs/CHIRLA_鏡頭佈局實測_20260903.md。
     #    由 scripts/calib_appearance_chirla.py 產生(2026-09-03),
     #    原始資料在 results/m5_reid/appearance_calib_chirla.json。
     #
