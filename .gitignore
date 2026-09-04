@@ -22,6 +22,15 @@ results/**/*.html
 # 訓練權重(大檔;EPFL 丟棄驗證模型),不入庫
 *.pth
 model_result/
+
+# ── 2026-09-04:放行**我們自己訓練**的權重,讓遠端那台可以直接訓練/推論 ──
+# 用 Git LFS 存(見 .gitattributes)—— 兩個 checkpoint 都超過 GitHub 的 100 MB
+# 硬限制,不走 LFS 的話 push 會直接被拒絕。
+!model_result/
+!model_result/nano/
+!model_result/nano/*.pth
+!model_result/medium/
+!model_result/medium/*.pth
 # M4 追蹤輸出(標註幀/軌跡紀錄)
 results/m4_track/
 # M5 Re-ID 驗證輸出(EPFL 衍生 crops / 結果 json,研究限定)
@@ -45,8 +54,15 @@ results/m5_full/tracks.csv
 
 # Re-ID 訓練產物(權重不入庫;CHIRLA 為 CC-BY-4.0 但模型檔體積大)
 model_result/reid/
+model_result/reid/external/
+model_result/reid/osnet_reid.pth
 chirla_index.json
 # 匯出的 embedding。⚠ 2026-09-03 差點誤入庫 —— 16 個 h5 共數十 MB,
 # 而且它是 checkpoint + chirla_index.json 的衍生物,重跑 export 就有。
-# ⚠ model_result/reid/external/ 底下的外部權重更不能入庫(Market-1501 研究限定授權)。
+# ⚠⚠ 以下**研究限定**的權重一律不入庫。本 repo 是 **公開的**,
+#    把它們推上去等於**公開散布**研究限定權利物,而本案是要出貨的產學合作。
+#    授權會傳染 —— 詳見 docs/授權盤點.md 與記憶中的 licensing-constraints。
+#      · model_result/reid/external/*      Market-1501 訓練(FastReID market_bot_R50)
+#      · model_result/reid/osnet_reid.pth  OSNet Re-ID 權重(原始碼自己標「研究限定,僅驗證」)
+#    要在另一台用它們,請**直接複製檔案**,不要走 git。
 embeddings/
