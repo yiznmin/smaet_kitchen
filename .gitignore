@@ -66,3 +66,6 @@ chirla_index.json
 #      · model_result/reid/osnet_reid.pth  OSNet Re-ID 權重(原始碼自己標「研究限定,僅驗證」)
 #    要在另一台用它們,請**直接複製檔案**,不要走 git。
 embeddings/
+
+# CHIRLA M4/M5 的 smoke 跑輸出(只用來量 ms/迴圈與驗管線,拋棄式)
+results/chirla_smoke/
