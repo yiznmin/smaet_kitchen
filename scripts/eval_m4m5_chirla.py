@@ -53,13 +53,21 @@ def iou(a, b):
 
 
 def load_gt(root, seq):
-    """{camera: {frame(1-based): [(gt_id, bbox), ...]}}。distractor 負號取絕對值(§4.1)。"""
-    out = defaultdict(lambda: defaultdict(list))
+    """{camera: {frame(1-based): [(gt_id, bbox), ...]}}。distractor 負號取絕對值(§4.1)。
+
+    ⚠ **有標註檔但內容為空的相機也要建鍵。** 實測 seq_006 的 camera_4 全程沒有人,
+      標註是 `{}`。第一版只在有偵測時才建鍵,於是自檢誤判成「追蹤輸出的相機
+      沒有 GT」而中止 —— 但那台相機上偵測到的東西**依定義就是幽靈**,
+      正是本輪要量的目標,不是中止的理由。
+      要擋的是「標註檔根本不存在」,不是「標註檔是空的」。
+    """
+    out = {}
     for f in sorted((Path(root) / "annotations" / seq).glob("*.json")):
         cam = phys(f.stem)
+        per = out.setdefault(cam, defaultdict(list))
         for fr, dets in json.loads(f.read_text(encoding="utf-8")).items():
             for o in dets:
-                out[cam][int(fr)].append((abs(int(o["id"])), tuple(map(float, o["BboxP"]))))
+                per[int(fr)].append((abs(int(o["id"])), tuple(map(float, o["BboxP"]))))
     return out
 
 
@@ -214,12 +222,18 @@ def build_records(events, track_gt, overlapping):
         rec = (gid, e["chef_id"], bool(e.get("matched")), is_tr)
         recs.append(rec)
         if is_tr:
-            prev = last_cam.get(e["chef_id"])
+            # ⚠ 用「這個**真實身份**上次出現在哪台相機」,不是「這個 chef_id 上次
+            #   出現在哪台」。第一版用 chef_id,結果碎裂事件全部被漏掉:
+            #   綁不上時會開一個**全新的** chef_id,而新 id 沒有上一台相機
+            #   → prev 是 None → 整筆被跳過。症狀是「整體碎裂率 31.33%,
+            #   但兩條路徑都是 0.00%」—— 自相矛盾,而那正是指標寫錯的訊號。
+            #   真實身份的上一台相機與綁定成功與否無關,才是路徑的正確定義。
+            prev = last_cam.get(gid)
             if prev and prev != e["camera_id"]:
                 kind = ("overlap" if frozenset((prev, e["camera_id"])) in overlapping
                         else "transit")
                 path_recs[kind].append(rec)
-        last_cam[e["chef_id"]] = e["camera_id"]
+        last_cam[gid] = e["camera_id"]
     return recs, ghost_bind, path_recs
 
 
