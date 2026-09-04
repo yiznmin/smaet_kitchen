@@ -52,11 +52,19 @@ def pct(xs, q):
 
 # ── §0 自檢 ───────────────────────────────────────────────────────────
 def selfcheck(meta, tracks, tevents, resident, events):
-    """每一條都對應一個已踩過或已識別的具體失效。任一項失敗就不准印指標。"""
+    """每一條都對應一個已踩過或已識別的具體失效。任一項**致命**項失敗就不准印指標。
+
+    ⚠ 兩級的分野是「**會不會讓數字變錯**」,不是「嚴不嚴重」:
+      · fatal=True  —— 失敗時數字不可信(截斷、偵測為空、config 讀錯…)
+      · fatal=False —— 異常但不影響數字正確性,印 ⚠ 並繼續
+
+    ⚠⚠ **不得為了讓自己這次的跑通過而把某項降級。** 降級要附帶
+       「為什麼它不影響正確性」的實證,寫在 detail 裡。
+    """
     C = []
 
-    def chk(ok, name, detail):
-        C.append((bool(ok), name, detail))
+    def chk(ok, name, detail, fatal=True):
+        C.append((bool(ok), name, detail, fatal))
 
     chk(not meta.get("truncated") and meta.get("coverage", 0) >= 0.999,
         "跑完整支影片",
@@ -91,10 +99,18 @@ def selfcheck(meta, tracks, tevents, resident, events):
         "地面校正/軌跡證據的狀態自洽",
         "沒有 homography 就必須兩條都不生效 —— 「開了卻不生效」與"
         "「沒開卻聲稱生效」兩個方向都要擋")
+    # 停頓是**牆鐘**異常,不影響數字 —— 但這個結論需要證據,不是想當然爾:
+    #   (a) grep 過 src/m5_reid/ 與 src/m4_track/,**零**個 time.time()/perf_counter,
+    #       t_sec 全部由幀位置推導(m5_track_video.py:296),TTL 走 tick 計數;
+    #   (b) 2026-09-04 實測:有 82 分鐘停頓的全長跑,與沒有停頓的 smoke 跑,
+    #       前 25 迴圈的 274 筆 track **逐筆完全相同**。
+    # 真正會讓數字變錯的是「跑不完」,而那由上面的 coverage 那條擋(fatal)。
     ms = meta.get("ms_per_loop") or {}
     chk(ms.get("max", 0) < 20 * max(ms.get("p50", 1), 1),
-        "沒有異常長停頓",
-        f"max={ms.get('max')} vs p50={ms.get('p50')} —— 防的是 swap/記憶體壓力")
+        "沒有異常長停頓(牆鐘,非致命)",
+        f"max={ms.get('max')} vs p50={ms.get('p50')} —— 機器休眠/swap 會觸發。"
+        f"已實證不影響數字(見原始碼註解);真正致命的『跑不完』由 coverage 那條擋",
+        fatal=False)
     return C
 
 
@@ -239,13 +255,15 @@ def main():
     # ── §0 ──
     checks = selfcheck(meta, tracks, tevents, resident, events)
     L.append("\n§0 自檢 —— 不全過就不印任何指標\n")
-    for ok, name, detail in checks:
-        L.append(f"  {'✅' if ok else '❌'} {name}")
+    for ok, name, detail, fatal in checks:
+        L.append(f"  {'✅' if ok else ('❌' if fatal else '⚠')} {name}")
         L.append(f"       {detail}")
-    if not all(ok for ok, _, _ in checks):
-        L.append("\n❌ 自檢未通過。這次的資料不足以支撐任何結論,不印指標。")
+    if not all(ok for ok, _, _, fatal in checks if fatal):
+        L.append("\n❌ 自檢未通過(致命項)。這次的資料不足以支撐任何結論,不印指標。")
         print("\n".join(L))
         return 1
+    if not all(ok for ok, _, _, _ in checks):
+        L.append("\n⚠ 有非致命項未通過 —— 數字可用,但報告要照實寫出這件事。")
 
     v = meta["videos"][list(meta["videos"])[0]]
     L.append(f"\n跑法:{meta['n_loops']} 迴圈 × {len(meta['per_cam_loops'])} 鏡頭 · "
@@ -343,8 +361,8 @@ def main():
     txt = "\n".join(L)
     (d / "eval_report.txt").write_text(txt, encoding="utf-8")
     (d / "eval_report.json").write_text(json.dumps(
-        {"meta": meta, "selfcheck": [{"ok": o, "name": n, "detail": dd}
-                                     for o, n, dd in checks],
+        {"meta": meta, "selfcheck": [{"ok": o, "name": n, "detail": dd, "fatal": f}
+                                     for o, n, dd, f in checks],
          "m4": m4, "m5": m5, "memory": mem},
         ensure_ascii=False, indent=2, default=str), encoding="utf-8")
     print(txt)

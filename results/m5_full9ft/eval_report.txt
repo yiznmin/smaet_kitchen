@@ -7,19 +7,21 @@ EPFL 單場次全長 M4+M5 端到端評估
   ✅ 跑完整支影片
        coverage=1.0 truncated=False —— 防的是 --max-frames 預設 120 的靜默 0.3% 截斷
   ✅ 每台鏡頭都偵測到人
-       {'cam1': 4728, 'cam2': 4704, 'cam3': 5098, 'cam4': 5007, 'cam5': 4740, 'cam6': 5154, 'cam7': 4674, 'cam8': 5159, 'cam9': 4760} —— 防的是 person_cls 接錯(COCO=1/微調=0)時靜默輸出 0 筆
+       {'cam1': 4743, 'cam2': 4821, 'cam3': 4834, 'cam4': 4819, 'cam5': 4919, 'cam6': 5361, 'cam7': 4783, 'cam8': 5181, 'cam9': 4766} —— 防的是 person_cls 接錯(COCO=1/微調=0)時靜默輸出 0 筆
   ✅ 各鏡頭迴圈數一致
        {'cam1': 4680, 'cam2': 4680, 'cam3': 4680, 'cam4': 4680, 'cam5': 4680, 'cam6': 4680, 'cam7': 4680, 'cam8': 4680, 'cam9': 4680} —— 防的是某支影片提前耗盡、t_sec 靜默倒退
   ✅ 四個輸出檔都有資料
-       tracks=43593 events=1068 bindings=93 resident=94 —— 防的是空評估被當成完美
+       tracks=43118 events=1969 bindings=137 resident=94 —— 防的是空評估被當成完美
   ✅ 讀到正確的拓撲 config(全重疊、無 links)
        9 台 → 應有 36 個重疊對,實際 overlapping=36 links=0 —— 讀成範本 camera_topology.yaml 會讓多數鏡頭必然碎裂,而症狀看起來像演算法爛
   ✅ 地面校正/軌跡證據的狀態自洽
        沒有 homography 就必須兩條都不生效 —— 「開了卻不生效」與「沒開卻聲稱生效」兩個方向都要擋
-  ✅ 沒有異常長停頓(牆鐘,非致命)
-       max=4385.3 vs p50=1605.6 —— 機器休眠/swap 會觸發。已實證不影響數字(見原始碼註解);真正致命的『跑不完』由 coverage 那條擋
+  ⚠ 沒有異常長停頓(牆鐘,非致命)
+       max=4944243.3 vs p50=1605.1 —— 機器休眠/swap 會觸發。已實證不影響數字(見原始碼註解);真正致命的『跑不完』由 coverage 那條擋
 
-跑法:4680 迴圈 × 9 鏡頭 · stride=5 · 覆蓋 100.0% · 780 秒影片 · 耗時 159.2 分
+⚠ 有非致命項未通過 —— 數字可用,但報告要照實寫出這件事。
+
+跑法:4680 迴圈 × 9 鏡頭 · stride=5 · 覆蓋 100.0% · 780 秒影片 · 耗時 317.5 分
 
 ──────────────────────────────────────────────────────────────────────────
 §1 M4 追蹤(真實影片上的第一份量化)
@@ -29,34 +31,34 @@ EPFL 單場次全長 M4+M5 端到端評估
 
   鏡頭       track數      漏偵      幽靈      存活中位    短命<2s      空轉     遮擋救回
   ------------------------------------------------------------------
-  cam1          5    0.0%    0.3%      0.8s      80%      0%      20%
-  cam2          5    0.1%    0.2%      0.7s      60%      0%       0%
-  cam3          8    0.0%    7.4%     16.2s      25%      0%      95%
-  cam4         12    0.0%    5.9%      7.6s      33%      0%      85%
-  cam5          7    0.1%    0.9%      1.7s      57%      0%      54%
-  cam6         26    0.4%    7.0%      2.5s      42%      0%      76%
-  cam7          1    0.2%    0.0%    780.0s       0%      0%     100%
-  cam8         24    0.1%    9.3%      5.3s      29%      0%      62%
-  cam9          5    0.0%    1.2%      1.0s      60%      0%      50%
-  cam1 事件:{'new_track': 5, 'lost_track': 5, 'removed': 12, 'reacquired': 1}
-  cam2 事件:{'new_track': 5, 'removed': 12, 'lost_track': 4}
-  cam3 事件:{'new_track': 8, 'removed': 22, 'lost_track': 147, 'reacquired': 140}
-  cam4 事件:{'new_track': 12, 'removed': 27, 'lost_track': 74, 'reacquired': 63}
-  cam5 事件:{'new_track': 7, 'removed': 15, 'lost_track': 13, 'reacquired': 7}
-  cam6 事件:{'new_track': 26, 'removed': 74, 'lost_track': 104, 'reacquired': 79}
-  cam7 事件:{'new_track': 1, 'lost_track': 8, 'reacquired': 8, 'removed': 3}
-  cam8 事件:{'new_track': 24, 'lost_track': 60, 'reacquired': 37, 'removed': 30}
-  cam9 事件:{'new_track': 5, 'removed': 18, 'lost_track': 8, 'reacquired': 4}
+  cam1          5    0.0%    0.2%      0.3s      80%      0%      60%
+  cam2         12    0.4%    1.1%      0.6s      58%      0%      47%
+  cam3         10    0.0%    1.6%     25.2s      10%      0%      81%
+  cam4         14    0.6%    0.6%     35.5s      36%      0%      35%
+  cam5         12    0.0%    1.9%      4.1s      33%      0%      83%
+  cam6         47    1.1%    8.8%      3.3s      36%      0%      83%
+  cam7          9    0.0%    0.4%      1.7s      56%      0%      65%
+  cam8         25    0.0%    6.6%      8.3s      28%      0%      89%
+  cam9          3    0.0%    1.1%     12.2s       0%      0%      75%
+  cam1 事件:{'new_track': 5, 'removed': 42, 'lost_track': 5, 'reacquired': 3}
+  cam2 事件:{'new_track': 12, 'removed': 72, 'lost_track': 17, 'reacquired': 8}
+  cam3 事件:{'new_track': 10, 'removed': 59, 'lost_track': 42, 'reacquired': 34}
+  cam4 事件:{'new_track': 14, 'removed': 99, 'lost_track': 17, 'reacquired': 6}
+  cam5 事件:{'new_track': 12, 'removed': 94, 'lost_track': 52, 'reacquired': 43}
+  cam6 事件:{'new_track': 47, 'lost_track': 238, 'reacquired': 197, 'removed': 168}
+  cam7 事件:{'new_track': 9, 'removed': 62, 'lost_track': 23, 'reacquired': 15}
+  cam8 事件:{'new_track': 25, 'removed': 117, 'lost_track': 198, 'reacquired': 177}
+  cam9 事件:{'new_track': 3, 'lost_track': 8, 'reacquired': 6, 'removed': 30}
 
 ──────────────────────────────────────────────────────────────────────────
 §2 M5 跨鏡頭身份
 ──────────────────────────────────────────────────────────────────────────
   chef_id 總數        1(理想 1,全片單人)  → 碎裂 0 次
-  綁定決策            93 次(首次為初始化,其餘 92 次是真正的重新綁定)
+  綁定決策            137 次(首次為初始化,其餘 136 次是真正的重新綁定)
   開新身份            0 次(不含初始化)
-  碎裂率              0.0%(分母是 92 次重新綁定)
+  碎裂率              0.0%(分母是 136 次重新綁定)
   誤併率              **不可量測** —— 資料只有一個人 → 誤併結構上不可量測,任何數字都不是誤併率
-  候選數分布          {'0': 1, '1': 92}
+  候選數分布          {'0': 1, '1': 136}
       → 從來沒有兩個候選同時競爭 → 外觀 embedder 的品質在這次評估中**完全沒有影響結果的機會**
   決策餘裕(距門檻 1.609 nats)  中位 2.2 / 最小 2.2 / 1 nat 內佔 0%
 
@@ -65,43 +67,43 @@ EPFL 單場次全長 M4+M5 端到端評估
 ──────────────────────────────────────────────────────────────────────────
   項目                           最大       最終       每小時增量
   ----------------------------------------------------
-  rss_mb                   1677.9    762.2      -79.52
+  rss_mb                   1419.9    726.0     -559.39
   total_chefs                 1.0      1.0       +0.00
   active                      1.0      1.0       +0.00
   gone                        0.0      0.0       +0.00
-  track_to_chef              14.0     11.0       +4.45
+  track_to_chef              33.0     29.0     +104.90
   _exit                       0.0      0.0       +0.00
   _cam                        1.0      1.0       +0.00
-  _pending_exit               5.0      2.0       +2.65
+  _pending_exit               6.0      3.0      +17.13
   _world                      0.0      0.0       +0.00
   _vel                        0.0      0.0       +0.00
-  m4_seen_cam1                5.0      5.0       +0.00
-  m4_seen_cam2                5.0      5.0       +0.00
-  m4_seen_cam3                8.0      8.0      +19.58
-  m4_seen_cam4               12.0     12.0      +13.74
-  m4_seen_cam5                7.0      7.0      +36.47
-  m4_seen_cam6               26.0     26.0     +150.41
-  m4_seen_cam7                1.0      1.0       +0.00
-  m4_seen_cam8               24.0     24.0      +40.06
-  m4_seen_cam9                5.0      5.0       +2.25
-  m4_history_cam1             2.0      1.0       +0.00
-  m4_history_cam2             2.0      1.0       +0.00
-  m4_history_cam3             3.0      1.0       -3.65
-  m4_history_cam4             2.0      1.0       -0.05
-  m4_history_cam5             2.0      2.0       +1.80
-  m4_history_cam6             3.0      2.0       +9.24
-  m4_history_cam7             1.0      1.0       +0.00
-  m4_history_cam8             3.0      1.0       -2.90
-  m4_history_cam9             2.0      1.0       +0.00
-  m4_prev_removed_cam1        2.0      0.0       +0.00
-  m4_prev_removed_cam2        0.0      0.0       +0.00
-  m4_prev_removed_cam3        0.0      0.0       +0.00
-  m4_prev_removed_cam4        0.0      0.0       +0.00
-  m4_prev_removed_cam5        0.0      0.0       +0.00
-  m4_prev_removed_cam6        1.0      0.0       +0.00
+  m4_seen_cam1                5.0      5.0       +5.45
+  m4_seen_cam2               12.0     12.0      +23.23
+  m4_seen_cam3               10.0     10.0      +44.91
+  m4_seen_cam4               14.0     14.0      +88.22
+  m4_seen_cam5               12.0     12.0      +98.91
+  m4_seen_cam6               47.0     47.0     +119.99
+  m4_seen_cam7                9.0      9.0      +42.91
+  m4_seen_cam8               25.0     25.0     +144.17
+  m4_seen_cam9                3.0      3.0      +10.49
+  m4_history_cam1             3.0      3.0       +5.45
+  m4_history_cam2             4.0      3.0       +9.14
+  m4_history_cam3             3.0      2.0       +2.25
+  m4_history_cam4             4.0      4.0      +27.32
+  m4_history_cam5             4.0      3.0      +23.28
+  m4_history_cam6             8.0      6.0       -1.35
+  m4_history_cam7             2.0      1.0       +2.40
+  m4_history_cam8             8.0      6.0      +38.02
+  m4_history_cam9             2.0      1.0       -0.55
+  m4_prev_removed_cam1        1.0      0.0       +0.00
+  m4_prev_removed_cam2        1.0      0.0       -0.80
+  m4_prev_removed_cam3        1.0      0.0       +0.00
+  m4_prev_removed_cam4        1.0      0.0       +0.45
+  m4_prev_removed_cam5        1.0      0.0       +0.00
+  m4_prev_removed_cam6        1.0      0.0       +0.30
   m4_prev_removed_cam7        0.0      0.0       +0.00
-  m4_prev_removed_cam8        1.0      0.0       +0.00
-  m4_prev_removed_cam9        0.0      0.0       +0.00
+  m4_prev_removed_cam8        1.0      0.0       +1.80
+  m4_prev_removed_cam9        1.0      0.0       -0.15
 
   ⚠ M4 的 _seen_ids 是單調累積的集合,結構上是 O(累計 track 數) 不是 O(1)。
     數量級可能可忽略,但形狀要照實報。
@@ -109,7 +111,7 @@ EPFL 單場次全長 M4+M5 端到端評估
 ──────────────────────────────────────────────────────────────────────────
 §4 吞吐量
 ──────────────────────────────────────────────────────────────────────────
-  每迴圈 p50 1606 / p95 3512 / max 4385 ms(9 鏡頭,純 CPU)
+  每迴圈 p50 1605 / p95 3520 / max 4944243 ms(9 鏡頭,純 CPU)
   等效處理速度:3.1 影片幀/秒 = 即時的 0.10 倍
 
 ──────────────────────────────────────────────────────────────────────────

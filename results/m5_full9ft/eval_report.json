@@ -74,8 +74,8 @@
     "world_xy_available": false,
     "ground_plane_effective": false,
     "velocity_effective": false,
-    "weights": null,
-    "person_cls": 1,
+    "weights": "model_result/nano/checkpoint_best_regular.pth",
+    "person_cls": 0,
     "embedder": "none",
     "stride": 5,
     "max_frames": -1,
@@ -98,33 +98,33 @@
       "cam8": 4680,
       "cam9": 4680
     },
-    "n_det": 44024,
+    "n_det": 44227,
     "n_det_per_cam": {
-      "cam1": 4728,
-      "cam2": 4704,
-      "cam3": 5098,
-      "cam4": 5007,
-      "cam5": 4740,
-      "cam6": 5154,
-      "cam7": 4674,
-      "cam8": 5159,
-      "cam9": 4760
+      "cam1": 4743,
+      "cam2": 4821,
+      "cam3": 4834,
+      "cam4": 4819,
+      "cam5": 4919,
+      "cam6": 5361,
+      "cam7": 4783,
+      "cam8": 5181,
+      "cam9": 4766
     },
     "ms_per_loop": {
-      "p50": 1605.6,
-      "p95": 3511.7,
-      "max": 4385.3
+      "p50": 1605.1,
+      "p95": 3520.4,
+      "max": 4944243.3
     },
-    "wall_seconds": 9551.4,
+    "wall_seconds": 19048.8,
     "total_chefs": 1,
     "candidate_histogram": {
       "0": 1,
-      "1": 92
+      "1": 136
     },
     "resident_final": {
       "active": 1,
       "gone": 0,
-      "track_to_chef": 10,
+      "track_to_chef": 27,
       "_exit": 0,
       "_cam": 1,
       "_pending_exit": 1,
@@ -143,7 +143,7 @@
     {
       "ok": true,
       "name": "每台鏡頭都偵測到人",
-      "detail": "{'cam1': 4728, 'cam2': 4704, 'cam3': 5098, 'cam4': 5007, 'cam5': 4740, 'cam6': 5154, 'cam7': 4674, 'cam8': 5159, 'cam9': 4760} —— 防的是 person_cls 接錯(COCO=1/微調=0)時靜默輸出 0 筆",
+      "detail": "{'cam1': 4743, 'cam2': 4821, 'cam3': 4834, 'cam4': 4819, 'cam5': 4919, 'cam6': 5361, 'cam7': 4783, 'cam8': 5181, 'cam9': 4766} —— 防的是 person_cls 接錯(COCO=1/微調=0)時靜默輸出 0 筆",
       "fatal": true
     },
     {
@@ -155,7 +155,7 @@
     {
       "ok": true,
       "name": "四個輸出檔都有資料",
-      "detail": "tracks=43593 events=1068 bindings=93 resident=94 —— 防的是空評估被當成完美",
+      "detail": "tracks=43118 events=1969 bindings=137 resident=94 —— 防的是空評估被當成完美",
       "fatal": true
     },
     {
@@ -171,9 +171,9 @@
       "fatal": true
     },
     {
-      "ok": true,
+      "ok": false,
       "name": "沒有異常長停頓(牆鐘,非致命)",
-      "detail": "max=4385.3 vs p50=1605.6 —— 機器休眠/swap 會觸發。已實證不影響數字(見原始碼註解);真正致命的『跑不完』由 coverage 那條擋",
+      "detail": "max=4944243.3 vs p50=1605.1 —— 機器休眠/swap 會觸發。已實證不影響數字(見原始碼註解);真正致命的『跑不完』由 coverage 那條擋",
       "fatal": false
     }
   ],
@@ -182,248 +182,255 @@
       "n_tracks": 5,
       "tracks_per_min": 0.38,
       "active_per_loop": {
-        "1": 4668,
-        "2": 10,
-        "3": 2
+        "0": 1,
+        "1": 4671,
+        "2": 8
       },
-      "miss_rate": 0.0,
-      "ghost_rate": 0.0026,
+      "miss_rate": 0.0002,
+      "ghost_rate": 0.0017,
       "lifetime_s": {
-        "median": 0.8,
+        "median": 0.3,
         "p10": 0.2,
         "p90": 780.0,
         "max": 780.0
       },
       "short_lived_pct": 0.8,
-      "kalman_idle_pct": 0.0019,
+      "kalman_idle_pct": 0.0013,
       "events": {
         "new_track": 5,
+        "removed": 42,
         "lost_track": 5,
-        "removed": 12,
-        "reacquired": 1
+        "reacquired": 3
       },
-      "occlusion_recovery": 0.2
+      "occlusion_recovery": 0.6
     },
     "cam2": {
-      "n_tracks": 5,
-      "tracks_per_min": 0.38,
-      "active_per_loop": {
-        "0": 6,
-        "1": 4666,
-        "2": 8
-      },
-      "miss_rate": 0.0013,
-      "ghost_rate": 0.0017,
-      "lifetime_s": {
-        "median": 0.7,
-        "p10": 0.2,
-        "p90": 741.3,
-        "max": 741.3
-      },
-      "short_lived_pct": 0.6,
-      "kalman_idle_pct": 0.0034,
-      "events": {
-        "new_track": 5,
-        "removed": 12,
-        "lost_track": 4
-      },
-      "occlusion_recovery": 0.0
-    },
-    "cam3": {
-      "n_tracks": 8,
-      "tracks_per_min": 0.62,
-      "active_per_loop": {
-        "1": 4333,
-        "2": 347
-      },
-      "miss_rate": 0.0,
-      "ghost_rate": 0.0741,
-      "lifetime_s": {
-        "median": 16.2,
-        "p10": 0.8,
-        "p90": 780.0,
-        "max": 780.0
-      },
-      "short_lived_pct": 0.25,
-      "kalman_idle_pct": 0.0004,
-      "events": {
-        "new_track": 8,
-        "removed": 22,
-        "lost_track": 147,
-        "reacquired": 140
-      },
-      "occlusion_recovery": 0.952
-    },
-    "cam4": {
       "n_tracks": 12,
       "tracks_per_min": 0.92,
       "active_per_loop": {
-        "0": 2,
-        "1": 4400,
-        "2": 278
+        "0": 18,
+        "1": 4609,
+        "2": 52,
+        "3": 1
       },
-      "miss_rate": 0.0004,
-      "ghost_rate": 0.0594,
+      "miss_rate": 0.0038,
+      "ghost_rate": 0.0113,
       "lifetime_s": {
-        "median": 7.6,
-        "p10": 1.0,
-        "p90": 25.7,
-        "max": 780.0
+        "median": 0.6,
+        "p10": 0.2,
+        "p90": 360.3,
+        "max": 381.3
       },
-      "short_lived_pct": 0.3333,
-      "kalman_idle_pct": 0.0004,
+      "short_lived_pct": 0.5833,
+      "kalman_idle_pct": 0.0028,
       "events": {
         "new_track": 12,
-        "removed": 27,
-        "lost_track": 74,
-        "reacquired": 63
+        "removed": 72,
+        "lost_track": 17,
+        "reacquired": 8
       },
-      "occlusion_recovery": 0.851
+      "occlusion_recovery": 0.471
+    },
+    "cam3": {
+      "n_tracks": 10,
+      "tracks_per_min": 0.77,
+      "active_per_loop": {
+        "0": 1,
+        "1": 4606,
+        "2": 73
+      },
+      "miss_rate": 0.0002,
+      "ghost_rate": 0.0156,
+      "lifetime_s": {
+        "median": 25.2,
+        "p10": 2.3,
+        "p90": 268.8,
+        "max": 268.8
+      },
+      "short_lived_pct": 0.1,
+      "kalman_idle_pct": 0.0004,
+      "events": {
+        "new_track": 10,
+        "removed": 59,
+        "lost_track": 42,
+        "reacquired": 34
+      },
+      "occlusion_recovery": 0.81
+    },
+    "cam4": {
+      "n_tracks": 14,
+      "tracks_per_min": 1.08,
+      "active_per_loop": {
+        "0": 28,
+        "1": 4622,
+        "2": 30
+      },
+      "miss_rate": 0.006,
+      "ghost_rate": 0.0064,
+      "lifetime_s": {
+        "median": 35.5,
+        "p10": 0.2,
+        "p90": 105.2,
+        "max": 327.5
+      },
+      "short_lived_pct": 0.3571,
+      "kalman_idle_pct": 0.0002,
+      "events": {
+        "new_track": 14,
+        "removed": 99,
+        "lost_track": 17,
+        "reacquired": 6
+      },
+      "occlusion_recovery": 0.353
     },
     "cam5": {
-      "n_tracks": 7,
-      "tracks_per_min": 0.54,
+      "n_tracks": 12,
+      "tracks_per_min": 0.92,
       "active_per_loop": {
-        "0": 5,
-        "1": 4635,
-        "2": 40
+        "0": 1,
+        "1": 4590,
+        "2": 85,
+        "3": 4
       },
-      "miss_rate": 0.0011,
-      "ghost_rate": 0.0085,
+      "miss_rate": 0.0002,
+      "ghost_rate": 0.019,
+      "lifetime_s": {
+        "median": 4.1,
+        "p10": 0.3,
+        "p90": 170.3,
+        "max": 451.0
+      },
+      "short_lived_pct": 0.3333,
+      "kalman_idle_pct": 0.0,
+      "events": {
+        "new_track": 12,
+        "removed": 94,
+        "lost_track": 52,
+        "reacquired": 43
+      },
+      "occlusion_recovery": 0.827
+    },
+    "cam6": {
+      "n_tracks": 47,
+      "tracks_per_min": 3.62,
+      "active_per_loop": {
+        "0": 52,
+        "1": 4216,
+        "2": 395,
+        "3": 17
+      },
+      "miss_rate": 0.0111,
+      "ghost_rate": 0.088,
+      "lifetime_s": {
+        "median": 3.3,
+        "p10": 0.3,
+        "p90": 81.3,
+        "max": 180.7
+      },
+      "short_lived_pct": 0.3617,
+      "kalman_idle_pct": 0.0038,
+      "events": {
+        "new_track": 47,
+        "lost_track": 238,
+        "reacquired": 197,
+        "removed": 168
+      },
+      "occlusion_recovery": 0.828
+    },
+    "cam7": {
+      "n_tracks": 9,
+      "tracks_per_min": 0.69,
+      "active_per_loop": {
+        "0": 1,
+        "1": 4659,
+        "2": 19,
+        "3": 1
+      },
+      "miss_rate": 0.0002,
+      "ghost_rate": 0.0043,
       "lifetime_s": {
         "median": 1.7,
         "p10": 0.3,
-        "p90": 780.0,
-        "max": 780.0
+        "p90": 650.0,
+        "max": 650.0
       },
-      "short_lived_pct": 0.5714,
+      "short_lived_pct": 0.5556,
       "kalman_idle_pct": 0.0002,
       "events": {
-        "new_track": 7,
-        "removed": 15,
-        "lost_track": 13,
-        "reacquired": 7
+        "new_track": 9,
+        "removed": 62,
+        "lost_track": 23,
+        "reacquired": 15
       },
-      "occlusion_recovery": 0.538
+      "occlusion_recovery": 0.652
     },
-    "cam6": {
-      "n_tracks": 26,
-      "tracks_per_min": 2.0,
+    "cam8": {
+      "n_tracks": 25,
+      "tracks_per_min": 1.92,
       "active_per_loop": {
-        "0": 19,
-        "1": 4333,
-        "2": 323,
-        "3": 5
+        "0": 1,
+        "1": 4372,
+        "2": 273,
+        "3": 32,
+        "4": 2
       },
-      "miss_rate": 0.0041,
-      "ghost_rate": 0.0701,
+      "miss_rate": 0.0002,
+      "ghost_rate": 0.0656,
       "lifetime_s": {
-        "median": 2.5,
-        "p10": 0.2,
-        "p90": 57.5,
-        "max": 644.0
+        "median": 8.3,
+        "p10": 0.3,
+        "p90": 48.7,
+        "max": 491.8
       },
-      "short_lived_pct": 0.4231,
-      "kalman_idle_pct": 0.004,
+      "short_lived_pct": 0.28,
+      "kalman_idle_pct": 0.0016,
       "events": {
-        "new_track": 26,
-        "removed": 74,
-        "lost_track": 104,
-        "reacquired": 79
+        "new_track": 25,
+        "removed": 117,
+        "lost_track": 198,
+        "reacquired": 177
       },
-      "occlusion_recovery": 0.76
+      "occlusion_recovery": 0.894
     },
-    "cam7": {
-      "n_tracks": 1,
-      "tracks_per_min": 0.08,
+    "cam9": {
+      "n_tracks": 3,
+      "tracks_per_min": 0.23,
       "active_per_loop": {
-        "0": 9,
-        "1": 4671
+        "1": 4630,
+        "2": 50
       },
-      "miss_rate": 0.0019,
-      "ghost_rate": 0.0,
+      "miss_rate": 0.0,
+      "ghost_rate": 0.0107,
       "lifetime_s": {
-        "median": 780.0,
-        "p10": 780.0,
+        "median": 12.2,
+        "p10": 6.7,
         "p90": 780.0,
         "max": 780.0
       },
       "short_lived_pct": 0.0,
-      "kalman_idle_pct": 0.0009,
+      "kalman_idle_pct": 0.0013,
       "events": {
-        "new_track": 1,
+        "new_track": 3,
         "lost_track": 8,
-        "reacquired": 8,
-        "removed": 3
-      },
-      "occlusion_recovery": 1.0
-    },
-    "cam8": {
-      "n_tracks": 24,
-      "tracks_per_min": 1.85,
-      "active_per_loop": {
-        "0": 4,
-        "1": 4239,
-        "2": 433,
-        "3": 4
-      },
-      "miss_rate": 0.0009,
-      "ghost_rate": 0.0934,
-      "lifetime_s": {
-        "median": 5.3,
-        "p10": 0.5,
-        "p90": 16.5,
-        "max": 489.5
-      },
-      "short_lived_pct": 0.2917,
-      "kalman_idle_pct": 0.0021,
-      "events": {
-        "new_track": 24,
-        "lost_track": 60,
-        "reacquired": 37,
+        "reacquired": 6,
         "removed": 30
       },
-      "occlusion_recovery": 0.617
-    },
-    "cam9": {
-      "n_tracks": 5,
-      "tracks_per_min": 0.38,
-      "active_per_loop": {
-        "1": 4623,
-        "2": 57
-      },
-      "miss_rate": 0.0,
-      "ghost_rate": 0.0122,
-      "lifetime_s": {
-        "median": 1.0,
-        "p10": 0.2,
-        "p90": 780.0,
-        "max": 780.0
-      },
-      "short_lived_pct": 0.6,
-      "kalman_idle_pct": 0.0017,
-      "events": {
-        "new_track": 5,
-        "removed": 18,
-        "lost_track": 8,
-        "reacquired": 4
-      },
-      "occlusion_recovery": 0.5
+      "occlusion_recovery": 0.75
     }
   },
   "m5": {
     "total_chefs": 1,
     "expected_chefs": 1,
     "fragmentation_count": 0,
-    "n_bindings": 93,
-    "n_transitions": 92,
+    "n_bindings": 137,
+    "n_transitions": 136,
     "n_opened_new": 0,
     "p_break": 0.0,
     "p_false_merge": null,
     "p_false_merge_reason": "資料只有一個人 → 誤併結構上不可量測,任何數字都不是誤併率",
     "candidate_histogram": {
       "0": 1,
-      "1": 92
+      "1": 136
     },
     "llr_threshold": 1.609,
     "score_margin": {
@@ -435,9 +442,9 @@
   },
   "memory": {
     "rss_mb": {
-      "max": 1677.9,
-      "final": 762.2,
-      "per_hour": -79.521
+      "max": 1419.9,
+      "final": 726.0,
+      "per_hour": -559.387
     },
     "total_chefs": {
       "max": 1.0,
@@ -455,9 +462,9 @@
       "per_hour": 0.0
     },
     "track_to_chef": {
-      "max": 14.0,
-      "final": 11.0,
-      "per_hour": 4.446
+      "max": 33.0,
+      "final": 29.0,
+      "per_hour": 104.903
     },
     "_exit": {
       "max": 0.0,
@@ -470,9 +477,9 @@
       "per_hour": 0.0
     },
     "_pending_exit": {
-      "max": 5.0,
-      "final": 2.0,
-      "per_hour": 2.648
+      "max": 6.0,
+      "final": 3.0,
+      "per_hour": 17.134
     },
     "_world": {
       "max": 0.0,
@@ -487,122 +494,122 @@
     "m4_seen_cam1": {
       "max": 5.0,
       "final": 5.0,
-      "per_hour": 0.0
+      "per_hour": 5.445
     },
     "m4_seen_cam2": {
-      "max": 5.0,
-      "final": 5.0,
-      "per_hour": 0.0
-    },
-    "m4_seen_cam3": {
-      "max": 8.0,
-      "final": 8.0,
-      "per_hour": 19.582
-    },
-    "m4_seen_cam4": {
       "max": 12.0,
       "final": 12.0,
-      "per_hour": 13.737
+      "per_hour": 23.228
+    },
+    "m4_seen_cam3": {
+      "max": 10.0,
+      "final": 10.0,
+      "per_hour": 44.908
+    },
+    "m4_seen_cam4": {
+      "max": 14.0,
+      "final": 14.0,
+      "per_hour": 88.218
     },
     "m4_seen_cam5": {
-      "max": 7.0,
-      "final": 7.0,
-      "per_hour": 36.466
+      "max": 12.0,
+      "final": 12.0,
+      "per_hour": 98.908
     },
     "m4_seen_cam6": {
-      "max": 26.0,
-      "final": 26.0,
-      "per_hour": 150.411
+      "max": 47.0,
+      "final": 47.0,
+      "per_hour": 119.989
     },
     "m4_seen_cam7": {
-      "max": 1.0,
-      "final": 1.0,
-      "per_hour": 0.0
+      "max": 9.0,
+      "final": 9.0,
+      "per_hour": 42.91
     },
     "m4_seen_cam8": {
-      "max": 24.0,
-      "final": 24.0,
-      "per_hour": 40.063
+      "max": 25.0,
+      "final": 25.0,
+      "per_hour": 144.167
     },
     "m4_seen_cam9": {
-      "max": 5.0,
-      "final": 5.0,
-      "per_hour": 2.248
+      "max": 3.0,
+      "final": 3.0,
+      "per_hour": 10.49
     },
     "m4_history_cam1": {
-      "max": 2.0,
-      "final": 1.0,
-      "per_hour": 0.0
+      "max": 3.0,
+      "final": 3.0,
+      "per_hour": 5.445
     },
     "m4_history_cam2": {
-      "max": 2.0,
-      "final": 1.0,
-      "per_hour": 0.0
+      "max": 4.0,
+      "final": 3.0,
+      "per_hour": 9.141
     },
     "m4_history_cam3": {
       "max": 3.0,
-      "final": 1.0,
-      "per_hour": -3.647
+      "final": 2.0,
+      "per_hour": 2.248
     },
     "m4_history_cam4": {
-      "max": 2.0,
-      "final": 1.0,
-      "per_hour": -0.05
+      "max": 4.0,
+      "final": 4.0,
+      "per_hour": 27.325
     },
     "m4_history_cam5": {
-      "max": 2.0,
-      "final": 2.0,
-      "per_hour": 1.798
+      "max": 4.0,
+      "final": 3.0,
+      "per_hour": 23.279
     },
     "m4_history_cam6": {
-      "max": 3.0,
-      "final": 2.0,
-      "per_hour": 9.242
+      "max": 8.0,
+      "final": 6.0,
+      "per_hour": -1.349
     },
     "m4_history_cam7": {
-      "max": 1.0,
+      "max": 2.0,
       "final": 1.0,
-      "per_hour": 0.0
+      "per_hour": 2.398
     },
     "m4_history_cam8": {
-      "max": 3.0,
-      "final": 1.0,
-      "per_hour": -2.897
+      "max": 8.0,
+      "final": 6.0,
+      "per_hour": 38.015
     },
     "m4_history_cam9": {
       "max": 2.0,
       "final": 1.0,
-      "per_hour": 0.0
+      "per_hour": -0.549
     },
     "m4_prev_removed_cam1": {
-      "max": 2.0,
+      "max": 1.0,
       "final": 0.0,
       "per_hour": 0.0
     },
     "m4_prev_removed_cam2": {
-      "max": 0.0,
+      "max": 1.0,
       "final": 0.0,
-      "per_hour": 0.0
+      "per_hour": -0.799
     },
     "m4_prev_removed_cam3": {
-      "max": 0.0,
+      "max": 1.0,
       "final": 0.0,
       "per_hour": 0.0
     },
     "m4_prev_removed_cam4": {
-      "max": 0.0,
+      "max": 1.0,
       "final": 0.0,
-      "per_hour": 0.0
+      "per_hour": 0.45
     },
     "m4_prev_removed_cam5": {
-      "max": 0.0,
+      "max": 1.0,
       "final": 0.0,
       "per_hour": 0.0
     },
     "m4_prev_removed_cam6": {
       "max": 1.0,
       "final": 0.0,
-      "per_hour": 0.0
+      "per_hour": 0.3
     },
     "m4_prev_removed_cam7": {
       "max": 0.0,
@@ -612,12 +619,12 @@
     "m4_prev_removed_cam8": {
       "max": 1.0,
       "final": 0.0,
-      "per_hour": 0.0
+      "per_hour": 1.798
     },
     "m4_prev_removed_cam9": {
-      "max": 0.0,
+      "max": 1.0,
       "final": 0.0,
-      "per_hour": 0.0
+      "per_hour": -0.15
     }
   }
 }

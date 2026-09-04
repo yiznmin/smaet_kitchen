@@ -1,0 +1,134 @@
+{
+  "camera_video_map": {
+    "cam1": "data/epfl/Boutput0.mp4",
+    "cam2": "data/epfl/output0.mp4",
+    "cam3": "data/epfl/Aoutput0.mp4",
+    "cam4": "data/epfl/Aoutput1.mp4",
+    "cam5": "data/epfl/Aoutput2.mp4",
+    "cam6": "data/epfl/Aoutput3.mp4",
+    "cam7": "data/epfl/Boutput1.mp4",
+    "cam8": "data/epfl/Boutput2.mp4",
+    "cam9": "data/epfl/Boutput3.mp4"
+  },
+  "videos": {
+    "cam1": {
+      "width": 1280,
+      "height": 720,
+      "fps": 30.0,
+      "nb_frames": 23400
+    },
+    "cam2": {
+      "width": 1280,
+      "height": 720,
+      "fps": 30.0,
+      "nb_frames": 23400
+    },
+    "cam3": {
+      "width": 1280,
+      "height": 720,
+      "fps": 30.0,
+      "nb_frames": 23400
+    },
+    "cam4": {
+      "width": 1280,
+      "height": 720,
+      "fps": 30.0,
+      "nb_frames": 23400
+    },
+    "cam5": {
+      "width": 1280,
+      "height": 720,
+      "fps": 30.0,
+      "nb_frames": 23400
+    },
+    "cam6": {
+      "width": 1280,
+      "height": 720,
+      "fps": 30.0,
+      "nb_frames": 23400
+    },
+    "cam7": {
+      "width": 1280,
+      "height": 720,
+      "fps": 30.0,
+      "nb_frames": 23400
+    },
+    "cam8": {
+      "width": 1280,
+      "height": 720,
+      "fps": 30.0,
+      "nb_frames": 23400
+    },
+    "cam9": {
+      "width": 1280,
+      "height": 720,
+      "fps": 30.0,
+      "nb_frames": 23400
+    }
+  },
+  "topology_path": "configs/camera_topology.epfl9.yaml",
+  "n_links": 0,
+  "n_overlapping_pairs": 36,
+  "n_homographies": 0,
+  "world_xy_available": false,
+  "ground_plane_effective": false,
+  "velocity_effective": false,
+  "weights": "model_result/nano/checkpoint_best_regular.pth",
+  "person_cls": 0,
+  "embedder": "none",
+  "stride": 5,
+  "max_frames": -1,
+  "ttl_loops": 600,
+  "ttl_seconds": 100.0,
+  "lost_track_buffer_loops": 30,
+  "lost_track_buffer_seconds": 5.0,
+  "n_loops": 4680,
+  "n_loops_full": 4680,
+  "coverage": 1.0,
+  "truncated": false,
+  "per_cam_loops": {
+    "cam1": 4680,
+    "cam2": 4680,
+    "cam3": 4680,
+    "cam4": 4680,
+    "cam5": 4680,
+    "cam6": 4680,
+    "cam7": 4680,
+    "cam8": 4680,
+    "cam9": 4680
+  },
+  "n_det": 44227,
+  "n_det_per_cam": {
+    "cam1": 4743,
+    "cam2": 4821,
+    "cam3": 4834,
+    "cam4": 4819,
+    "cam5": 4919,
+    "cam6": 5361,
+    "cam7": 4783,
+    "cam8": 5181,
+    "cam9": 4766
+  },
+  "ms_per_loop": {
+    "p50": 1605.1,
+    "p95": 3520.4,
+    "max": 4944243.3
+  },
+  "wall_seconds": 19048.8,
+  "total_chefs": 1,
+  "candidate_histogram": {
+    "0": 1,
+    "1": 136
+  },
+  "resident_final": {
+    "active": 1,
+    "gone": 0,
+    "track_to_chef": 27,
+    "_exit": 0,
+    "_cam": 1,
+    "_pending_exit": 1,
+    "_world": 0,
+    "_vel": 0
+  },
+  "llr_threshold": 1.6094379124341003
+}
