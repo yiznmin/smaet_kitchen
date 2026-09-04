@@ -1,0 +1,119 @@
+{
+  "camera_video_map": {
+    "camera_1": "D:\\新增資料夾\\CHIRLA\\CHIRLA_data\\CHIRLA\\videos\\seq_006\\camera_1_2023-06-13-13_24_46.avi",
+    "camera_2": "D:\\新增資料夾\\CHIRLA\\CHIRLA_data\\CHIRLA\\videos\\seq_006\\camera_2_2023-06-13-13_24_46.avi",
+    "camera_3": "D:\\新增資料夾\\CHIRLA\\CHIRLA_data\\CHIRLA\\videos\\seq_006\\camera_3_2023-06-13-13_24_46.avi",
+    "camera_4": "D:\\新增資料夾\\CHIRLA\\CHIRLA_data\\CHIRLA\\videos\\seq_006\\camera_4_2023-06-13-13_24_46.avi",
+    "camera_5": "D:\\新增資料夾\\CHIRLA\\CHIRLA_data\\CHIRLA\\videos\\seq_006\\camera_5_2023-06-13-13_24_46.avi",
+    "camera_6": "D:\\新增資料夾\\CHIRLA\\CHIRLA_data\\CHIRLA\\videos\\seq_006\\camera_6_2023-06-13-13_24_46.avi",
+    "camera_7": "D:\\新增資料夾\\CHIRLA\\CHIRLA_data\\CHIRLA\\videos\\seq_006\\camera_7_2023-06-13-13_24_46.avi"
+  },
+  "videos": {
+    "camera_1": {
+      "width": 1080,
+      "height": 720,
+      "fps": 30.0,
+      "nb_frames": 6225
+    },
+    "camera_2": {
+      "width": 1080,
+      "height": 720,
+      "fps": 30.0,
+      "nb_frames": 6225
+    },
+    "camera_3": {
+      "width": 1080,
+      "height": 720,
+      "fps": 30.0,
+      "nb_frames": 6243
+    },
+    "camera_4": {
+      "width": 1080,
+      "height": 720,
+      "fps": 30.0,
+      "nb_frames": 6301
+    },
+    "camera_5": {
+      "width": 1080,
+      "height": 720,
+      "fps": 30.0,
+      "nb_frames": 6225
+    },
+    "camera_6": {
+      "width": 1080,
+      "height": 720,
+      "fps": 30.0,
+      "nb_frames": 6225
+    },
+    "camera_7": {
+      "width": 1080,
+      "height": 720,
+      "fps": 30.0,
+      "nb_frames": 6217
+    }
+  },
+  "topology_path": "configs/camera_topology.chirla.yaml",
+  "n_links": 3,
+  "n_overlapping_pairs": 7,
+  "n_homographies": 0,
+  "world_xy_available": false,
+  "ground_plane_effective": false,
+  "velocity_effective": false,
+  "weights": "model_result/nano/checkpoint_best_regular.pth",
+  "person_cls": 0,
+  "embedder": "none",
+  "stride": 5,
+  "max_frames": -1,
+  "ttl_loops": 600,
+  "ttl_seconds": 100.0,
+  "lost_track_buffer_loops": 30,
+  "lost_track_buffer_seconds": 5.0,
+  "n_loops": 1261,
+  "n_loops_full": 1244,
+  "coverage": 1.0137,
+  "truncated": false,
+  "per_cam_loops": {
+    "camera_1": 1245,
+    "camera_2": 1245,
+    "camera_3": 1249,
+    "camera_4": 1261,
+    "camera_5": 1245,
+    "camera_6": 1245,
+    "camera_7": 1244
+  },
+  "n_det": 8125,
+  "n_det_per_cam": {
+    "camera_1": 5452,
+    "camera_2": 2032,
+    "camera_3": 502,
+    "camera_4": 10,
+    "camera_5": 129,
+    "camera_6": 0,
+    "camera_7": 0
+  },
+  "ms_per_loop": {
+    "p50": 209.4,
+    "p95": 232.3,
+    "max": 593.2
+  },
+  "wall_seconds": 307.4,
+  "total_chefs": 18,
+  "candidate_histogram": {
+    "0": 15,
+    "1": 4,
+    "2": 14,
+    "3": 3,
+    "5": 10
+  },
+  "resident_final": {
+    "active": 6,
+    "gone": 7,
+    "track_to_chef": 10,
+    "_exit": 7,
+    "_cam": 6,
+    "_pending_exit": 2,
+    "_world": 0,
+    "_vel": 0
+  },
+  "llr_threshold": 1.6094379124341003
+}

@@ -69,3 +69,9 @@ embeddings/
 
 # CHIRLA M4/M5 的 smoke 跑輸出(只用來量 ms/迴圈與驗管線,拋棄式)
 results/chirla_smoke/
+
+# M4/M5 網格的逐幀框(32.5 MB,佔輸出的 83%)。
+# 重跑 run_m4m5_chirla_grid.py 可重新產生,而 run_meta.json 已完整記錄跑了什麼。
+# ⚠ 預先登記 §8 第 6 條要的「原始配對結果」已存進 eval_m4m5_report.json 的
+#   per_run.track_match,換 IoU 門檻重算不需要這份。
+results/chirla_m4m5/**/tracks.csv

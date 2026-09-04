@@ -290,9 +290,13 @@ def main():
             m4[cam]["gt_matched"] += gtm[cam]
             m4[cam]["gt_total"] += gtt[cam]
 
+        # §8 第 6 條要求「原始配對結果要存檔以便重算」——換 IoU 門檻或換
+        # 配對率門檻時,有這份就不必重跑四小時的網格。
         per_run[rd] = dict(seq=seq, n_tracks=len(tstats),
                            n_ghost_tracks=sum(s["is_ghost"] for s in tstats.values()),
-                           n_bindings=len(recs), n_ghost_bindings=ghost)
+                           n_bindings=len(recs), n_ghost_bindings=ghost,
+                           track_match={f"{cam}|{tid}": s
+                                        for (cam, tid), s in sorted(tstats.items())})
         L.append(f"\n  track {len(tstats)} 條,其中無 GT(誤偵){per_run[rd]['n_ghost_tracks']} 條")
 
     if fatal_fail:
