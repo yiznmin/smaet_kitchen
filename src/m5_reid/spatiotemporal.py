@@ -75,6 +75,22 @@ _DEFAULT_FUSION = {
     # 位置證據(僅同鏡頭適用)。F3 只用時間時誤併率翻倍,位置是收緊它的關鍵。
     "position": {"enabled": True, "speed_bh_per_s": 0.5, "noise_bh": 0.3,
                  "frame_span_bh": 6.0, "clip": 8.0},
+    # ── 2026-09-05 新增的兩個修法。**兩者預設關閉**,開啟前請看預先登記 ──
+    #    docs/M5_修復_預先登記_20260905.md。關閉時行為與 2026-09-04 的基線逐位相同。
+    #
+    # F1 margin test:最佳與次佳的差距不足時,**開新身份而不是賭一個**。
+    #   病灶:CHIRLA 上重疊路徑正確率 16.49%,而同時在場的其他身份中位是 7 人
+    #   (1/7=14.3%、1/6=16.7%)—— 統計上與「隨機挑一個」無法區分。
+    #   6~7 個候選全部過門檻後,max() 的排序差異只來自外觀的 +0.03 nats(d'=0.25)。
+    #   ⚠ 成本比是誤併:碎裂 = 5:1(誤併靜默不可回復)。所以「分不出來」的正確
+    #     處置是碎裂,而現行架構一律轉成誤併 —— 方向剛好相反。
+    #   min_nats=None 時取 log(cost_false_merge_over_break),與 llr_threshold 同源。
+    "margin": {"enabled": False, "min_nats": None},
+    # F2 同鏡頭互斥:一個人不可能同時是同一台鏡頭上的兩條 track。
+    #   現行 identity_st.py 收集重疊候選時只排除 `c != camera_id`,沒有檢查該 chef
+    #   是否**已經**在本鏡頭上綁著另一條 track。track_ids 會在 removed 時剪除,
+    #   所以它確實代表「目前還看得到的」,這個檢查是安全的。
+    "same_camera_exclusive": {"enabled": False},
     "max_z": 6.0,                           # 轉場分布的遠尾截斷(省算,非決策門)
     # ── v2(mode=weighted_sum)參數 ──────────────────────────────────
     "w_st": 0.7, "w_app": 0.3, "k_sigma": 2.0, "combined_threshold": 0.35,
@@ -199,6 +215,18 @@ class CameraTopology:
         self.app_lr = AppearanceLR.measured(f["appearance_profile"], clip=f["appearance_clip"])
         self.log_lambda_bg = np.log(float(f["background_arrival_hz"]))
         self.llr_threshold = decision_threshold(f["cost_false_merge_over_break"])
+
+        # F1/F2(2026-09-05)。兩者預設關閉 → margin_nats=None、same_cam_exclusive=False,
+        # 此時 identity_st 走的路徑與 2026-09-04 的基線逐位相同。
+        mg = f.get("margin") or {}
+        self.margin_nats = None
+        if mg.get("enabled", False):
+            # 預設與 llr_threshold 同源:兩者都是「誤併比碎裂貴幾倍」換算出來的門檻。
+            # 差距小於它,表示區分兩個假設的證據還不足以承擔誤併的成本。
+            m = mg.get("min_nats")
+            self.margin_nats = (self.llr_threshold if m is None else float(m))
+        self.same_cam_exclusive = bool((f.get("same_camera_exclusive") or {})
+                                       .get("enabled", False))
 
     def set_transit(self, cam_from, cam_to, model):
         """用實測資料校準後,把某條連結的轉場模型換掉(見 scripts/calibrate_topology.py)。"""

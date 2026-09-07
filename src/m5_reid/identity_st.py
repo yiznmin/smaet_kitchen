@@ -30,6 +30,12 @@ class SpatioTemporalIdentityManager(IdentityManager):
         # 這是本架構最關鍵的觀測量 —— 若幾乎總是 1,外觀品質對結果沒有影響。
         self._cand_hist = [0] * 6
         self.last_candidates = 0
+        # F1 margin test 的診斷。_n_margin_blocked 是「本來會綁、被 margin 擋下改開新
+        # 身份」的次數 —— 它就是這個修法把多少誤併換成了碎裂,必須看得見。
+        self._n_margin_blocked = 0
+        self.last_margin = None
+        # F2 同鏡頭互斥的驗收量:開啟後這個數字必須是 0。
+        self._n_same_cam_conflicts = 0
 
     @classmethod
     def from_config(cls, topo_cfg, embedder=None, fps=30.0):
@@ -54,7 +60,10 @@ class SpatioTemporalIdentityManager(IdentityManager):
         s = super().resident_stats()
         s.update({"_exit": len(self._exit), "_cam": len(self._cam),
                   "_pending_exit": len(self._pending_exit), "_world": len(self._world),
-                  "_vel": len(self._vel)})
+                  "_vel": len(self._vel),
+                  # F1/F2 的診斷。都是計數器不是集合,所以不影響記憶體有界性驗收。
+                  "margin_blocked": self._n_margin_blocked,
+                  "same_cam_conflicts": self._n_same_cam_conflicts})
         return s
 
     def _t(self, frame_id, t_sec, camera_id=None):
@@ -122,6 +131,13 @@ class SpatioTemporalIdentityManager(IdentityManager):
                     overlap_pool[c] = overlap_pool.get(c, 0) + 1
 
         for cid, chef in self.active.items():
+            # F2 同鏡頭互斥(2026-09-05,預設關閉):這位 chef 此刻**已經**在本鏡頭上
+            # 綁著另一條 track → 他不可能同時又是這條新 track。
+            # ⚠ track_ids 在 on_track_removed(:283)會被剪除,所以它確實代表
+            #   「目前還看得到的」,不是歷史累積 —— 這個檢查才安全。
+            if (getattr(self.topo, "same_cam_exclusive", False)
+                    and any(c == camera_id for c, _t in chef.track_ids)):
+                continue
             cams = {c for c, _t in chef.track_ids
                     if c != camera_id and self.topo.is_overlapping(c, camera_id)}
             if not cams:
@@ -160,9 +176,29 @@ class SpatioTemporalIdentityManager(IdentityManager):
 
         best_score, best_id, _ = max(cands, default=(float("-inf"), None, None))
 
+        # F1 margin test(2026-09-05,預設關閉)。
+        # 每位 chef 在 cands 裡最多出現一次(gone 與 active 互斥),所以「次佳」
+        # 必然是**另一個人**,差距才有「區分兩個假設」的意義。
+        #
+        # ⚠ 只有一個候選時不套用 —— 那不是「分不出來」,是「沒有別人可混淆」。
+        #   把它也擋掉會把單人場景的正確綁定全部打成碎裂。
+        margin_nats = getattr(self.topo, "margin_nats", None)
+        self.last_margin = None
+        if margin_nats is not None and len(cands) >= 2:
+            second = sorted((c[0] for c in cands), reverse=True)[1]
+            self.last_margin = best_score - second
+            if self.last_margin < margin_nats:
+                # 分不出來 → 依 5:1 成本比,寧可碎裂也不要誤併。
+                self._n_margin_blocked += 1
+                best_id = None
+
         gk = self._key(track_id, camera_id)
         if best_id is not None and best_score >= thr:          # 綁到既有廚師
             chef = self.gone.pop(best_id, None) or self.active[best_id]
+            # F2 的驗收量。**不論修法開關都計數** —— 關閉時量到的是基線的問題規模,
+            # 開啟後必須是 0。一個人不可能同時是同一台鏡頭上的兩條 track。
+            if any(c == camera_id for c, _t in chef.track_ids):
+                self._n_same_cam_conflicts += 1
             chef.state = "active"
             self.active[best_id] = chef
             if gk not in chef.track_ids:
