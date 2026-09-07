@@ -26,6 +26,12 @@ class SpatioTemporalIdentityManager(IdentityManager):
         self._pending_exit = {} # (cam, track) -> (cam, t_sec, frame_id, bbox)
         self._world = {}        # chef_id -> (世界座標, 時間)
         self._vel = {}          # chef_id -> 最近觀測到的速度向量(m/s)
+        # F4 CrossViewLR 用:(chef_id, camera) -> (bbox, t)。
+        # ⚠ 鍵含 camera 是必要的 —— 一位 chef 可能同時被多台重疊鏡頭看著,
+        #   而我們要比的是「他在**那一台**上的腳點」。
+        # ⚠ 記憶體有界性:上界是 活躍 chef 數 × 鏡頭數。track 移除與 _forget
+        #   都會清,見 on_track_removed 與 _forget。
+        self._bbox = {}
         # 診斷:每次綁定決策有幾個候選通過物理可能性檢查。索引 5 代表「5 個以上」。
         # 這是本架構最關鍵的觀測量 —— 若幾乎總是 1,外觀品質對結果沒有影響。
         self._cand_hist = [0] * 6
@@ -55,6 +61,10 @@ class SpatioTemporalIdentityManager(IdentityManager):
         self._cam.pop(chef_id, None)
         self._world.pop(chef_id, None)
         self._vel.pop(chef_id, None)
+        # F4:_bbox 的鍵是 (chef, camera),要把該 chef 的所有鏡頭一起清掉,
+        # 否則它會隨累計人次單調成長 —— 與上面那段註解防的是同一件事。
+        for k in [k for k in self._bbox if k[0] == chef_id]:
+            del self._bbox[k]
 
     def resident_stats(self):
         s = super().resident_stats()
@@ -164,10 +174,37 @@ class SpatioTemporalIdentityManager(IdentityManager):
                 if self.topo.vel_lr is not None:
                     score += self.topo.vel_lr.llr(self._vel.get(cid), world_v)
             else:
-                # 無校正:只知道「那台鏡頭裡有人」。若該鏡頭此刻有 K 位廚師,
-                # 這條證據只說得出「是 K 個之中的一個」→ 證據量除以 K。
-                k = max(min(overlap_pool.get(c, 1) for c in cams), 1)
-                score = self.f["overlap_llr"] - math.log(k) + self.topo.app_lr.llr(app)
+                # F4 CrossViewLR(2026-09-05):無度量標定,但用真值身份估出的
+                # 逐對單應性,一樣能回答「這兩個觀測落在地面的同一點嗎」。
+                # ⚠ 它**取代**下面那個常數,不是相加 —— 兩者回答同一個問題,
+                #   相加會把同一份證據算兩次。
+                cv = self.topo.cross_view(camera_id) if hasattr(self.topo, "cross_view") else None
+                cv_llr = None
+                if cv is not None:
+                    # 挑「這位 chef 此刻被哪一台重疊鏡頭看著、而且我們有那一對的
+                    # 單應性」。多台都可用時取證據最強的那台 —— 它是資訊最多的觀測,
+                    # 不是「對我們最有利的」:負證據一樣會被選中並擋下綁定。
+                    best_cv, best_abs = None, -1.0
+                    for c in cams:
+                        m = cv.get(c)
+                        rec = self._bbox.get((cid, c))
+                        if m is None or rec is None:
+                            continue
+                        v = m.llr(rec[0], bbox, dt=max(0.0, t - rec[1]))
+                        if abs(v) > best_abs:
+                            best_cv, best_abs = v, abs(v)
+                    cv_llr = best_cv
+                if cv_llr is not None:
+                    score = cv_llr + self.topo.app_lr.llr(app)
+                else:
+                    # 無校正也無單應性:只知道「那台鏡頭裡有人」。若該鏡頭此刻有
+                    # K 位廚師,這條證據只說得出「是 K 個之中的一個」→ 除以 K。
+                    # ⚠ 2026-09-04 實測:這條在數學上**不可能拒絕**任何候選 ——
+                    #   5.0 − log(k) + app < 1.609 需要 k > 29.7,而 CHIRLA 單台
+                    #   最多 9 人。重疊路徑因此誤併 80.80%、正確率 16.49%(≈1/6)。
+                    #   保留它只是為了讓沒有單應性的鏡頭對仍能運作,不是認可它。
+                    k = max(min(overlap_pool.get(c, 1) for c in cams), 1)
+                    score = self.f["overlap_llr"] - math.log(k) + self.topo.app_lr.llr(app)
             cands.append((score, cid, app))
 
         # 候選數是本架構最關鍵的診斷量:若幾乎總是 1,外觀品質根本不影響結果。
@@ -207,6 +244,8 @@ class SpatioTemporalIdentityManager(IdentityManager):
             chef.embedding = l2norm(self.ema * chef.embedding + (1 - self.ema) * emb)
             self.track_to_chef[gk] = best_id
             self._cam[best_id] = (camera_id, t)
+            if bbox is not None:                       # F4:見 on_track_update
+                self._bbox[(best_id, camera_id)] = (tuple(bbox[:4]), t)
             if world_xy is not None:
                 self._world[best_id] = (world_xy, t)
             if world_v is not None:
@@ -218,6 +257,8 @@ class SpatioTemporalIdentityManager(IdentityManager):
         self.active[cid] = ChefIdentity(cid, emb, [gk], "active", frame_id, frame_id)
         self.track_to_chef[gk] = cid
         self._cam[cid] = (camera_id, t)
+        if bbox is not None:                           # F4:見 on_track_update
+            self._bbox[(cid, camera_id)] = (tuple(bbox[:4]), t)
         if world_xy is not None:
             self._world[cid] = (world_xy, t)
         if world_v is not None:
@@ -249,6 +290,11 @@ class SpatioTemporalIdentityManager(IdentityManager):
             self._world[cid] = (world_xy, t)
         if world_v is not None:
             self._vel[cid] = world_v
+        # F4:CrossViewLR 要知道候選此刻在**那一台重疊鏡頭**上的 bbox。
+        # 與 world_xy 同一個理由 —— M4 每幀輸出 active tracks,但 M5 只吃事件,
+        # 所以不在這裡記的話,拿到的會是「上次綁定時」的位置。
+        if bbox is not None:
+            self._bbox[(cid, camera_id)] = (tuple(bbox[:4]), t)
         return cid
 
     def candidate_histogram(self):
@@ -318,6 +364,10 @@ class SpatioTemporalIdentityManager(IdentityManager):
             return None
         if gk in chef.track_ids:
             chef.track_ids.remove(gk)
+        # F4:這位 chef 在這台鏡頭上已經看不到了 → 他的腳點也不再有效。
+        # 留著的話會拿「離場前的位置」去跟現在比,製造假的位置證據
+        # (與 :316 那個出口時間戳的坑同一種形狀)。
+        self._bbox.pop((cid, camera_id), None)
         chef.last_seen = exit_frame
         if not chef.track_ids:                                  # 無任何鏡頭還看得到 → 離場
             chef.state = "gone"

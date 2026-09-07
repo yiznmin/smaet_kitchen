@@ -184,6 +184,66 @@ chk("margin_blocked" in s and "same_cam_conflicts" in s,
 chk(all(isinstance(s[k], int) for k in ("margin_blocked", "same_cam_conflicts")),
     "是計數器不是集合 → 不影響記憶體有界性驗收")
 
+# ── 6. F4 CrossViewLR ───────────────────────────────────────────────
+print("\n【6】F4 CrossViewLR(跨鏡頭腳點一致性)")
+
+_H = [[1.20, 0.15, -80.0], [0.05, 1.35, -40.0], [0.0003, 0.0008, 1.0]]
+CV = {"enabled": True, "clip": 8.0,
+      "pairs": {"cam1|cam2": {"H": _H, "sigma_px": 30.0, "area_px2": 120000.0}}}
+
+
+def bb(x, y, w=50, h=120):
+    return (x - w / 2.0, y - h, x + w / 2.0, y)
+
+
+t_cv = topo(cross_view=CV)
+chk(t_cv.cross_view("cam2") is not None and "cam1" in t_cv.cross_view("cam2"),
+    "cam1→cam2 的單應性有載入")
+chk(t_cv.cross_view("cam1") is not None and "cam2" in t_cv.cross_view("cam1"),
+    "反向(cam2→cam1)自動用反矩陣建立")
+chk(t_cv.cross_view("cam3") is None,
+    "沒有單應性的鏡頭回 None → 呼叫端退回舊常數路徑",
+    "CHIRLA 21 對相機不會每對都有,硬要求全有會直接不能跑")
+
+m = t_cv.cross_view("cam2")["cam1"]
+foot_a = (400.0, 350.0)
+proj = m.project(foot_a)
+
+good = SpatioTemporalIdentityManager(topo(cross_view=CV), fps=30.0)
+good.on_new_track(1, camera_id="cam1", frame_id=0, t_sec=0.0,
+                  embedding=emb(0), bbox=bb(*foot_a))
+r_good = good.on_new_track(2, camera_id="cam2", frame_id=1, t_sec=0.03,
+                           embedding=emb(0, obs=1), bbox=bb(*proj))
+chk(r_good.matched, "位置對得上 → 綁定", f"score = {r_good.similarity:+.2f} nats")
+
+bad = SpatioTemporalIdentityManager(topo(cross_view=CV), fps=30.0)
+bad.on_new_track(1, camera_id="cam1", frame_id=0, t_sec=0.0,
+                 embedding=emb(0), bbox=bb(*foot_a))
+r_bad = bad.on_new_track(2, camera_id="cam2", frame_id=1, t_sec=0.03,
+                         embedding=emb(1), bbox=bb(proj[0] + 200, proj[1] + 120))
+chk(not r_bad.matched,
+    "位置對不上 → **拒絕**(這是常數 overlap_llr 做不到的)",
+    f"score = {r_bad.similarity:+.2f} nats < 門檻 {t_cv.llr_threshold:.2f}")
+
+old = SpatioTemporalIdentityManager(topo(), fps=30.0)
+old.on_new_track(1, camera_id="cam1", frame_id=0, t_sec=0.0,
+                 embedding=emb(0), bbox=bb(*foot_a))
+r_old = old.on_new_track(2, camera_id="cam2", frame_id=1, t_sec=0.03,
+                         embedding=emb(1), bbox=bb(proj[0] + 200, proj[1] + 120))
+chk(r_old.matched,
+    "對照組:舊的常數路徑對同一組事件**照綁不誤**",
+    f"score = {r_old.similarity:+.2f} —— 這正是誤併 80.80% 的來源")
+
+mem = SpatioTemporalIdentityManager(topo(cross_view=CV), fps=30.0)
+mem.on_new_track(1, camera_id="cam1", frame_id=0, t_sec=0.0,
+                 embedding=emb(0), bbox=bb(*foot_a))
+n_after_new = len(mem._bbox)
+mem.on_track_lost(1, camera_id="cam1", frame_id=1, t_sec=0.03, bbox=bb(*foot_a))
+mem.on_track_removed(1, camera_id="cam1", frame_id=2, t_sec=0.06, bbox=bb(*foot_a))
+chk(n_after_new == 1 and len(mem._bbox) == 0,
+    "_bbox 在 track 移除後清乾淨(記憶體有界性)",
+    f"新增後 {n_after_new} → 移除後 {len(mem._bbox)}")
+
 print("\n" + "─" * 74)
 if FAIL:
     print(f"❌ {len(FAIL)} 項未通過:{FAIL}")

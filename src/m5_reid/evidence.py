@@ -466,6 +466,107 @@ class GroundPlaneLR:
                 f"同人 {self.llr((0,0),(0,0)):+.2f} / 相距1.5m {self.llr((0,0),(1.5,0)):+.2f} nats)")
 
 
+class CrossViewLR:
+    """跨鏡頭腳點一致性 —— `GroundPlaneLR` 的**無標定**版本。
+
+    ## 為什麼需要它
+
+    `GroundPlaneLR` 是唯一能回答「重疊視野裡的是**哪一個**人」的證據,但它要
+    homography 才能算世界座標。CHIRLA 沒有相機標定參數 → 退回 `overlap_llr = 5.0`
+    這個常數,而那個常數**在數學上不可能拒絕任何候選**:
+
+        5.0 − log(k) + app_llr < 1.609  →  需要 k > 29.7
+        而 CHIRLA 單台鏡頭同時最多 9 人
+
+    2026-09-04 實測的後果:重疊路徑 `p_break = 2.71%`(幾乎從不拒絕)、
+    `p_false_merge = 80.80%`、`p_correct = 16.49%`(≈ 1/6,與隨機挑一個無法區分)。
+
+    ## 關鍵觀察:沒有標定,但**有真值身份**就能估出單應性
+
+    同一時刻兩台看到同一個人 → 那就是一組地面對應點(取 bbox 底邊中點)。
+    夠多組就能用 RANSAC 解出 **H_AB**(A 的像素平面 → B 的像素平面)。
+
+    ⚠ 這**不是**度量標定 —— 沒有公尺、沒有外參。它只回答一個問題:
+      「這兩個觀測落在地面的同一點嗎?」而那正是我們要的。
+
+    ⚠ **逐對估,不串接。** H_1→R = H_1→3 · H_3→R 會累積誤差,而 CHIRLA 有些
+      鏡頭對的共現只有 3 次,串進來會污染整條鏈。逐對估的代價是沒有全域座標,
+      好處是每一對帶著自己實測的 σ,品質差的那對自己弱。
+
+        LLR = log A − log(2πσ²) − d²/(2σ²)
+
+        d = 把 A 的腳點經 H_AB 投到 B 之後,與 B 的腳點的殘差(B 的像素)
+        σ = 該鏡頭對的**實測**殘差尺度(像素)
+        A = 該對的共視區面積(B 的像素²),「不同人」時腳點大致散布的範圍
+
+    ⚠⚠ **σ 不可以再乘 √2。** 它是直接從「真正同一人」的殘差分布量出來的,
+      **已經包含兩台鏡頭的誤差**。GroundPlaneLR 的 σ 是單台標定誤差所以要乘,
+      這裡不是。本專案已經在 `GroundPlaneLR`(第六輪)與 `VelocityLR`(第七輪)
+      各踩過一次這個坑,不要有第三次。
+    """
+
+    def __init__(self, H, sigma_px, area_px2, clip=8.0, speed_px_per_s=0.0):
+        import numpy as _np
+        self.H = _np.asarray(H, dtype=float).reshape(3, 3)
+        # ⚠ 見類別說明:σ 已是 pairwise 殘差,不再乘 √2。
+        self.sigma = float(sigma_px)
+        self.area = float(area_px2)
+        self.clip = float(clip)
+        # 兩次觀測相隔 dt 時人可能移動多少(B 的像素/秒)。重疊路徑的 dt 很小
+        # (同一時刻),所以預設 0;留著是為了與 GroundPlaneLR 的介面一致。
+        self.speed = float(speed_px_per_s)
+        # 與 GroundPlaneLR 同樣的物理約束:「同一人」的分布不可能比「均勻散布在
+        # 共視區」更分散,否則遠距離時會給出莫名的負證據。
+        self.sigma_max = math.sqrt(self.area / 12.0)
+
+    @staticmethod
+    def foot(bbox):
+        """bbox 底邊中點 —— 站立的人與地面的接觸點,是無標定下最好的地面代理。"""
+        if bbox is None:
+            return None
+        x1, y1, x2, y2 = (float(v) for v in bbox[:4])
+        return ((x1 + x2) * 0.5, y2)
+
+    def project(self, xy):
+        """把 A 平面的點經 H 投到 B 平面。齊次除法退化時回 None(而不是爆掉)。"""
+        if xy is None:
+            return None
+        h = self.H
+        w = h[2, 0] * xy[0] + h[2, 1] * xy[1] + h[2, 2]
+        if abs(w) < 1e-9:                       # 點落在消失線上 → 無法投影
+            return None
+        return ((h[0, 0] * xy[0] + h[0, 1] * xy[1] + h[0, 2]) / w,
+                (h[1, 0] * xy[0] + h[1, 1] * xy[1] + h[1, 2]) / w)
+
+    def llr(self, bbox_a, bbox_b, dt=0.0):
+        """bbox_a 在鏡頭 A、bbox_b 在鏡頭 B(H 的方向是 A→B)。
+
+        資料不足時回 **0.0**(中性)而不是負值 —— 「我們算不出來」與
+        「證據說不是同一人」是兩回事,混淆它們會把缺資料變成反證。
+        """
+        pa, pb = self.foot(bbox_a), self.foot(bbox_b)
+        if pa is None or pb is None:
+            return 0.0
+        q = self.project(pa)
+        if q is None:
+            return 0.0
+        d = math.hypot(q[0] - pb[0], q[1] - pb[1])
+        s = min(math.hypot(self.sigma, self.speed * max(dt, 0.0)), self.sigma_max)
+        v = math.log(self.area) - math.log(2 * math.pi * s * s) - d * d / (2 * s * s)
+        return max(-self.clip, min(self.clip, v))
+
+    def describe(self):
+        return (f"CrossViewLR(σ={self.sigma:.1f}px, 共視區 {self.area:.0f}px², "
+                f"殘差0 {self.llr_at(0.0):+.2f} / 殘差{self.sigma*3:.0f}px "
+                f"{self.llr_at(self.sigma * 3):+.2f} nats)")
+
+    def llr_at(self, d):
+        """給定殘差直接算 LLR —— 供校準與診斷用,不經過投影。"""
+        s = min(self.sigma, self.sigma_max)
+        v = math.log(self.area) - math.log(2 * math.pi * s * s) - d * d / (2 * s * s)
+        return max(-self.clip, min(self.clip, v))
+
+
 class VelocityLR:
     """速度證據 —— 專門解「兩個人站在同一個位置」的情況。
 

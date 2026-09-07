@@ -91,6 +91,13 @@ _DEFAULT_FUSION = {
     #   是否**已經**在本鏡頭上綁著另一條 track。track_ids 會在 removed 時剪除,
     #   所以它確實代表「目前還看得到的」,這個檢查是安全的。
     "same_camera_exclusive": {"enabled": False},
+    # F4 跨鏡頭腳點一致性(CrossViewLR)。**取代**重疊路徑的 overlap_llr 常數。
+    #   pairs 由 scripts/chirla_build_crossview.py 從**推導集**估出後寫進拓撲 yaml:
+    #     {"cam_a|cam_b": {"H": [[...]], "sigma_px": .., "area_px2": ..}}
+    #   H 的方向是 a→b(a、b 依字典序),反向自動用反矩陣。
+    # ⚠ 沒有某一對的 H 時,那一對**自動退回舊的常數路徑** —— 不是報錯也不是跳過。
+    #   CHIRLA 有 21 對相機而真正共現夠多的只有一部分,硬要求全有會直接不能跑。
+    "cross_view": {"enabled": False, "clip": 8.0, "speed_px_per_s": 0.0, "pairs": {}},
     "max_z": 6.0,                           # 轉場分布的遠尾截斷(省算,非決策門)
     # ── v2(mode=weighted_sum)參數 ──────────────────────────────────
     "w_st": 0.7, "w_app": 0.3, "k_sigma": 2.0, "combined_threshold": 0.35,
@@ -147,9 +154,9 @@ class CameraTopology:
 
     def _build_evidence(self):
         """建 v3 需要的轉場模型與外觀 LR。mode=weighted_sum 時不會被用到。"""
-        from m5_reid.evidence import (AppearanceLR, DirectionLR, GroundPlaneLR, PositionLR,
-                                      SameCameraTransit, UnknownPathTransit, VelocityLR,
-                                      decision_threshold, make_transit)
+        from m5_reid.evidence import (AppearanceLR, CrossViewLR, DirectionLR, GroundPlaneLR,
+                                      PositionLR, SameCameraTransit, UnknownPathTransit,
+                                      VelocityLR, decision_threshold, make_transit)
         f = self.fusion
         kw = {}
         if f["transit_model"] == "loiter":
@@ -227,6 +234,38 @@ class CameraTopology:
             self.margin_nats = (self.llr_threshold if m is None else float(m))
         self.same_cam_exclusive = bool((f.get("same_camera_exclusive") or {})
                                        .get("enabled", False))
+
+        # F4:建 {目標鏡頭: {來源鏡頭: CrossViewLR}}。
+        # 查詢方向是「來源鏡頭的 bbox → 目標鏡頭的 bbox」,所以存進來時
+        # 兩個方向都要建 —— 反向用 H 的反矩陣。
+        self._cross_view = {}
+        cvc = f.get("cross_view") or {}
+        if cvc.get("enabled", False):
+            clip = float(cvc.get("clip", 8.0))
+            spd = float(cvc.get("speed_px_per_s", 0.0))
+            for key, m in (cvc.get("pairs") or {}).items():
+                a, b = key.split("|")
+                H = np.asarray(m["H"], dtype=float).reshape(3, 3)
+                sig, area = float(m["sigma_px"]), float(m["area_px2"])
+                self._cross_view.setdefault(b, {})[a] = CrossViewLR(
+                    H, sig, area, clip=clip, speed_px_per_s=spd)
+                # ⚠ 反向的 σ/area 沿用同一組。嚴格說反向的像素尺度不同,
+                #   但兩者都是同一組對應點量出來的,而且 area 只進 log ——
+                #   誤差落在 log 尺度上遠小於 d²/2σ² 那一項。
+                #   若之後發現方向性偏差,應該**分別估**而不是在這裡湊係數。
+                try:
+                    self._cross_view.setdefault(a, {})[b] = CrossViewLR(
+                        np.linalg.inv(H), sig, area, clip=clip, speed_px_per_s=spd)
+                except np.linalg.LinAlgError:
+                    pass                      # H 退化 → 只留單向,不讓整份拓撲掛掉
+
+    def cross_view(self, camera_to):
+        """回傳 {來源鏡頭: CrossViewLR},把來源的 bbox 投到 camera_to 比對。
+
+        沒有任何單應性時回 None（而不是空 dict）——
+        呼叫端據此退回舊的 overlap_llr 常數路徑。
+        """
+        return self._cross_view.get(camera_to) or None
 
     def set_transit(self, cam_from, cam_to, model):
         """用實測資料校準後,把某條連結的轉場模型換掉(見 scripts/calibrate_topology.py)。"""
