@@ -567,6 +567,114 @@ class CrossViewLR:
         return max(-self.clip, min(self.clip, v))
 
 
+class TransitPlaceLR:
+    """轉場的**出入口位置**證據 —— 「你是從通往這裡的那個門出去的嗎?」
+
+    ## 為什麼需要它(2026-09-05 的量化診斷)
+
+    轉場路徑上唯一的實質證據是轉場時間:
+
+        transit_llr = log p(Δt | 同一人) − log λ_bg
+
+    CHIRLA 拓撲實測 `λ_bg = 0.0482`(每 20.7 秒一位新人,誠實估自推導集),
+    所以要過門檻 1.609 需要 **pdf(Δt) > 0.24 /秒**。而實際擬合出來的分布:
+
+        camera_6→camera_7   峰值 pdf 0.70  → 只有 Δt∈[0.20, 1.30]s 過得了
+        camera_2→camera_6   峰值 pdf 0.198 → **任何 Δt 都過不了**(差一點點)
+        camera_7→camera_5   峰值 pdf 0.05  → **任何 Δt 都過不了**
+        unknown_path        最佳 −1.33     → **任何 Δt 都過不了**
+
+    **轉場路徑不是「證據弱」,是對多數鏡頭對而言數學上不可能綁定。**
+    實測後果:轉場路徑碎裂 54.42% —— 拒掉近半的**真**配對。
+    而外觀只能加 ±0.03 nats,補不上這個缺口。
+
+    ## 這條證據的資訊從哪來
+
+    人不是從房間的任意位置消失、再從任意位置出現的 —— 他們**走門**。
+    同一條連結 A→B 的真實轉場,離開 A 的腳點會聚在「通往 B 的那個門」,
+    進入 B 的腳點會聚在對應的入口。兩者都可從推導集的真值學出來。
+
+        LLR = [log N(退場點; μ_exit, Σ_exit) + log A_from]
+            + [log N(入場點; μ_enter, Σ_enter) + log A_to]
+
+    ⚠ **只有退場項能區分候選。** 入場項只取決於這條新 track 自己的位置,
+      對所有候選都一樣 → 它影響「綁不綁」但不影響「綁哪一個」。
+      這一點必須講清楚,不然會高估它的鑑別力。
+      真正在挑人的是退場項:**從通往這裡的門出去的那位,才是他**。
+
+    ⚠ Σ 要用**留出樣本**估,與 `CrossViewLR` 同一個陷阱 —— 用擬合殘差會低估,
+      使 LLR 過度自信而把真正的同一人判成「不是從那個門出去的」。
+
+    ⚠ 這是 `DirectionLR` 想做的事的連續版本。DirectionLR 用 n_zones=3 的離散
+      分區,粒度太粗且一直是關閉的;這裡直接用位置的二維分布。
+      **兩者不應同時開啟** —— 會把同一份資訊算兩次。
+    """
+
+    def __init__(self, mu_exit, cov_exit, area_from, mu_enter, cov_enter, area_to,
+                 clip=6.0, p_offdoor=0.10):
+        import numpy as _np
+        # ⚠ p_offdoor:「這次沒走常走的那個門」的比例。沒有它的話,純高斯在
+        #   600px 外會給 −90 nats(σ=45px 時 (600/45)²/2),只能靠 clip 硬夾 ——
+        #   那讓這條證據變成硬性閘門,一個繞路回來的**真**同一人會被直接否決。
+        #   混合一個均勻成分後,下界自然是 log(ε) ≈ −2.3,而不是負無窮。
+        #   這與 transit_model="loiter" 的 p_loiter 是同一個慣用法。
+        self.eps = min(max(float(p_offdoor), 1e-4), 0.5)
+        self.mu_e = _np.asarray(mu_exit, dtype=float).reshape(2)
+        self.mu_n = _np.asarray(mu_enter, dtype=float).reshape(2)
+        # 正則化:資料少時共變異數可能接近奇異,加一點對角項。
+        # 3px 是腳點量化誤差的下限,與 chirla_build_crossview 的 σ 下限同源。
+        self.ic_e, self.ld_e = self._inv(cov_exit)
+        self.ic_n, self.ld_n = self._inv(cov_enter)
+        self.log_area_from = math.log(max(float(area_from), 1.0))
+        self.log_area_to = math.log(max(float(area_to), 1.0))
+        self.clip = float(clip)
+
+    @staticmethod
+    def _inv(cov):
+        import numpy as _np
+        c = _np.asarray(cov, dtype=float).reshape(2, 2) + _np.eye(2) * 9.0
+        return _np.linalg.inv(c), float(_np.log(_np.linalg.det(c)))
+
+    @staticmethod
+    def foot(bbox):
+        if bbox is None:
+            return None
+        x1, _y1, x2, y2 = (float(v) for v in bbox[:4])
+        return ((x1 + x2) * 0.5, y2)
+
+    def _term(self, p, mu, ic, logdet, log_area):
+        """log[(1−ε)·N(p;μ,Σ) + ε/A] − log(1/A) = log[(1−ε)·A·N(p) + ε]
+
+        遠離門口時 N→0,整項 → log(ε):**有界**,不需要靠 clip 救。
+        """
+        import numpy as _np
+        d = _np.asarray(p, dtype=float) - mu
+        m = float(d @ ic @ d)
+        log_n = -0.5 * logdet - math.log(2 * math.pi) - 0.5 * m     # log N(p)
+        # log-sum-exp:log[(1−ε)·exp(log_n + log_area) + ε]
+        a = log_n + log_area + math.log(1.0 - self.eps)
+        b = math.log(self.eps)
+        hi = max(a, b)
+        return hi + math.log(math.exp(a - hi) + math.exp(b - hi))
+
+    def llr(self, exit_bbox, enter_bbox):
+        """exit_bbox 在 cam_from、enter_bbox 在 cam_to。缺資料回中性 0.0。
+
+        ⚠ 回 0.0 而不是負值 —— 「我們算不出來」與「證據說不是」是兩回事。
+        """
+        pe, pn = self.foot(exit_bbox), self.foot(enter_bbox)
+        v = 0.0
+        if pe is not None:
+            v += self._term(pe, self.mu_e, self.ic_e, self.ld_e, self.log_area_from)
+        if pn is not None:
+            v += self._term(pn, self.mu_n, self.ic_n, self.ld_n, self.log_area_to)
+        return max(-self.clip, min(self.clip, v))
+
+    def describe(self):
+        return (f"TransitPlaceLR(退場 μ=({self.mu_e[0]:.0f},{self.mu_e[1]:.0f}), "
+                f"入場 μ=({self.mu_n[0]:.0f},{self.mu_n[1]:.0f}), clip={self.clip})")
+
+
 class VelocityLR:
     """速度證據 —— 專門解「兩個人站在同一個位置」的情況。
 

@@ -118,6 +118,15 @@ class SpatioTemporalIdentityManager(IdentityManager):
                 # 方向證據:與 Δt 正交,所以能幫到逗留者(時間軸上救不了的那些)
                 score += self.topo.direction_llr(ex[0], camera_id,
                                                  ex[3] if len(ex) > 3 else None, zone)
+                # F5 出入口位置(2026-09-05):「你是從通往這裡的那個門出去的嗎?」
+                # ⚠ 轉場路徑上除了 Δt 幾乎沒有別的證據,而實測顯示 3 條連結有 2 條
+                #   在**任何 Δt** 都過不了門檻(pdf 峰值 0.198 < 需要的 0.24)。
+                #   碎裂 54.42% 就是這麼來的 —— 不是證據弱,是不可能綁定。
+                # ⚠ 只有**退場項**能區分候選(每位候選有自己的退場點);
+                #   入場項對所有候選相同,只影響綁不綁。見 TransitPlaceLR 說明。
+                tp = self.topo.transit_place(ex[0], camera_id)
+                if tp is not None:
+                    score += tp.llr(ex[2] if len(ex) > 2 else None, bbox)
             else:
                 ok, sp = self.topo.transition_gate(ex[0], ex[1], camera_id, t)
                 if not ok:

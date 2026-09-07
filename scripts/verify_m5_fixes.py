@@ -19,6 +19,7 @@
 用法:
     python scripts/verify_m5_fixes.py
 """
+import math
 import sys
 from pathlib import Path
 
@@ -243,6 +244,54 @@ mem.on_track_removed(1, camera_id="cam1", frame_id=2, t_sec=0.06, bbox=bb(*foot_
 chk(n_after_new == 1 and len(mem._bbox) == 0,
     "_bbox 在 track 移除後清乾淨(記憶體有界性)",
     f"新增後 {n_after_new} → 移除後 {len(mem._bbox)}")
+
+# ── 7. F5 TransitPlaceLR ──────────────────────────────────
+print("\n【7】F5 TransitPlaceLR(轉場的出入口位置)")
+
+from m5_reid.evidence import TransitPlaceLR                    # noqa: E402
+
+_MU_E, _MU_N = [1050.0, 600.0], [180.0, 560.0]
+_COV = [[45.0 ** 2, 0.0], [0.0, 30.0 ** 2]]
+_AREA = 1280 * 720 * 0.45
+tp = TransitPlaceLR(_MU_E, _COV, _AREA, _MU_N, _COV, _AREA, clip=6.0, p_offdoor=0.10)
+
+
+def _ex(px):
+    return tp._term(tp.foot(bb(*px)), tp.mu_e, tp.ic_e, tp.ld_e, tp.log_area_from)
+
+
+chk(_ex(_MU_E) > 3.0, "從門口離開 → 強正證據",
+    f"退場項 {_ex(_MU_E):+.2f} nats")
+lo = _ex([_MU_E[0] - 2000, _MU_E[1]])
+chk(abs(lo - math.log(0.10)) < 0.02,
+    "遠離門口時**有界於 log(ε)**,不靠 clip",
+    f"極遠處 {lo:+.2f} = log(0.10) —— 純高斯會是 -988,"
+    f"那會讓這條證據變成硬性閘門")
+chk(_ex(_MU_E) - _ex([_MU_E[0] - 400, _MU_E[1]]) > 1.609,
+    "對的候選 vs 錯的候選,差距超過門檻",
+    f"{_ex(_MU_E) - _ex([_MU_E[0] - 400, _MU_E[1]]):.2f} nats(外觀只有 0.062)")
+chk(tp.llr(None, None) == 0.0, "缺資料回中性 0.0 而不是負值")
+
+# 退場點不具鑑別力時,證據應該自動趕近 0
+flat = TransitPlaceLR(_MU_E, [[229.0 ** 2, 0.0], [0.0, 229.0 ** 2]], _AREA,
+                      _MU_N, _COV, _AREA, clip=6.0, p_offdoor=0.10)
+f_at = flat._term(flat.foot(bb(*_MU_E)), flat.mu_e, flat.ic_e, flat.ld_e,
+                  flat.log_area_from)
+chk(abs(f_at) < 1.0,
+    "退場點散得很開時,證據自動趨近 0",
+    f"σ=229px 時門口處只有 {f_at:+.2f} —— "
+    f"不具鑑別力就不給假的自信")
+
+# 同一份資訊不可算兩次
+try:
+    CameraTopology.from_config({
+        "links": [], "overlapping": [], "cameras": {},
+        "fusion": {"transit_place": {"enabled": True, "links": {}},
+                   "direction": {"enabled": True}}})
+    chk(False, "transit_place 與 direction 同開應該直接吵")
+except ValueError:
+    chk(True, "transit_place 與 direction 同開會直接吵",
+        "DirectionLR 是同一份資訊的離散粗糙版")
 
 print("\n" + "─" * 74)
 if FAIL:

@@ -98,6 +98,14 @@ _DEFAULT_FUSION = {
     # ⚠ 沒有某一對的 H 時,那一對**自動退回舊的常數路徑** —— 不是報錯也不是跳過。
     #   CHIRLA 有 21 對相機而真正共現夠多的只有一部分,硬要求全有會直接不能跑。
     "cross_view": {"enabled": False, "clip": 8.0, "speed_px_per_s": 0.0, "pairs": {}},
+    # F5 轉場的出入口位置(TransitPlaceLR)。**加在** transit_llr 之上,不是取代 ——
+    #   它與轉場時間正交(一個問「多久」,一個問「從哪個門」)。
+    #   links 由 scripts/chirla_build_crossview.py --transit-place 從推導集估:
+    #     {"cam_a>cam_b": {"mu_exit": [..], "cov_exit": [[..]], "area_from": ..,
+    #                      "mu_enter": [..], "cov_enter": [[..]], "area_to": ..}}
+    #   ⚠ 方向性的(a>b 與 b>a 不同),與 cross_view 的 "a|b" 記法刻意不同以免混淆。
+    # ⚠ 不得與 direction 同時開啟 —— DirectionLR 是同一份資訊的離散粗糙版。
+    "transit_place": {"enabled": False, "clip": 6.0, "links": {}},
     "max_z": 6.0,                           # 轉場分布的遠尾截斷(省算,非決策門)
     # ── v2(mode=weighted_sum)參數 ──────────────────────────────────
     "w_st": 0.7, "w_app": 0.3, "k_sigma": 2.0, "combined_threshold": 0.35,
@@ -155,8 +163,9 @@ class CameraTopology:
     def _build_evidence(self):
         """建 v3 需要的轉場模型與外觀 LR。mode=weighted_sum 時不會被用到。"""
         from m5_reid.evidence import (AppearanceLR, CrossViewLR, DirectionLR, GroundPlaneLR,
-                                      PositionLR, SameCameraTransit, UnknownPathTransit,
-                                      VelocityLR, decision_threshold, make_transit)
+                                      PositionLR, SameCameraTransit, TransitPlaceLR,
+                                      UnknownPathTransit, VelocityLR, decision_threshold,
+                                      make_transit)
         f = self.fusion
         kw = {}
         if f["transit_model"] == "loiter":
@@ -258,6 +267,27 @@ class CameraTopology:
                         np.linalg.inv(H), sig, area, clip=clip, speed_px_per_s=spd)
                 except np.linalg.LinAlgError:
                     pass                      # H 退化 → 只留單向,不讓整份拓撲掛掉
+
+        # F5:{(cam_from, cam_to): TransitPlaceLR}。方向性的,不建反向。
+        self._transit_place = {}
+        tpc = f.get("transit_place") or {}
+        if tpc.get("enabled", False):
+            clip = float(tpc.get("clip", 6.0))
+            for key, m in (tpc.get("links") or {}).items():
+                a, b = key.split(">")
+                self._transit_place[(a, b)] = TransitPlaceLR(
+                    m["mu_exit"], m["cov_exit"], m["area_from"],
+                    m["mu_enter"], m["cov_enter"], m["area_to"], clip=clip)
+            # ⚠ 兩者是同一份資訊(離開時往哪個方向 / 從哪個位置離開),
+            #   同時開會把它算兩次。寧可在建構時就吵,也不要靜默雙計。
+            if (f.get("direction") or {}).get("enabled", False):
+                raise ValueError(
+                    "transit_place 與 direction 不可同時開啟 —— "
+                    "DirectionLR 是同一份資訊的離散粗糙版,同時開會重複計算證據。")
+
+    def transit_place(self, cam_from, cam_to):
+        """回傳該連結的 TransitPlaceLR;沒有就 None(呼叫端加 0)。"""
+        return self._transit_place.get((cam_from, cam_to))
 
     def cross_view(self, camera_to):
         """回傳 {來源鏡頭: CrossViewLR},把來源的 bbox 投到 camera_to 比對。
