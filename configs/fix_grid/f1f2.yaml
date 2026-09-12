@@ -1,0 +1,158 @@
+camera_topology:
+  fusion:
+    mode: llr
+    background_arrival_hz: 0.0482
+    cost_false_merge_over_break: 5.0
+    transit_model: loiter
+    p_loiter: 0.1798
+    tau_loiter_s: 8.51
+    appearance_profile: dinov2
+    appearance_clip: null
+    overlap_llr: 5.0
+    overlap_window_s: 0.5
+    same_camera:
+      enabled: true
+      tau_break_s: 2.0
+      max_gap_s: 15.0
+    unknown_path:
+      enabled: true
+      median_multiplier: 2.0
+      log_sigma: 0.8
+      logprior: -2.0
+    direction:
+      enabled: false
+    cross_view:
+      enabled: false
+      clip: 8.0
+      speed_px_per_s: 0.0
+      pairs:
+        camera_2|camera_3:
+          H:
+          - - -0.19926863473544598
+            - -1.455817045013548
+            - 1172.9705777937572
+          - - -0.1906874961303918
+            - -0.8755460683989431
+            - 777.7937417508475
+          - - -3.15505383212322e-05
+            - -0.0012046042602407955
+            - 1.0
+          sigma_px: 16.91
+          area_px2: 266408.2
+        camera_1|camera_3:
+          H:
+          - - -72.99924202420723
+            - 218.2296178061049
+            - -1882.3254164865239
+          - - -68.20417643168693
+            - 190.62193050115846
+            - 412.32063400526556
+          - - -0.13903022146247462
+            - 0.3884856351273666
+            - 1.0
+          sigma_px: 8.36
+          area_px2: 166166.0
+        camera_2|camera_5:
+          H:
+          - - -2.10992617462131
+            - 0.05579793620489664
+            - 547.3004237970173
+          - - -2.4986463316246916
+            - 0.06462937965299567
+            - 648.6913446888957
+          - - -0.0038509288820563555
+            - 9.89589974134625e-05
+            - 1.0
+          sigma_px: 74.69
+          area_px2: 72989.8
+        camera_4|camera_5:
+          H:
+          - - 0.7939026517033828
+            - -2.483221929877305
+            - 453.75239858769004
+          - - 0.4293858868720084
+            - -2.39251480664925
+            - 775.885801142346
+          - - 0.0014751032777253698
+            - -0.004856248419117971
+            - 0.9999999999999999
+          sigma_px: 37.1
+          area_px2: 45867.5
+        camera_6|camera_7:
+          H:
+          - - -1.3944362892268667
+            - 0.6940924666721183
+            - 568.0429771483534
+          - - -0.6381971028433998
+            - 0.31789083442366073
+            - 259.8696269242628
+          - - -0.002454840625356913
+            - 0.001221974889647232
+            - 1.0
+          sigma_px: 8.71
+          area_px2: 8270.5
+        camera_1|camera_2:
+          H:
+          - - -0.488110529340802
+            - 0.06274853326856414
+            - 168.54417083489582
+          - - -0.9351826762579533
+            - -4.454117495893904
+            - 743.2213238276522
+          - - -0.0012606949094660683
+            - -0.006116159733446968
+            - 1.0
+          sigma_px: 7.99
+          area_px2: 11278.2
+    margin:
+      enabled: true
+      min_nats: null
+    same_camera_exclusive:
+      enabled: true
+    transit_place:
+      enabled: false
+  links:
+  - from: camera_2
+    to: camera_6
+    mean_s: 3.261
+    std_s: 1.845
+  - from: camera_6
+    to: camera_7
+    mean_s: 0.617
+    std_s: 0.481
+  - from: camera_7
+    to: camera_5
+    mean_s: 10.542
+    std_s: 4.278
+  overlapping:
+  - - camera_2
+    - camera_3
+  - - camera_2
+    - camera_4
+  - - camera_2
+    - camera_5
+  - - camera_3
+    - camera_4
+  - - camera_3
+    - camera_5
+  - - camera_4
+    - camera_5
+  - - camera_5
+    - camera_6
+  clock:
+    max_skew_s: 0.2
+  cameras:
+    camera_1:
+      clock_offset_s: 0.0
+    camera_2:
+      clock_offset_s: 0.0
+    camera_3:
+      clock_offset_s: 0.0
+    camera_4:
+      clock_offset_s: 0.0
+    camera_5:
+      clock_offset_s: 0.0
+    camera_6:
+      clock_offset_s: 0.0
+    camera_7:
+      clock_offset_s: 0.0

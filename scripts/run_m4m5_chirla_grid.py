@@ -37,7 +37,9 @@ DROP_ORDER = ["seq_026", "seq_025", "seq_024", "seq_020", "seq_007", "seq_006"]
 
 CAMERAS = [f"camera_{i}" for i in range(1, 8)]
 
-# 只有這三個欄位隨格子改變 —— 其餘一律共用,由 COMMON 提供
+# 只有這幾個欄位隨格子改變 —— 其餘一律共用,由 COMMON 提供。
+# 2026-09-12 新增 topology:M5 修復網格(F1/F2/F4)的開關在**拓撲 YAML 的 fusion
+# 區塊**,不是命令列參數,所以「格子」是靠換拓撲檔實現的。沒給就用 COMMON 的。
 CELLS = {
     "coco_none":  dict(weights=None, person_cls=1, embedder="none"),
     "coco_dino":  dict(weights=None, person_cls=1, embedder="dinov2"),
@@ -45,6 +47,27 @@ CELLS = {
                        person_cls=0, embedder="none"),
     "ft_dino":    dict(weights="model_result/nano/checkpoint_best_regular.pth",
                        person_cls=0, embedder="dinov2"),
+
+    # ── M5 修復網格(2026-09-12)。定義出自三份預先登記的 §3,已寫死。────────
+    # 偵測器與外觀一律固定為 2026-09-04 的主基線 coco_none(COCO / embedder none),
+    # 唯一變動的是拓撲檔裡的 F1/F2/F4 開關 —— 這樣新數字與 9/4 直接可比。
+    # ⚠ base 用的是**原始拓撲檔**不是派生檔,那才是 V1 要的回歸對照。
+    # ⚠ F5 不在網格裡:硬性驗收 V2(建立的連結數 > 0)未通過,16 條有向連結
+    #   一條都沒建立(推導集最多 14 次 < tp_min 15),跑了與 base 逐位相同。
+    "base":   dict(weights=None, person_cls=1, embedder="none",
+                   topology="configs/fix_grid/base.yaml"),
+    "f1":     dict(weights=None, person_cls=1, embedder="none",
+                   topology="configs/fix_grid/f1.yaml"),
+    "f2":     dict(weights=None, person_cls=1, embedder="none",
+                   topology="configs/fix_grid/f2.yaml"),
+    "f1f2":   dict(weights=None, person_cls=1, embedder="none",
+                   topology="configs/fix_grid/f1f2.yaml"),
+    "f4":     dict(weights=None, person_cls=1, embedder="none",
+                   topology="configs/fix_grid/f4.yaml"),
+    "f4f2":   dict(weights=None, person_cls=1, embedder="none",
+                   topology="configs/fix_grid/f4f2.yaml"),
+    "f4f1f2": dict(weights=None, person_cls=1, embedder="none",
+                   topology="configs/fix_grid/f4f1f2.yaml"),
 }
 
 COMMON = dict(topology="configs/camera_topology.chirla.yaml",
@@ -95,7 +118,7 @@ def main():
             cmd = [sys.executable, str(ROOT / "scripts" / "m5_track_video.py"),
                    "--videos", *videos_for(args.root, seq),
                    "--cameras", *CAMERAS,
-                   "--topology", COMMON["topology"],
+                   "--topology", cfg.get("topology") or COMMON["topology"],
                    "--variant", COMMON["variant"],
                    "--thr", str(COMMON["thr"]),
                    "--stride", str(COMMON["stride"]),
@@ -143,7 +166,10 @@ def main():
 
     # 自檢:四格的 run_meta 除了三個網格因素外必須逐字相同(§5 的核心要求)
     print("\n  自檢:各格參數是否只差在網格因素")
-    GRID_KEYS = {"weights", "person_cls", "embedder", "camera_video_map", "videos",
+    # ⚠ topology_path 必須算網格因素,否則修復網格的七格會互相誤報 FAIL
+    GRID_KEYS = {"weights", "person_cls", "embedder", "topology_path",
+                 "n_links", "n_overlapping_pairs", "n_homographies",
+                 "llr_threshold", "camera_video_map", "videos",
                  "n_det", "n_det_per_cam", "ms_per_loop", "wall_seconds", "n_loops",
                  "n_loops_full", "per_cam_loops", "coverage", "truncated",
                  "total_chefs", "candidate_histogram", "resident_final"}
