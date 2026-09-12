@@ -75,3 +75,5 @@ results/chirla_smoke/
 # ⚠ 預先登記 §8 第 6 條要的「原始配對結果」已存進 eval_m4m5_report.json 的
 #   per_run.track_match,換 IoU 門檻重算不需要這份。
 results/chirla_m4m5/**/tracks.csv
+# 2026-09-12 的 M5 修復網格同理(49 次執行)
+results/chirla_fixgrid/**/tracks.csv
