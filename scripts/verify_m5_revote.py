@@ -194,6 +194,78 @@ chk(len(m._votes) == 0 and len(m._vote_calls) == 0,
     "_votes 與 _vote_calls 都清了",
     "不清的話會隨累計人次單調成長,違反規格的記憶體有界性")
 
+# ── 7. P2 Hungarian 全域指派 ────────────────────
+print("\n【7】P2 Hungarian 全域指派")
+
+HU = {**RV, "assignment": "hungarian"}
+chk(topo(revote=RV).revote["assignment"] == "greedy", "assignment 預設 greedy")
+try:
+    topo(revote={**RV, "assignment": "xx"})
+    chk(False, "亂填 assignment 應該直接吵")
+except ValueError:
+    chk(True, "亂填 assignment 會直接吵", "不靜默退回預設值")
+
+
+# 情境先用 CrossViewLR 算過再設計，確保兩條路都可行：
+#   chefA@300、chefB@345；cam2 的 track20@300、track21@310（σ=20px）
+#     track20 對A +4.38 / 對B +1.85（都過門檻）→ 貪心選 A
+#     track21 對A +4.25 / 對B +2.85（都過門檻）→ 貪心也選 A  ← 撞車
+#   Hungarian：(20→A,21→B)=7.22 優於 (20→B,21→A)=6.10 → 分開
+#
+# ⚠ 這個情境的關鍵是 **B 對兩條都可行**。若 B 太遠而不可行，
+#   Hungarian 也救不了 —— 那種撞車是 F2（同鏡頭互斥）的職責，
+#   或者應該讓其中一條磎裂。不得把 P2 講成能解所有撞車。
+def build(assign):
+    m = SpatioTemporalIdentityManager(
+        topo(cross_view=CV, revote={**RV, "assignment": assign}), fps=30.0)
+    m.on_new_track(10, camera_id="cam1", frame_id=0, t_sec=0.0,
+                   embedding=emb(0), bbox=bb(300, 400))
+    m.on_new_track(11, camera_id="cam1", frame_id=0, t_sec=0.0,
+                   embedding=emb(1), bbox=bb(345, 400))
+    m.on_new_track(20, camera_id="cam2", frame_id=1, t_sec=0.03,
+                   embedding=emb(0, obs=1), bbox=bb(300, 400))
+    m.on_new_track(21, camera_id="cam2", frame_id=1, t_sec=0.03,
+                   embedding=emb(1, obs=1), bbox=bb(310, 400))
+    return m
+
+
+res = {}
+for assign in ("greedy", "hungarian"):
+    m = build(assign)
+    for k in range(10):
+        for tid, x in ((20, 300.0), (21, 310.0)):
+            m.on_track_update(tid, camera_id="cam2", frame_id=2 + k,
+                              t_sec=0.03 * (2 + k), bbox=bb(x, 400),
+                              embedding=emb(0 if tid == 20 else 1, obs=2 + k))
+        m.resolve_frame("cam2")
+    c20 = m.track_to_chef.get(("cam2", 20))
+    c21 = m.track_to_chef.get(("cam2", 21))
+    st_ = m.resident_stats()
+    res[assign] = (c20, c21, c20 == c21, st_)
+    print(f"       {assign:<10} track20->chef{c20}  track21->chef{c21}"
+          f"  {'X 撞在一起' if c20 == c21 else 'O 一對一'}"
+          f"  (resolved={st_['revote_resolved']})")
+
+chk(res["greedy"][2] and not res["hungarian"][2],
+    "greedy 撞車而 Hungarian 把它分開 —— 這才是 P2 的價值",
+    f"greedy 兩條都綁 chef{res['greedy'][0]}；"
+    f"hungarian 分成 chef{res['hungarian'][0]} / chef{res['hungarian'][1]}")
+chk(res["hungarian"][3]["revote_resolved"] > 0
+    and res["hungarian"][3]["revote_pending"] == 0,
+    "緩衝有被 resolve_frame 清空",
+    f"resolved={res['hungarian'][3]['revote_resolved']} "
+    f"pending={res['hungarian'][3]['revote_pending']}")
+
+m = SpatioTemporalIdentityManager(topo(cross_view=CV, revote=HU), fps=30.0)
+m.on_new_track(1, camera_id="cam1", frame_id=0, t_sec=0.0, embedding=emb(0), bbox=bb(300, 400))
+for k in range(5):
+    m.on_track_update(1, camera_id="cam1", frame_id=k + 1, t_sec=0.03 * (k + 1),
+                      bbox=bb(300, 400), embedding=emb(0, obs=1))
+st_ = m.resident_stats()
+chk(st_["revotes"] == 0 and st_["revote_pending"] > 0,
+    "忘了呼叫 resolve_frame 時，票卡在緩衝且診斷看得見",
+    f"revotes={st_['revotes']} pending={st_['revote_pending']} —— 不是靜默失效")
+
 print("\n" + "─" * 74)
 if FAIL:
     print(f"❌ {len(FAIL)} 項未通過:{FAIL}")

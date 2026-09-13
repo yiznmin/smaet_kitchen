@@ -124,8 +124,15 @@ _DEFAULT_FUSION = {
     # window:滑動窗保留最近幾票。min_votes:票數不足就不改判(短 track 保持原判)。
     # switch_margin:要改判,新的領先者必須比現任多這麼多票 —— 防止 5:4 這種
     #   幾乎平手就把身份改掉,那會製造新的 ID switch。
+    # assignment:同一台鏡頭、同一取樣輪的所有 track 怎麼分配候選。
+    #   "greedy"    每條 track 各自搶分數最高的 —— 兩條可能搶到同一位(物理上不可能)
+    #   "hungarian" P2:全域一對一最佳指派。專案內的 MTMCT PDF 與 AI City 冠軍法
+    #               都用這個。F2(同鏡頭互斥)是它的粗糙版:F2 只能說「不准選」,
+    #               Hungarian 會**重新安排整組配對**。
+    # ⚠ 它只作用在**投票路徑**上 —— on_new_track 是逐條事件進來的,同一幀同時
+    #   出現多條新 track 很罕見,在那裡做批次指派收益極小而複雜度高。
     "revote": {"enabled": False, "stride_loops": 8, "window": 15,
-               "min_votes": 3, "switch_margin": 2},
+               "min_votes": 3, "switch_margin": 2, "assignment": "greedy"},
     "max_z": 6.0,                           # 轉場分布的遠尾截斷(省算,非決策門)
     # ── v2(mode=weighted_sum)參數 ──────────────────────────────────
     "w_st": 0.7, "w_app": 0.3, "k_sigma": 2.0, "combined_threshold": 0.35,
@@ -266,10 +273,14 @@ class CameraTopology:
 
         # P1 累積投票。關閉時 revote 為 None,identity_st 據此完全跳過該路徑。
         rv = f.get("revote") or {}
+        asg = str(rv.get("assignment", "greedy")).lower()
+        if asg not in ("greedy", "hungarian"):
+            raise ValueError(f"revote.assignment 只能是 greedy 或 hungarian,收到 {asg!r}")
         self.revote = (dict(stride_loops=int(rv.get("stride_loops", 8)),
                             window=int(rv.get("window", 15)),
                             min_votes=int(rv.get("min_votes", 3)),
-                            switch_margin=int(rv.get("switch_margin", 2)))
+                            switch_margin=int(rv.get("switch_margin", 2)),
+                            assignment=asg)
                        if rv.get("enabled", False) else None)
 
         # F4:建 {目標鏡頭: {來源鏡頭: CrossViewLR}}。

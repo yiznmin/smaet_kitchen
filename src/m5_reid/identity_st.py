@@ -50,6 +50,10 @@ class SpatioTemporalIdentityManager(IdentityManager):
         self._n_revotes = 0              # 實際投出的票數
         self._n_revote_switch = 0        # 因投票而改判的次數
         self._n_revote_no_emb = 0        # 到了取樣點卻沒有 embedding → 沒投成
+        # P2 全域指派用的緩衝。camera -> [待指派的 track]。resolve_frame() 會清空。
+        # ⚠ runner 沒呼叫 resolve_frame 的話票投不出去 —— revote_pending 讓它看得見。
+        self._pending_vote = {}
+        self._n_resolved = 0
 
     @classmethod
     def from_config(cls, topo_cfg, embedder=None, fps=30.0):
@@ -87,7 +91,11 @@ class SpatioTemporalIdentityManager(IdentityManager):
                   "revotes": self._n_revotes,
                   "revote_switch": self._n_revote_switch,
                   "revote_no_emb": self._n_revote_no_emb,
-                  "_votes": len(self._votes)})
+                  "_votes": len(self._votes),
+                  # P2:pending 應該在每輪 resolve_frame 後歸零。持續 > 0 表示
+                  # runner 沒呼叫 resolve_frame,票根本沒投出去。
+                  "revote_pending": sum(len(v) for v in self._pending_vote.values()),
+                  "revote_resolved": self._n_resolved})
         return s
 
     def _t(self, frame_id, t_sec, camera_id=None):
@@ -360,16 +368,41 @@ class SpatioTemporalIdentityManager(IdentityManager):
         #   「他正在這台鏡頭上」而自我佐證,投票永遠投給現任。
         cands = self._score_candidates(camera_id, t, emb, bbox, zone, world_xy,
                                        world_v, exclude_key=gk)
-        thr = (self.topo.llr_threshold if self.f["mode"] == "llr"
-               else self.f["combined_threshold"])
-        best = max((c for c in cands if c[0] >= thr), default=None)
-        # 過不了門檻就投「維持現狀」—— 那是「沒有證據要改」而不是「證據說要改」
-        self._votes.setdefault(gk, deque(maxlen=rv["window"])).append(
-            best[1] if best is not None else cid)
+
+        if rv["assignment"] == "hungarian":
+            # P2:先緩衝,等這台鏡頭這一輪的 track 都進來了再一次解全域指派。
+            # 由 runner 呼叫 resolve_frame() 觸發;沒呼叫的話票不會投出去,
+            # 而 revote_pending 這個診斷會讓那件事看得見(不是靜默失效)。
+            self._pending_vote.setdefault(camera_id, []).append(
+                dict(gk=gk, cid=cid, cands=cands, frame_id=frame_id, t=t,
+                     emb=emb, bbox=bbox))
+            return cid
+
+        self._cast_vote(gk, cid, cands, frame_id, t, camera_id, emb, bbox)
+        votes = self._votes[gk]
+        return self._settle(gk, cid, frame_id, t, camera_id, emb, bbox)
+
+    def _cast_vote(self, gk, cid, cands, frame_id, t, camera_id, emb, bbox,
+                   forced=None):
+        """投一票。forced 不為 None 時用它(P2 的全域指派結果)。
+
+        ⚠ 過不了門檻就投「維持現狀」而不是「開新身份」—— 那是「沒有證據要改」
+          不是「證據說要改」。投成開新身份會讓每一輪都想拆掉現有綁定。
+        """
+        rv = self.topo.revote
+        if forced is None:
+            thr = (self.topo.llr_threshold if self.f["mode"] == "llr"
+                   else self.f["combined_threshold"])
+            best = max((c for c in cands if c[0] >= thr), default=None)
+            forced = best[1] if best is not None else cid
+        self._votes.setdefault(gk, deque(maxlen=rv["window"])).append(forced)
         self._n_revotes += 1
 
-        votes = self._votes[gk]
-        if len(votes) < rv["min_votes"]:
+    def _settle(self, gk, cid, frame_id, t, camera_id, emb, bbox):
+        """看票箱決定要不要改判。"""
+        rv = self.topo.revote
+        votes = self._votes.get(gk)
+        if votes is None or len(votes) < rv["min_votes"]:
             return cid                       # 票數不足 → 短 track 保持原判
         tally = Counter(votes)
         top, n_top = tally.most_common(1)[0]
@@ -380,6 +413,53 @@ class SpatioTemporalIdentityManager(IdentityManager):
             self._n_revote_switch += 1
             return top
         return cid
+
+    def resolve_frame(self, camera_id):
+        """P2:把這台鏡頭這一輪緩衝的 track 一次做**全域一對一指派**,再投票。
+
+        沒開 hungarian 時是 no-op,所以 runner 可以無條件呼叫。
+
+        ⚠ 為什麼要一對一:同一時刻一台鏡頭上的兩條 track **不可能是同一個人**。
+          貪心讓每條各自搶最高分,於是兩條可能搶到同一位;Hungarian 會重新
+          安排整組配對,總分最佳且滿足這個物理約束。
+          F2(同鏡頭互斥)是它的粗糙版 —— F2 只能說「不准選」,不會重排。
+        """
+        rv = getattr(self.topo, "revote", None)
+        pend = self._pending_vote.pop(camera_id, None)
+        if rv is None or not pend:
+            return 0
+        import numpy as np
+        from scipy.optimize import linear_sum_assignment
+
+        thr = (self.topo.llr_threshold if self.f["mode"] == "llr"
+               else self.f["combined_threshold"])
+        chefs = sorted({c[1] for it in pend for c in it["cands"] if c[0] >= thr})
+        if chefs:
+            idx = {ch: j for j, ch in enumerate(chefs)}
+            # ⚠ 不可行的配對給一個「比任何可行解都差」的大成本,而不是 inf ——
+            #   inf 會讓 linear_sum_assignment 在無完美匹配時直接丟例外。
+            BIG = 1e6
+            cost = np.full((len(pend), len(chefs)), BIG, dtype=float)
+            for i, it in enumerate(pend):
+                for sc, ch, _a in it["cands"]:
+                    if sc >= thr:
+                        cost[i, idx[ch]] = -float(sc)     # 最大化分數 = 最小化 −分數
+            rows, cols = linear_sum_assignment(cost)
+            picked = {int(r): chefs[int(c)] for r, c in zip(rows, cols)
+                      if cost[r, c] < BIG}                # 被指到不可行格 = 沒指派到
+        else:
+            picked = {}
+
+        for i, it in enumerate(pend):
+            # 沒被指派到任何 chef → 投「維持現狀」,與 greedy 的語意一致
+            self._cast_vote(it["gk"], it["cid"], it["cands"], it["frame_id"], it["t"],
+                            camera_id, it["emb"], it["bbox"],
+                            forced=picked.get(i, it["cid"]))
+        for it in pend:
+            self._settle(it["gk"], it["cid"], it["frame_id"], it["t"], camera_id,
+                         it["emb"], it["bbox"])
+        self._n_resolved += len(pend)
+        return len(pend)
 
     def _rebind(self, gk, old_cid, new_cid, frame_id, t, camera_id, emb, bbox):
         """把一條已綁定的 track 從 old_cid 搬到 new_cid。

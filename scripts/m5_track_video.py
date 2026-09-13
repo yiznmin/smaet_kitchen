@@ -338,6 +338,10 @@ def main():
                                        "" if tr.confidence is None else round(tr.confidence, 3),
                                        tr.hits, tr.start_frame,
                                        m5.track_to_chef.get((c, tr.track_id), "")])
+                # P2:這台鏡頭這一輪的 track 都進去了 → 做一次全域一對一指派。
+                # ⚠ 沒開 hungarian 時是 no-op,所以無條件呼叫是安全的;
+                #   但**不呼叫**的話票會卡在緩衝裡投不出去(revote_pending 會顯示)。
+                m5.resolve_frame(c)
 
             # ② 事件 → M5
             new_chef_this_loop = False
