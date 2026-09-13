@@ -6,6 +6,7 @@
 
 track_id 各鏡頭不全域唯一 → 內部一律用 (camera_id, track_id) 當 key。
 """
+from collections import Counter, deque
 import math
 
 from m5_reid.embedder import l2norm
@@ -42,6 +43,13 @@ class SpatioTemporalIdentityManager(IdentityManager):
         self.last_margin = None
         # F2 同鏡頭互斥的驗收量:開啟後這個數字必須是 0。
         self._n_same_cam_conflicts = 0
+        # P1 累積投票的狀態與診斷。全部是計數器或有界 deque(maxlen=window),
+        # 所以不影響「活躍清單記憶體不無限成長」那條規格驗收。
+        self._votes = {}                 # (cam, track) -> deque[chef_id]
+        self._vote_calls = {}            # (cam, track) -> 收到幾次 update
+        self._n_revotes = 0              # 實際投出的票數
+        self._n_revote_switch = 0        # 因投票而改判的次數
+        self._n_revote_no_emb = 0        # 到了取樣點卻沒有 embedding → 沒投成
 
     @classmethod
     def from_config(cls, topo_cfg, embedder=None, fps=30.0):
@@ -73,7 +81,13 @@ class SpatioTemporalIdentityManager(IdentityManager):
                   "_vel": len(self._vel),
                   # F1/F2 的診斷。都是計數器不是集合,所以不影響記憶體有界性驗收。
                   "margin_blocked": self._n_margin_blocked,
-                  "same_cam_conflicts": self._n_same_cam_conflicts})
+                  "same_cam_conflicts": self._n_same_cam_conflicts,
+                  # P1:_votes 的每個 deque 有 maxlen,_vote_calls 隨活躍 track 數
+                  # 成長並在 track 移除時清掉 —— 兩者都不違反記憶體有界性。
+                  "revotes": self._n_revotes,
+                  "revote_switch": self._n_revote_switch,
+                  "revote_no_emb": self._n_revote_no_emb,
+                  "_votes": len(self._votes)})
         return s
 
     def _t(self, frame_id, t_sec, camera_id=None):
@@ -86,16 +100,21 @@ class SpatioTemporalIdentityManager(IdentityManager):
         raw = float(t_sec) if t_sec is not None else frame_id / self.fps
         return self.topo.corrected(camera_id, raw) if camera_id is not None else raw
 
-    def on_new_track(self, track_id, *, camera_id=None, frame_id=0, t_sec=None,
-                     crop=None, embedding=None, bbox=None, zone=None, world_xy=None,
-                     world_v=None):
-        self.tick(frame_id)
-        t = self._t(frame_id, t_sec, camera_id)
-        emb = l2norm(embedding if embedding is not None else self.embedder.extract(crop))
+
+    def _score_candidates(self, camera_id, t, emb, bbox, zone, world_xy, world_v,
+                          exclude_key=None):
+        """算出所有通過物理可能性檢查的候選 [(score, chef_id, app_cos)]。
+
+        ⚠ **這段從 `on_new_track` 抽出來,一個字都沒改。** 抽出來的唯一理由是
+          讓 P1 的重新投票走**完全相同**的評分邏輯 —— 兩條路若分歧,
+          投票結果就不能和出生時的決策相比,整個累積投票失去意義。
+
+        exclude_key:(camera, track) —— 計算某位 chef「此刻被哪些鏡頭看著」時
+          要忽略的那一條 track。重新投票時必須把**被評分的這條 track 自己**
+          排除,否則它會把自己算成「該 chef 正在這台鏡頭上」而自我佐證。
+        """
         w_st, w_app = self.f["w_st"], self.f["w_app"]
         llr_mode = self.f["mode"] == "llr"
-        thr = self.topo.llr_threshold if llr_mode else self.f["combined_threshold"]
-
         cands = []          # [(score, chef_id, app_cos)] 所有通過物理可能性檢查的候選
 
         # (a) recently_disappeared:跨時轉場(不重疊鏡頭的主路徑)
@@ -146,6 +165,8 @@ class SpatioTemporalIdentityManager(IdentityManager):
         overlap_pool = {}          # 重疊鏡頭 -> 此刻在該鏡頭裡的 chef 數
         for chef in self.active.values():
             for c, _t in chef.track_ids:
+                if exclude_key is not None and (c, _t) == exclude_key:
+                    continue
                 if c != camera_id and self.topo.is_overlapping(c, camera_id):
                     overlap_pool[c] = overlap_pool.get(c, 0) + 1
 
@@ -154,10 +175,11 @@ class SpatioTemporalIdentityManager(IdentityManager):
             # 綁著另一條 track → 他不可能同時又是這條新 track。
             # ⚠ track_ids 在 on_track_removed(:283)會被剪除,所以它確實代表
             #   「目前還看得到的」,不是歷史累積 —— 這個檢查才安全。
+            own = [k for k in chef.track_ids if k != exclude_key]
             if (getattr(self.topo, "same_cam_exclusive", False)
-                    and any(c == camera_id for c, _t in chef.track_ids)):
+                    and any(c == camera_id for c, _t in own)):
                 continue
-            cams = {c for c, _t in chef.track_ids
+            cams = {c for c, _t in own
                     if c != camera_id and self.topo.is_overlapping(c, camera_id)}
             if not cams:
                 continue
@@ -215,8 +237,19 @@ class SpatioTemporalIdentityManager(IdentityManager):
                     k = max(min(overlap_pool.get(c, 1) for c in cams), 1)
                     score = self.f["overlap_llr"] - math.log(k) + self.topo.app_lr.llr(app)
             cands.append((score, cid, app))
+        return cands
 
-        # 候選數是本架構最關鍵的診斷量:若幾乎總是 1,外觀品質根本不影響結果。
+    def on_new_track(self, track_id, *, camera_id=None, frame_id=0, t_sec=None,
+                     crop=None, embedding=None, bbox=None, zone=None, world_xy=None,
+                     world_v=None):
+        self.tick(frame_id)
+        t = self._t(frame_id, t_sec, camera_id)
+        emb = l2norm(embedding if embedding is not None else self.embedder.extract(crop))
+        llr_mode = self.f["mode"] == "llr"
+        thr = self.topo.llr_threshold if llr_mode else self.f["combined_threshold"]
+
+        cands = self._score_candidates(camera_id, t, emb, bbox, zone, world_xy, world_v)
+
         self.last_candidates = len(cands)
         self._cand_hist[min(len(cands), 5)] += 1
 
@@ -277,7 +310,8 @@ class SpatioTemporalIdentityManager(IdentityManager):
         return MatchResult(track_id, cid, False, shown, frame_id)
 
     def on_track_update(self, track_id, *, camera_id=None, frame_id=0, t_sec=None,
-                        world_xy=None, bbox=None, world_v=None):
+                        world_xy=None, bbox=None, world_v=None,
+                        embedding=None, crop=None, zone=None):
         """M4 每幀(或每隔幾幀)回報「這條 track 還在,現在在這裡」。
 
         ⚠ 這個介面是**地面校正的前提**,不是可有可無的優化。
@@ -304,7 +338,78 @@ class SpatioTemporalIdentityManager(IdentityManager):
         # 所以不在這裡記的話,拿到的會是「上次綁定時」的位置。
         if bbox is not None:
             self._bbox[(cid, camera_id)] = (tuple(bbox[:4]), t)
+
+        # ── P1 累積投票(2026-09-13,預設關閉)────────────────────────────
+        rv = getattr(self.topo, "revote", None)
+        if rv is None:
+            return cid
+        gk = self._key(track_id, camera_id)
+        self._vote_calls[gk] = self._vote_calls.get(gk, 0) + 1
+        if self._vote_calls[gk] % rv["stride_loops"] != 0:
+            return cid                       # 還沒到取樣點
+
+        # ⚠ 沒有 embedding 就**不投票**,而不是用預設值硬投 —— 外觀是候選排序的
+        #   唯一依據之一,拿不到它等於投一張沒有根據的票。
+        #   計數器讓「整輪都沒投到票」這件事看得見,不會靜默失效。
+        if embedding is None and crop is None:
+            self._n_revote_no_emb += 1
+            return cid
+        emb = l2norm(embedding if embedding is not None else self.embedder.extract(crop))
+
+        # ⚠ exclude_key 把**這條 track 自己**排除:不排除的話,這位 chef 會因為
+        #   「他正在這台鏡頭上」而自我佐證,投票永遠投給現任。
+        cands = self._score_candidates(camera_id, t, emb, bbox, zone, world_xy,
+                                       world_v, exclude_key=gk)
+        thr = (self.topo.llr_threshold if self.f["mode"] == "llr"
+               else self.f["combined_threshold"])
+        best = max((c for c in cands if c[0] >= thr), default=None)
+        # 過不了門檻就投「維持現狀」—— 那是「沒有證據要改」而不是「證據說要改」
+        self._votes.setdefault(gk, deque(maxlen=rv["window"])).append(
+            best[1] if best is not None else cid)
+        self._n_revotes += 1
+
+        votes = self._votes[gk]
+        if len(votes) < rv["min_votes"]:
+            return cid                       # 票數不足 → 短 track 保持原判
+        tally = Counter(votes)
+        top, n_top = tally.most_common(1)[0]
+        # ⚠ 要改判,領先者必須比現任多 switch_margin 票。5:4 這種幾乎平手就改判
+        #   會製造新的 ID switch —— 那是把一種錯誤換成另一種。
+        if top != cid and n_top - tally.get(cid, 0) >= rv["switch_margin"]:
+            self._rebind(gk, cid, top, frame_id, t, camera_id, emb, bbox)
+            self._n_revote_switch += 1
+            return top
         return cid
+
+    def _rebind(self, gk, old_cid, new_cid, frame_id, t, camera_id, emb, bbox):
+        """把一條已綁定的 track 從 old_cid 搬到 new_cid。
+
+        ⚠ 兩邊的 track_ids 都要維護 —— 只改 track_to_chef 會讓舊 chef 永遠以為
+          自己還在這台鏡頭上,污染後續所有重疊路徑的候選判斷。
+        """
+        old = self.active.get(old_cid)
+        if old is not None and gk in old.track_ids:
+            old.track_ids.remove(gk)
+            if not old.track_ids:            # 舊 chef 沒有任何鏡頭看得到了
+                old.state = "gone"
+                self.active.pop(old_cid, None)
+                self.gone[old_cid] = old
+                self._exit[old_cid] = (camera_id, t, bbox, None)
+        self._bbox.pop((old_cid, camera_id), None)
+
+        new = self.gone.pop(new_cid, None) or self.active.get(new_cid)
+        if new is None:                      # 候選在這期間被 TTL 清掉了
+            return
+        new.state = "active"
+        self.active[new_cid] = new
+        if gk not in new.track_ids:
+            new.track_ids.append(gk)
+        new.last_seen = frame_id
+        new.embedding = l2norm(self.ema * new.embedding + (1 - self.ema) * emb)
+        self.track_to_chef[gk] = new_cid
+        self._cam[new_cid] = (camera_id, t)
+        if bbox is not None:
+            self._bbox[(new_cid, camera_id)] = (tuple(bbox[:4]), t)
 
     def candidate_histogram(self):
         """回傳 {候選數: 次數}。'5' 代表 5 個以上。
@@ -377,6 +482,10 @@ class SpatioTemporalIdentityManager(IdentityManager):
         # 留著的話會拿「離場前的位置」去跟現在比,製造假的位置證據
         # (與 :316 那個出口時間戳的坑同一種形狀)。
         self._bbox.pop((cid, camera_id), None)
+        # P1:track 沒了,它的投票紀錄也該清 —— 不清的話 _votes 與 _vote_calls
+        # 會隨累計人次單調成長,違反「活躍清單記憶體不無限成長」那條規格。
+        self._votes.pop(gk, None)
+        self._vote_calls.pop(gk, None)
         chef.last_seen = exit_frame
         if not chef.track_ids:                                  # 無任何鏡頭還看得到 → 離場
             chef.state = "gone"

@@ -106,6 +106,26 @@ _DEFAULT_FUSION = {
     #   ⚠ 方向性的(a>b 與 b>a 不同),與 cross_view 的 "a|b" 記法刻意不同以免混淆。
     # ⚠ 不得與 direction 同時開啟 —— DirectionLR 是同一份資訊的離散粗糙版。
     "transit_place": {"enabled": False, "clip": 6.0, "links": {}},
+    # P1 累積投票(2026-09-13)。**預設關閉**,關閉時與 9/12 的 base 逐位相同。
+    #
+    # 病灶:M5 在 track 出現那一瞬間決定一次身份,之後不再重評。實測(EPFL 九台)
+    #   一條 track 中位活 31 個迴圈、p90 活 4663 個 —— **丟掉了 96% 的機會**。
+    #   單幀證據很弱(外觀 0.062 nats、位置 1.12 nats),但弱證據 + 多次投票
+    #   會比弱證據 + 單次決策可靠得多。冠軍法(AI City Track1,IDF1 95.36)
+    #   用的正是滑動窗多數決。
+    #
+    # ⚠ stride_loops 必須**從資料量**不得用猜的 —— 連續幀高度相關,直接累加
+    #   26 幀 × 1.12 nats = 29 nats 是假的自信(與 VelocityLR 第七輪 OU 去相關、
+    #   GroundPlaneLR 第六輪 √2 同一類的坑)。所以:
+    #     (a) 用**多數決**而不是 LLR 相加
+    #     (b) 取樣間隔取自 scripts/measure_evidence_decorrelation.py
+    #   EPFL 九台實測建議 ≥ 8 個迴圈(1.33 秒),該值使位移中位超過多數 σ。
+    #
+    # window:滑動窗保留最近幾票。min_votes:票數不足就不改判(短 track 保持原判)。
+    # switch_margin:要改判,新的領先者必須比現任多這麼多票 —— 防止 5:4 這種
+    #   幾乎平手就把身份改掉,那會製造新的 ID switch。
+    "revote": {"enabled": False, "stride_loops": 8, "window": 15,
+               "min_votes": 3, "switch_margin": 2},
     "max_z": 6.0,                           # 轉場分布的遠尾截斷(省算,非決策門)
     # ── v2(mode=weighted_sum)參數 ──────────────────────────────────
     "w_st": 0.7, "w_app": 0.3, "k_sigma": 2.0, "combined_threshold": 0.35,
@@ -243,6 +263,14 @@ class CameraTopology:
             self.margin_nats = (self.llr_threshold if m is None else float(m))
         self.same_cam_exclusive = bool((f.get("same_camera_exclusive") or {})
                                        .get("enabled", False))
+
+        # P1 累積投票。關閉時 revote 為 None,identity_st 據此完全跳過該路徑。
+        rv = f.get("revote") or {}
+        self.revote = (dict(stride_loops=int(rv.get("stride_loops", 8)),
+                            window=int(rv.get("window", 15)),
+                            min_votes=int(rv.get("min_votes", 3)),
+                            switch_margin=int(rv.get("switch_margin", 2)))
+                       if rv.get("enabled", False) else None)
 
         # F4:建 {目標鏡頭: {來源鏡頭: CrossViewLR}}。
         # 查詢方向是「來源鏡頭的 bbox → 目標鏡頭的 bbox」,所以存進來時

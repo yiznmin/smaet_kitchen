@@ -320,8 +320,14 @@ def main():
             #    在模擬裡踩出來的,真實管線同樣需要,而且順序必須在事件之前。
             for c, (_frame, out) in per_cam.items():
                 for tr in out.tracks:
+                    # P1 累積投票要 embedding 才投得了票。⚠ 但抽 crop + 跑
+                    # embedder 是每幀每條 track 的成本,關閉投票時**不可以付** ——
+                    # 所以只有 revote 開啟時才抽。關閉時這一行與 9/12 完全相同。
+                    cr = (crop_of(_frame, tr.bbox)
+                          if getattr(topo, "revote", None) is not None
+                          and tr.bbox is not None else None)
                     m5.on_track_update(tr.track_id, camera_id=c, frame_id=n_frames,
-                                       t_sec=t_sec, bbox=tr.bbox,
+                                       t_sec=t_sec, bbox=tr.bbox, crop=cr,
                                        world_xy=topo.world_xy(c, tr.bbox))
                     # 逐幀軌跡:M4 在真實影片上的量化目前完全空白,這是唯一的資料來源。
                     # conf 為空 = 這一幀沒配對上、用 Kalman 預測框 → 「空轉」的證據。
