@@ -77,3 +77,7 @@ results/chirla_smoke/
 results/chirla_m4m5/**/tracks.csv
 # 2026-09-12 的 M5 修復網格同理(49 次執行)
 results/chirla_fixgrid/**/tracks.csv
+# 2026-09-13 的 P1 累積投票網格同理(35 次執行)
+results/chirla_p1grid/**/tracks.csv
+# 網格的執行 log —— 內容已彙整進 handoff/紀錄/,重跑可再生
+logs/

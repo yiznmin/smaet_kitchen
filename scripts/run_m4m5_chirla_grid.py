@@ -68,6 +68,25 @@ CELLS = {
                    topology="configs/fix_grid/f4f2.yaml"),
     "f4f1f2": dict(weights=None, person_cls=1, embedder="none",
                    topology="configs/fix_grid/f4f1f2.yaml"),
+
+    # ── P1 累積投票網格(2026-09-13)。定義出自 docs/M5_修復P1_預先登記_20260913.md §3。
+    # 一樣只動拓撲檔(revote 在 fusion 底下),偵測器與外觀維持 coco_none。
+    # ⚠ p2 不單獨成格:沒有 P1 就沒有投票路徑可讓 Hungarian 作用,
+    #   這個依賴在 config 上也是明示的(assignment 是 revote 的子欄位)。
+    "p1":     dict(weights=None, person_cls=1, embedder="none",
+                   topology="configs/fix_grid/p1.yaml"),
+    "p1f4":   dict(weights=None, person_cls=1, embedder="none",
+                   topology="configs/fix_grid/p1f4.yaml"),
+    "p1p2f4": dict(weights=None, person_cls=1, embedder="none",
+                   topology="configs/fix_grid/p1p2f4.yaml"),
+
+    # ⚠ 探索格,**不在預先登記 §3 的網格內**,只能當探索性結果報告不得當主結論。
+    #   理由:`--embedder none` 回傳的是 64 維全零向量(m5_track_video.py 的
+    #   build_embedder),cosine 對每個候選都是 0 —— 這個網格裡外觀證據其實是「零」,
+    #   不是 §5 預測 2 講的 0.062 nats。少了這一格就分不開
+    #   「投票沒用」與「根本沒有證據可投」。
+    "p1dino": dict(weights=None, person_cls=1, embedder="dinov2",
+                   topology="configs/fix_grid/p1.yaml"),
 }
 
 COMMON = dict(topology="configs/camera_topology.chirla.yaml",
