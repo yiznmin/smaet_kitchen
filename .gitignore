@@ -81,3 +81,5 @@ results/chirla_fixgrid/**/tracks.csv
 results/chirla_p1grid/**/tracks.csv
 # 網格的執行 log —— 內容已彙整進 handoff/紀錄/,重跑可再生
 logs/
+# 2026-09-13 四層歸因診斷:只是 base 那一格加診斷欄位重跑,tracks.csv 逐位等同 chirla_p1grid/base
+results/chirla_diag/**/tracks.csv

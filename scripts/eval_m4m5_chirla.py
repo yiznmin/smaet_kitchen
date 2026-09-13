@@ -200,7 +200,7 @@ def match_tracks(gt, tracks):
 
 
 # ── §4 M5 指標 ───────────────────────────────────────────────────────
-def build_records(events, track_gt, overlapping):
+def build_records(events, track_gt, overlapping, seq):
     """把 chef_events 轉成 metrics.summarize 需要的 records。
 
     §4.2:**分母不含初始化那一次** —— 所以每個 GT 身份的第一次綁定決策
@@ -208,6 +208,13 @@ def build_records(events, track_gt, overlapping):
 
     另外分出「這次決策走的是重疊路徑還是轉場路徑」(預測 2 要用):
     看該 chef 上一次出現的相機與這次的相機是否在 overlapping 裡。
+
+    ⚠ **id 一定要加序列命名空間**(2026-09-13 發現的 bug)。CHIRLA 每個序列的
+      `gt_id` 都從 1 開始,`chef_id` 也是(每個序列是獨立 process,`_next` 從 1 起算)。
+      main() 把七個序列的 records 直接累加,於是 seq_004 的 1 號與 seq_020 的 1 號
+      被當成同一個人 —— 症狀是 `n_gt` 報 17(實際 59)、`fragmentation` 報 51.94
+      (實際 17.22)、IDF1 被低估 25%(0.1214 vs 0.1512)。
+      誤併率只差 0.6pp,因為撞號的兩邊本來就分屬不同序列、幾乎不互相綁定。
     """
     recs, ghost_bind, seen_gt = [], 0, set()
     last_cam = {}
@@ -217,9 +224,10 @@ def build_records(events, track_gt, overlapping):
         if gid is None:                       # 綁到「無 GT」的 track = 誤偵綁定
             ghost_bind += 1
             continue
+        gid = f"{seq}:{gid}"
         is_tr = gid in seen_gt
         seen_gt.add(gid)
-        rec = (gid, e["chef_id"], bool(e.get("matched")), is_tr)
+        rec = (gid, f"{seq}:{e['chef_id']}", bool(e.get("matched")), is_tr)
         recs.append(rec)
         if is_tr:
             # ⚠ 用「這個**真實身份**上次出現在哪台相機」,不是「這個 chef_id 上次
@@ -277,7 +285,7 @@ def main():
             continue
 
         track_gt, tstats, gtm, gtt = match_tracks(gt, tracks)
-        recs, ghost, path = build_records(events, track_gt, topo.overlapping)
+        recs, ghost, path = build_records(events, track_gt, topo.overlapping, seq)
         all_recs += recs
         tot_ghost += ghost
         for k in all_path:

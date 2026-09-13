@@ -37,6 +37,7 @@ class SpatioTemporalIdentityManager(IdentityManager):
         # 這是本架構最關鍵的觀測量 —— 若幾乎總是 1,外觀品質對結果沒有影響。
         self._cand_hist = [0] * 6
         self.last_candidates = 0
+        self.last_cands = []             # 四層歸因用的候選快照,見 on_new_track
         # F1 margin test 的診斷。_n_margin_blocked 是「本來會綁、被 margin 擋下改開新
         # 身份」的次數 —— 它就是這個修法把多少誤併換成了碎裂,必須看得見。
         self._n_margin_blocked = 0
@@ -260,6 +261,11 @@ class SpatioTemporalIdentityManager(IdentityManager):
 
         self.last_candidates = len(cands)
         self._cand_hist[min(len(cands), 5)] += 1
+        # 2026-09-13 的四層歸因診斷:把整份候選清單留給 runner 寫出去。
+        # 沒有它就分不開「正確答案不在候選集裡」(候選集層)與「在裡面但沒排第一」
+        # (評分層)—— 而前六個修法全部是在後者上打轉。
+        # ⚠ 只是一個快照參考,不影響任何決策;下一次決策就被覆寫。
+        self.last_cands = sorted(cands, reverse=True)
 
         best_score, best_id, _ = max(cands, default=(float("-inf"), None, None))
 

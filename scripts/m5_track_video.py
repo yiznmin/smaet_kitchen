@@ -105,6 +105,52 @@ def crop_of(frame_bgr, bbox):
     return frame_bgr[y1:y2, x1:x2]
 
 
+# ── 四層歸因診斷(2026-09-13,--track-gt 開啟時才作用)────────────────
+# 前六個修法全部失效,原因是我們從來沒量過「一次綁定決策到底敗在哪一層」。
+# 這裡把它拆成四種互斥的失敗,四者的處方完全不同:
+#
+#   L1 偵測   這條 track 根本不是人(誤偵)        → 靜止/非人過濾
+#   L2 候選集 正確答案不在候選集裡                → TTL / 拓撲 / 狀態機
+#   L3 評分   在候選集裡但沒排第一                → 補證據(外觀模型)
+#   L4 門檻   排第一但分數沒過門檻 → 開新身份     → 門檻校準
+#
+# ⚠ 「正確答案」定義成**該真值身份上一次綁到的 chef_id**,刻意與
+#   metrics.binding_outcomes 判定「正確」的條件一致(綁回自己上次那個 id),
+#   否則分解出來的數字對不上誤併率與碎裂率。
+# ⚠ 一個真值身份第一次出現時沒有「上一次」,標成 L0_first,不計入分母。
+def diagnose(track_gt, last_chef_of_gt, key, cands, result, thr):
+    gt = track_gt.get(key)
+    if gt is None:
+        return dict(gt_id=None, layer="L1_ghost")
+
+    ranked = [(s, cid) for s, cid, _a in (cands or [])]
+    want = last_chef_of_gt.get(gt)
+    last_chef_of_gt[gt] = result.chef_id                 # 給下一次決策用
+
+    d = dict(gt_id=gt, n_cands=len(ranked),
+             top1_chef_id=ranked[0][1] if ranked else None,
+             top1_score=round(ranked[0][0], 4) if ranked else None,
+             margin_1_2=round(ranked[0][0] - ranked[1][0], 4) if len(ranked) >= 2 else None,
+             want_chef_id=want)
+    if want is None:
+        return {**d, "layer": "L0_first", "gt_in_candidates": None, "gt_rank": None}
+
+    rank = next((i + 1 for i, (_s, cid) in enumerate(ranked) if cid == want), None)
+    d.update(gt_in_candidates=rank is not None, gt_rank=rank,
+             gt_score=round(ranked[rank - 1][0], 4) if rank else None)
+    if rank is None:
+        d["layer"] = "L2_not_in_candidates"
+    elif rank > 1:
+        d["layer"] = "L3_not_top1"
+        d["gap_to_top1"] = round(ranked[0][0] - ranked[rank - 1][0], 4)
+    elif not result.matched:
+        d["layer"] = "L4_below_threshold"
+        d["gap_to_thr"] = round(ranked[0][0] - thr, 4)
+    else:
+        d["layer"] = "OK"
+    return d
+
+
 # ── 視覺化 ────────────────────────────────────────────────────────────
 # M4 的 m4_track_video.py 會存標註幀,但 M5 原本只吐 JSONL —— 而 M5 才是
 # 要給業主與教授看的東西。這裡補上:同一位 chef_id 在**所有鏡頭裡同一個顏色**,
@@ -198,13 +244,29 @@ def main():
     ap.add_argument("--save-frames-every", type=int, default=0,
                     help="每 N 迴圈存一張;0 = 只在開新 chef_id 時存。⚠ 全長 stride=5 "
                          "是 4680 張拼接 PNG,不設這個會塞爆磁碟")
+    # ⚠ **只影響 chef_events.jsonl 多寫幾個欄位,不影響任何決策。**
+    #   給了它跑出來的 tracks.csv 與 track_events.csv 必須與沒給時逐位相同。
+    ap.add_argument("--track-gt", default=None,
+                    help="四層歸因診斷用的真值對照表(make_track_gt.py 產出的 JSON,"
+                         "鍵是 \"<camera>|<track_id>\")。不給就完全不做診斷")
     args = ap.parse_args()
+
+    # 真值只進診斷,不進決策 —— 這條界線一旦破了,整套評估就沒有意義。
+    track_gt = None
+    if args.track_gt:
+        raw = json.loads(Path(args.track_gt).read_text(encoding="utf-8"))
+        track_gt = {(k.split("|")[0], int(k.split("|")[1])): v for k, v in raw.items()}
+        print(f"四層歸因診斷:載入 {len(track_gt):,} 條 track 的真值對照")
+    last_chef_of_gt = {}
 
     cams = args.cameras or [Path(v).stem for v in args.videos]
     if len(cams) != len(args.videos):
         raise SystemExit("--cameras 數量必須與 --videos 相同")
 
     topo = CameraTopology.from_yaml(args.topology)
+    # 診斷用:判定 L4「排第一但沒過門檻」要跟 on_new_track 用同一個門檻值
+    thr = (topo.llr_threshold if topo.fusion["mode"] == "llr"
+           else topo.fusion["combined_threshold"])
     unknown = [c for c in cams if c not in topo.all_cameras()]
     if unknown:
         print(f"⚠ 這些 camera_id 不在拓撲裡:{unknown}")
@@ -362,6 +424,9 @@ def main():
                                    matched=bool(r.matched), score=r.similarity,
                                    n_candidates=m5.last_candidates,
                                    bbox=[round(float(v), 1) for v in (ev.bbox or [])])
+                        if track_gt is not None:
+                            row.update(diagnose(track_gt, last_chef_of_gt,
+                                                (c, ev.track_id), m5.last_cands, r, thr))
                         rows.append(row)
                         new_chef_this_loop |= not r.matched
                         fout.write(json.dumps(row, ensure_ascii=False) + "\n")
