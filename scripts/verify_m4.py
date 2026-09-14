@@ -180,9 +180,43 @@ def s4_reacquired_and_m5_contract():
     return ok
 
 
+def s5_unconfirmed_not_removed():
+    """S5:從未啟動的偵測不得發 removed 事件(2026-09-14 的 bug)。
+
+    supervision 對只出現一幀、沒被確認的 track 給 external id = NO_ID(-1),
+    而 removed_tracks 逐幀覆寫 → -1 反覆進出集合 → 舊版每次都發 removed -1。
+    CHIRLA 實測 7,779 次 removed 裡 4,192 次是這種。
+    """
+    print("S5 只出現一幀的誤偵 → 不發 removed(-1)")
+    tr = new_tracker()
+    no_id = tr._bt.external_id_counter.NO_ID
+    raw_no_id_removed = 0
+    removed_no_id = new_ct = 0
+    kinds_a = []
+    for f in range(16):
+        boxes = [[100 + f, 100, 150 + f, 250]]            # A:穩定存在
+        if f in (4, 8, 12):
+            boxes.append([600, 100, 650, 250])            # 遠處只出現一幀的誤偵
+        out = tr.update(mk(boxes), frame_id=f)
+        # ⚠ 先確認情境真的觸發了 supervision 的 NO_ID 移除,否則下面的斷言是空轉
+        raw_no_id_removed += sum(1 for t in tr._bt.removed_tracks
+                                 if t.external_track_id == no_id)
+        for e in out.events:
+            if e.kind == "removed" and e.track_id == no_id:
+                removed_no_id += 1
+            if e.kind == "new_track":
+                new_ct += 1
+            kinds_a.append(e.kind)
+    ok = check("情境確實產生未啟動的移除(否則此測試無效)", raw_no_id_removed > 0,
+               f"supervision 內部 NO_ID 移除 {raw_no_id_removed} 次")
+    ok &= check("不發 removed(-1)", removed_no_id == 0, f"got {removed_no_id}")
+    ok &= check("誤偵從未成為 track → 只有 A 一個 new_track", new_ct == 1, f"got {new_ct}")
+    return ok
+
+
 def main():
     results = [s1_single_moving(), s2_two_crossing(), s3_occlusion(),
-               s4_reacquired_and_m5_contract()]
+               s4_reacquired_and_m5_contract(), s5_unconfirmed_not_removed()]
     print()
     if all(results):
         print("[ALL PASS] 全部通過")

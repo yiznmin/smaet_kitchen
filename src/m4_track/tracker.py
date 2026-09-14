@@ -133,8 +133,19 @@ class KitchenTracker(BaseTracker):
 
         strack_by_id = {t.external_track_id: t for t in self._bt.tracked_tracks}
         active_ids = {t.external_track_id for t in self._bt.tracked_tracks if t.is_activated}
-        lost_ids = {t.external_track_id for t in self._bt.lost_tracks}
-        removed_ids = {t.external_track_id for t in self._bt.removed_tracks}
+        # ⚠ 從未啟動的 track(只出現一幀、沒被確認)在 supervision 裡的 external id
+        #   一律是 NO_ID(= -1)。而 `removed_tracks` 是**逐幀覆寫**的(core.py 的
+        #   `self.removed_tracks = removed_stracks`),於是 -1 會反覆進出集合,
+        #   下面的差集每次都把它當成「新被移除」發一個 removed 事件。
+        #   2026-09-14 實測:CHIRLA 七序列 7,779 次 removed 裡 **4,192 次是 -1**(54%),
+        #   EPFL 九台也有 129 次。那些不是「救不回的遺失」,是從沒成為 track 的偵測。
+        #   M5 本來就查不到 (cam, -1) 所以決策不受影響,但層 0 的統計被灌水。
+        #   用 tracker 實例上的 NO_ID property 而不寫死 -1。
+        no_id = self._bt.external_id_counter.NO_ID
+        lost_ids = {t.external_track_id for t in self._bt.lost_tracks
+                    if t.external_track_id != no_id}
+        removed_ids = {t.external_track_id for t in self._bt.removed_tracks
+                       if t.external_track_id != no_id}
 
         t_sec = float(timestamp) if timestamp is not None else frame_id / float(self.frame_rate)
 
