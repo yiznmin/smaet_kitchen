@@ -157,8 +157,16 @@ def selfcheck(gt, tracks, events, meta, seq):
 
 
 # ── §1 GT 配對 ────────────────────────────────────────────────────────
-def match_tracks(gt, tracks):
-    """逐相機逐幀 IoU>=0.5 匈牙利配對。回傳 (track 的 GT 身份, 每條 track 的配對統計)。"""
+def match_tracks(gt, tracks, return_votes=False):
+    """逐相機逐幀 IoU>=0.5 匈牙利配對。回傳 (track 的 GT 身份, 每條 track 的配對統計)。
+
+    return_votes=True 時多回傳 `votes`({(cam,tid): Counter(gt_id → 配對幀數)}),
+    給 `eval_m4_chirla.py` 算「一條 track 混了幾個真人」用。預設關閉,既有呼叫端不變。
+
+    ⚠ `gt_total` 只累計**有 track 的幀**:某台鏡頭某幀有人卻沒有任何 track,
+      那些 GT 不進分母,由此算出的召回會高估。`eval_m4_chirla.py` 另外以
+      全部取樣幀為分母重算並並列兩者。此處為了不改變既有數字而保留原行為。
+    """
     from scipy.optimize import linear_sum_assignment
 
     per_frame = defaultdict(list)
@@ -196,6 +204,8 @@ def match_tracks(gt, tracks):
         track_gt[k] = gid
         stats[k] = dict(n_frames=n, n_matched=hit, match_rate=round(rate, 4),
                         gt_id=gid, is_ghost=gid is None)
+    if return_votes:
+        return track_gt, stats, gt_matched, gt_total, votes
     return track_gt, stats, gt_matched, gt_total
 
 

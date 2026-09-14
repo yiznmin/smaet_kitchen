@@ -83,3 +83,8 @@ results/chirla_p1grid/**/tracks.csv
 logs/
 # 2026-09-13 四層歸因診斷:只是 base 那一格加診斷欄位重跑,tracks.csv 逐位等同 chirla_p1grid/base
 results/chirla_diag/**/tracks.csv
+# 2026-09-14 偵測快取(scripts/cache_detections.py)。CHIRLA 評估集 483,229 幀的衍生資料,
+# 可重新產生;EPFL 的快取另屬 CC-BY-NC 衍生物,本就不得進公開 repo。
+results/det_cache/
+# eval_m4_chirla.py --dump-dir 的逐位比對用輸出(拋棄式)
+results/m4_dump_*/

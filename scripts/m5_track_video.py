@@ -40,6 +40,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from common.video_io import iter_frames, video_meta            # noqa: E402
 from m3.classes import NAMES                                  # noqa: E402
 from m4_track import KitchenTracker                           # noqa: E402
+from m4_track.det_cache import DetCache, weights_id            # noqa: E402
 from m5_reid.identity_st import SpatioTemporalIdentityManager  # noqa: E402
 from m5_reid.spatiotemporal import CameraTopology             # noqa: E402
 
@@ -249,6 +250,11 @@ def main():
     ap.add_argument("--track-gt", default=None,
                     help="四層歸因診斷用的真值對照表(make_track_gt.py 產出的 JSON,"
                          "鍵是 \"<camera>|<track_id>\")。不給就完全不做診斷")
+    # 層 0 實驗用(2026-09-14)。給了就**不載入 RF-DETR**,改讀
+    # scripts/cache_detections.py 產出的 <dir>/<camera>.npz,再事後套 --thr 過濾。
+    # ⚠ 快取的模型/權重/person_cls 與本次不符時直接報錯,不會安靜地用錯的偵測。
+    ap.add_argument("--det-cache", default=None,
+                    help="偵測快取目錄(內含 <camera>.npz)。不給就照常即時偵測")
     args = ap.parse_args()
 
     # 真值只進診斷,不進決策 —— 這條界線一旦破了,整套評估就沒有意義。
@@ -288,9 +294,17 @@ def main():
 
     person_cls = (args.person_cls if args.person_cls is not None
                   else (PERSON_CLS_FINETUNED if args.weights else PERSON_CLS_COCO))
-    print(f"載入 M3({args.variant}{'/微調' if args.weights else '/COCO 預訓'}),"
-          f"人的 class_id = {person_cls}…")
-    model = load_model(args.variant, args.weights)
+    caches, model = None, None
+    if args.det_cache:
+        exp = dict(variant=args.variant, weights_id=weights_id(args.weights),
+                   person_cls=person_cls)
+        caches = {c: DetCache(Path(args.det_cache) / f"{c}.npz", expect=exp) for c in cams}
+        print(f"讀偵測快取 {args.det_cache}(不載入 RF-DETR),"
+              f"人的 class_id = {person_cls},事後門檻 {args.thr}")
+    else:
+        print(f"載入 M3({args.variant}{'/微調' if args.weights else '/COCO 預訓'}),"
+              f"人的 class_id = {person_cls}…")
+        model = load_model(args.variant, args.weights)
     emb = build_embedder(args.embedder)
 
     trackers = {c: KitchenTracker.from_config(tcfg, camera_id=c) for c in cams}
@@ -360,7 +374,8 @@ def main():
             t_loop = time.time()
             per_cam = {}
             for c, (fid, t_cam, frame) in frames.items():
-                det = detect_person(model, frame, args.thr, person_cls)
+                det = (caches[c].get(fid, args.thr) if caches is not None
+                       else detect_person(model, frame, args.thr, person_cls))
                 n_det += len(det)
                 n_det_cam[c] += len(det)
                 out = trackers[c].update(det, n_frames, timestamp=t_cam)
@@ -520,6 +535,11 @@ def main():
         "ground_plane_effective": topo.ground_lr is not None,
         "velocity_effective": topo.vel_lr is not None,
         "weights": args.weights, "person_cls": person_cls, "embedder": args.embedder,
+        # ⚠ 2026-09-14 前沒記 thr —— 而它決定了 ByteTrack 第二輪低分關聯有沒有資料可用
+        #   (supervision 只收 0.1 < score < 0.25,thr=0.3 時那一輪永遠是空的)。
+        "thr": args.thr,
+        "det_cache": args.det_cache,
+        "det_cache_meta": ({c: caches[c].meta for c in cams} if caches is not None else None),
         "stride": args.stride, "max_frames": args.max_frames,
         "ttl_loops": args.ttl, "ttl_seconds": args.ttl * args.stride / args.fps,
         "lost_track_buffer_loops": tcfg.get("lost_track_buffer"),
