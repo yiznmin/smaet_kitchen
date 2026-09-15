@@ -1,0 +1,231 @@
+{
+ "args": {
+  "root": "D:/新增資料夾/CHIRLA/CHIRLA_data/CHIRLA",
+  "tracks_dir": "results/m4_5cam/cbiou_dump",
+  "seqs": [
+   "seq_004",
+   "seq_006",
+   "seq_007",
+   "seq_020",
+   "seq_024",
+   "seq_025",
+   "seq_026"
+  ],
+  "births_json": "results/m4_5cam/birth_geometry_cbiou.json",
+  "out": "results/m4_5cam/birth_time_cbiou.json"
+ },
+ "rules": {
+  "WAITS": [
+   0.5,
+   1.0,
+   1.5,
+   2.0,
+   3.0,
+   5.0
+  ],
+  "GEO_IOU": 0.3,
+  "TARGET_D": 0.7,
+  "TARGET_N": 0.05
+ },
+ "labels": {
+  "D 重複": 375,
+  "N 新人": 1445,
+  "G 不碰人": 159,
+  "U 其他": 91
+ },
+ "total_matched_frames": 125408,
+ "table": [
+  {
+   "mode": "時間",
+   "wait_s": 0.5,
+   "hits": {
+    "D 重複": 54,
+    "N 新人": 151,
+    "G 不碰人": 29,
+    "U 其他": 10
+   },
+   "drop_d": 0.144,
+   "drop_n": 0.10449826989619378,
+   "drop_n_real_posthoc": 0.09582689335394126,
+   "lost_matched_frames": 317,
+   "lost_share": 0.0025277494258739474,
+   "ok": false
+  },
+  {
+   "mode": "時間",
+   "wait_s": 1.0,
+   "hits": {
+    "D 重複": 83,
+    "N 新人": 296,
+    "G 不碰人": 54,
+    "U 其他": 21
+   },
+   "drop_d": 0.22133333333333333,
+   "drop_n": 0.20484429065743945,
+   "drop_n_real_posthoc": 0.20324574961360123,
+   "lost_matched_frames": 946,
+   "lost_share": 0.007543378412860424,
+   "ok": false
+  },
+  {
+   "mode": "時間",
+   "wait_s": 1.5,
+   "hits": {
+    "D 重複": 113,
+    "N 新人": 375,
+    "G 不碰人": 63,
+    "U 其他": 31
+   },
+   "drop_d": 0.30133333333333334,
+   "drop_n": 0.25951557093425603,
+   "drop_n_real_posthoc": 0.25579598145285937,
+   "lost_matched_frames": 1506,
+   "lost_share": 0.01200880326613932,
+   "ok": false
+  },
+  {
+   "mode": "時間",
+   "wait_s": 2.0,
+   "hits": {
+    "D 重複": 127,
+    "N 新人": 440,
+    "G 不碰人": 75,
+    "U 其他": 34
+   },
+   "drop_d": 0.33866666666666667,
+   "drop_n": 0.3044982698961938,
+   "drop_n_real_posthoc": 0.30139103554868624,
+   "lost_matched_frames": 2176,
+   "lost_share": 0.01735136514416943,
+   "ok": false
+  },
+  {
+   "mode": "時間",
+   "wait_s": 3.0,
+   "hits": {
+    "D 重複": 153,
+    "N 新人": 567,
+    "G 不碰人": 79,
+    "U 其他": 43
+   },
+   "drop_d": 0.408,
+   "drop_n": 0.3923875432525952,
+   "drop_n_real_posthoc": 0.3948995363214838,
+   "lost_matched_frames": 3947,
+   "lost_share": 0.03147327124266394,
+   "ok": false
+  },
+  {
+   "mode": "時間",
+   "wait_s": 5.0,
+   "hits": {
+    "D 重複": 185,
+    "N 新人": 775,
+    "G 不碰人": 95,
+    "U 其他": 50
+   },
+   "drop_d": 0.49333333333333335,
+   "drop_n": 0.5363321799307958,
+   "drop_n_real_posthoc": 0.5440494590417311,
+   "lost_matched_frames": 8545,
+   "lost_share": 0.0681375988772646,
+   "ok": false
+  },
+  {
+   "mode": "時間+幾何",
+   "wait_s": 0.5,
+   "hits": {
+    "D 重複": 31,
+    "N 新人": 21,
+    "G 不碰人": 3,
+    "U 其他": 0
+   },
+   "drop_d": 0.08266666666666667,
+   "drop_n": 0.01453287197231834,
+   "drop_n_real_posthoc": 0.0030911901081916537,
+   "lost_matched_frames": 35,
+   "lost_share": 0.0002790890533299311,
+   "ok": false
+  },
+  {
+   "mode": "時間+幾何",
+   "wait_s": 1.0,
+   "hits": {
+    "D 重複": 48,
+    "N 新人": 28,
+    "G 不碰人": 3,
+    "U 其他": 0
+   },
+   "drop_d": 0.128,
+   "drop_n": 0.019377162629757784,
+   "drop_n_real_posthoc": 0.005409582689335394,
+   "lost_matched_frames": 58,
+   "lost_share": 0.00046249043123245727,
+   "ok": false
+  },
+  {
+   "mode": "時間+幾何",
+   "wait_s": 1.5,
+   "hits": {
+    "D 重複": 65,
+    "N 新人": 37,
+    "G 不碰人": 3,
+    "U 其他": 1
+   },
+   "drop_d": 0.17333333333333334,
+   "drop_n": 0.02560553633217993,
+   "drop_n_real_posthoc": 0.010046367851622875,
+   "lost_matched_frames": 107,
+   "lost_share": 0.0008532151058943608,
+   "ok": false
+  },
+  {
+   "mode": "時間+幾何",
+   "wait_s": 2.0,
+   "hits": {
+    "D 重複": 77,
+    "N 新人": 47,
+    "G 不碰人": 3,
+    "U 其他": 2
+   },
+   "drop_d": 0.20533333333333334,
+   "drop_n": 0.032525951557093424,
+   "drop_n_real_posthoc": 0.015455950540958269,
+   "lost_matched_frames": 199,
+   "lost_share": 0.0015868206175044654,
+   "ok": false
+  },
+  {
+   "mode": "時間+幾何",
+   "wait_s": 3.0,
+   "hits": {
+    "D 重複": 100,
+    "N 新人": 57,
+    "G 不碰人": 3,
+    "U 其他": 3
+   },
+   "drop_d": 0.26666666666666666,
+   "drop_n": 0.03944636678200692,
+   "drop_n_real_posthoc": 0.02009273570324575,
+   "lost_matched_frames": 301,
+   "lost_share": 0.0024001658586374074,
+   "ok": false
+  },
+  {
+   "mode": "時間+幾何",
+   "wait_s": 5.0,
+   "hits": {
+    "D 重複": 123,
+    "N 新人": 71,
+    "G 不碰人": 5,
+    "U 其他": 3
+   },
+   "drop_d": 0.328,
+   "drop_n": 0.04913494809688582,
+   "drop_n_real_posthoc": 0.027820710973724884,
+   "lost_matched_frames": 548,
+   "lost_share": 0.0043697371778514925,
+   "ok": false
+  }
+ ]
+}

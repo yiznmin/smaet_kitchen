@@ -1,0 +1,101 @@
+{
+ "args": {
+  "root": "D:/新增資料夾/CHIRLA/CHIRLA_data/CHIRLA",
+  "tracks_dir": "results/m4_5cam/cbiou_dump",
+  "seqs": [
+   "seq_004",
+   "seq_006",
+   "seq_007",
+   "seq_020",
+   "seq_024",
+   "seq_025",
+   "seq_026"
+  ],
+  "births_json": "results/m4_5cam/birth_geometry_cbiou.json",
+  "out": "results/m4_5cam/suppress_sim_cbiou.json"
+ },
+ "labels": {
+  "D 重複": 375,
+  "N 新人": 1445,
+  "G 不碰人": 159,
+  "U 其他": 91
+ },
+ "total_matched_frames": 125408,
+ "table": [
+  {
+   "T": 0.3,
+   "blocked": {
+    "D 重複": 264,
+    "N 新人": 167,
+    "G 不碰人": 9,
+    "U 其他": 13
+   },
+   "never": {
+    "D 重複": 84,
+    "N 新人": 32,
+    "G 不碰人": 4,
+    "U 其他": 1
+   },
+   "delayed": {
+    "D 重複": 180,
+    "N 新人": 135,
+    "G 不碰人": 5,
+    "U 其他": 12
+   },
+   "d_never_rate": 0.224,
+   "lost_matched_frames": 2417,
+   "lost_share": 0.019273092625669813,
+   "m5_fewer_decisions": 121
+  },
+  {
+   "T": 0.4,
+   "blocked": {
+    "D 重複": 218,
+    "N 新人": 120,
+    "G 不碰人": 6,
+    "U 其他": 11
+   },
+   "never": {
+    "D 重複": 55,
+    "N 新人": 21,
+    "G 不碰人": 1,
+    "U 其他": 0
+   },
+   "delayed": {
+    "D 重複": 163,
+    "N 新人": 99,
+    "G 不碰人": 5,
+    "U 其他": 11
+   },
+   "d_never_rate": 0.14666666666666667,
+   "lost_matched_frames": 1443,
+   "lost_share": 0.011506442970145445,
+   "m5_fewer_decisions": 77
+  },
+  {
+   "T": 0.5,
+   "blocked": {
+    "D 重複": 161,
+    "N 新人": 85,
+    "G 不碰人": 3,
+    "U 其他": 4
+   },
+   "never": {
+    "D 重複": 31,
+    "N 新人": 7,
+    "G 不碰人": 0,
+    "U 其他": 0
+   },
+   "delayed": {
+    "D 重複": 130,
+    "N 新人": 78,
+    "G 不碰人": 3,
+    "U 其他": 4
+   },
+   "d_never_rate": 0.08266666666666667,
+   "lost_matched_frames": 500,
+   "lost_share": 0.003986986476141873,
+   "m5_fewer_decisions": 38
+  }
+ ]
+}
