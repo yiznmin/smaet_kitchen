@@ -1,13 +1,16 @@
-"""M4 多目標追蹤:KitchenTracker(ByteTrack 包裝)。
+"""M4 多目標追蹤:KitchenTracker(可切換 backend 的包裝)。
 
 把 M3 每幀無 ID 的偵測(supervision Detections)串成有 track_id 的軌跡,
 維持跨幀一致、撐短暫遮擋,並輸出 new_track / reacquired / lost_track / removed 事件。
 
-- backend 目前用 supervision 的 ByteTrack(MIT,純運動 Kalman+IoU+匈牙利;不含 Re-ID)。
-- ⚠ sv.ByteTrack 在 supervision 0.30 會移除;本 wrapper 是唯一觸點,將來換 `trackers`
-  套件只需改 _build_backend 與 update 內少數幾行。requirements 釘 supervision<0.30。
-- 事件/狀態從 ByteTrack 內部 tracked_tracks/lost_tracks/removed_tracks 推導
-  (update_with_detections 只回傳有配對上的偵測,不含事件)。
+backend(全部是純運動 Kalman+IoU+匈牙利,不含 Re-ID):
+- `bytetrack`(預設):supervision 的 ByteTrack(MIT)。⚠ supervision 0.30 移除;requirements 釘 <0.30。
+- `rf_botsort` / `rf_cbiou` / `rf_ocsort`:Roboflow `trackers` 套件(Apache 2.0,乾淨重寫)。
+  2026-09-15 層 0 第二輪為了換掉「跟丟期間的配對方法」而加,見
+  docs/M4_層0_關聯方法_預先登記_20260915.md。
+
+兩個套件的 update 都只回傳本幀配到的偵測、不含事件,所以事件一律從 backend 內部的
+track 狀態推導(supervision:tracked_tracks/lost_tracks/removed_tracks;trackers:tracks)。
 """
 from collections import deque
 from dataclasses import dataclass, field
@@ -29,7 +32,7 @@ class Track:
     status: TrackStatus
     frame_id: int                  # 本狀態對應的影格編號
     start_frame: int               # 軌跡首次建立的影格
-    hits: int                      # 已配對到的幀數(tracklet_len)
+    hits: int                      # 已配對到的幀數(bytetrack:tracklet_len;rf_*:active 次數)
     history: list = field(default_factory=list)   # 近期 bbox 歷史
 
 
@@ -73,13 +76,55 @@ class BaseTracker:
 _BYTETRACK_KEYS = ("track_activation_threshold", "lost_track_buffer",
                    "minimum_matching_threshold", "frame_rate", "minimum_consecutive_frames")
 
+RF_BACKENDS = ("rf_botsort", "rf_cbiou", "rf_ocsort")
+
+
+def rf_kwargs(backend, common, params=None):
+    """把共用鍵(supervision ByteTrack 的語意)對映成 trackers 的建構參數。
+
+    目標是**同一份設定在兩個套件裡代表同一套配對規則**,讓網格裡每一格只差一件事:
+      bytetrack  → rf_botsort   只差卡爾曼狀態表示(supervision XYAH / trackers XCYCWH 尺度相關雜訊)
+      rf_botsort → rf_cbiou     只差框放大(buffer_ratio;設 0 與 rf_botsort 逐位相同,verify_m4 S6 驗)
+
+    supervision 0.28 的規則(2026-09-15 讀 byte_tracker/core.py 確認):
+      高分:score > track_activation_threshold;低分:0.1 < score < 同一門檻
+      第一輪:IoU × 分數 > 1 − minimum_matching_threshold,對象 tracked + lost
+      第二輪:純 IoU > 0.5,只對 tracked
+      未確認 track:IoU × 分數 > 0.3,沒配到就刪
+      開新 track:score ≥ track_activation_threshold + 0.1,第二次配到才啟動(tracker 的第一幀例外)
+    ⚠ 邊界比較(> 與 ≥)兩邊不同,不追求逐位相同 —— 所以網格需要 rf_botsort 當橋樑格。
+
+    OC-SORT 沒有「開新 track 門檻」與「未確認 track」的概念(低於 high_conf_det_threshold
+    的偵測整批丟掉、其餘全部可開新 track),只對映高分門檻,其餘用套件預設。
+    `params`(configs/tracker.yaml 的 backend_params.<backend>)最後覆蓋。
+    """
+    act = float(common["track_activation_threshold"])
+    kw = dict(lost_track_buffer=int(common["lost_track_buffer"]),
+              frame_rate=float(common["frame_rate"]),
+              high_conf_det_threshold=act)
+    if backend in ("rf_botsort", "rf_cbiou"):
+        kw.update(track_activation_threshold=act + 0.1,
+                  minimum_iou_threshold_first_assoc=1.0 - float(common["minimum_matching_threshold"]),
+                  minimum_iou_threshold_second_assoc=0.5,
+                  minimum_iou_threshold_unconfirmed_assoc=0.3,
+                  # supervision「第二次配到才啟動」= trackers 的 2 次成功更新;
+                  # supervision 自己的 minimum_consecutive_frames 是啟動之後再延遲發 id
+                  minimum_consecutive_frames=int(common["minimum_consecutive_frames"]) + 1,
+                  instant_first_frame_activation=True)
+        if backend == "rf_botsort":
+            kw["enable_cmc"] = False       # 固定鏡頭,且評估不解碼影片、沒有 frame 可給
+    elif backend != "rf_ocsort":
+        raise ValueError(f"不是 trackers 的 backend:{backend}")
+    kw.update(params or {})
+    return kw
+
 
 class KitchenTracker(BaseTracker):
     def __init__(self, backend="bytetrack",
                  track_activation_threshold=0.25, lost_track_buffer=30,
                  minimum_matching_threshold=0.8, frame_rate=30,
                  minimum_consecutive_frames=1, history_len=30, class_names=None,
-                 camera_id=None):
+                 camera_id=None, backend_params=None):
         self.backend = backend
         self.history_len = history_len
         self.class_names = class_names or {}
@@ -90,6 +135,7 @@ class KitchenTracker(BaseTracker):
                                minimum_matching_threshold=minimum_matching_threshold,
                                frame_rate=frame_rate,
                                minimum_consecutive_frames=minimum_consecutive_frames)
+        self.backend_params = dict(backend_params or {})
         self._build_backend()
         self._reset_state()
 
@@ -97,15 +143,25 @@ class KitchenTracker(BaseTracker):
     def from_config(cls, cfg, class_names=None, camera_id=None):
         """cfg = yaml 的 tracker 區段 dict。"""
         kw = {k: cfg[k] for k in _BYTETRACK_KEYS if k in cfg}
-        return cls(backend=cfg.get("backend", "bytetrack"),
+        backend = cfg.get("backend", "bytetrack")
+        return cls(backend=backend,
                    history_len=cfg.get("history_len", 30),
-                   class_names=class_names, camera_id=camera_id, **kw)
+                   class_names=class_names, camera_id=camera_id,
+                   backend_params=(cfg.get("backend_params") or {}).get(backend), **kw)
 
     def _build_backend(self):
-        if self.backend != "bytetrack":
-            raise NotImplementedError(f"backend '{self.backend}' 尚未實作(目前只有 bytetrack)")
-        import supervision as sv
-        self._bt = sv.ByteTrack(**self._bt_kwargs)
+        self._bt = self._rf = None
+        if self.backend == "bytetrack":
+            import supervision as sv
+            self._bt = sv.ByteTrack(**self._bt_kwargs)
+            return
+        if self.backend not in RF_BACKENDS:
+            raise NotImplementedError(f"backend '{self.backend}' 尚未實作"
+                                      f"(可用:bytetrack、{'、'.join(RF_BACKENDS)})")
+        from trackers import BoTSORTTracker, CBIoUTracker, OCSORTTracker
+        cls = dict(rf_botsort=BoTSORTTracker, rf_cbiou=CBIoUTracker,
+                   rf_ocsort=OCSORTTracker)[self.backend]
+        self._rf = cls(**rf_kwargs(self.backend, self._bt_kwargs, self.backend_params))
 
     def _reset_state(self):
         self._seen_ids = set()          # 曾經 active 過的 id(判 new_track)
@@ -113,15 +169,22 @@ class KitchenTracker(BaseTracker):
         self._prev_removed = set()      # 已發過 removed 的 id(removed_tracks 會累積)
         self._history = {}              # id -> deque(bbox)
         self._last_class = {}           # id -> 最近已知 class_id
+        self._prev_alive = set()        # rf_*:上幀還在 tracks 裡、已發 id 的 track
+        self._hits = {}                 # rf_*:id -> active 次數
+        self._start = {}                # rf_*:id -> new_track 的影格
 
     def reset(self):
-        self._bt.reset()
+        (self._bt if self._bt is not None else self._rf).reset()
         self._reset_state()
 
     def update(self, detections, frame_id, timestamp=None) -> TrackerOutput:
         # ByteTrack 需要 confidence;空幀也要呼叫,好讓 lost/removed 計時前進
         if len(detections) and getattr(detections, "confidence", None) is None:
             raise ValueError("detections.confidence 不可為 None(ByteTrack 需要分數)")
+
+        t_sec = float(timestamp) if timestamp is not None else frame_id / float(self.frame_rate)
+        if self._rf is not None:
+            return self._update_rf(detections, frame_id, t_sec)
 
         matched = self._bt.update_with_detections(detections)
         matched_map = {}
@@ -146,8 +209,6 @@ class KitchenTracker(BaseTracker):
                     if t.external_track_id != no_id}
         removed_ids = {t.external_track_id for t in self._bt.removed_tracks
                        if t.external_track_id != no_id}
-
-        t_sec = float(timestamp) if timestamp is not None else frame_id / float(self.frame_rate)
 
         def _last_box(tid):
             """最後已知位置。track 進 lost 後就不在 tracked_tracks 裡,只能從歷史取。
@@ -210,5 +271,98 @@ class KitchenTracker(BaseTracker):
                 status=TrackStatus.ACTIVE, frame_id=frame_id,
                 start_frame=st.start_frame if st is not None else frame_id,
                 hits=st.tracklet_len if st is not None else 0,
+                history=list(hist)))
+        return TrackerOutput(frame_id=frame_id, tracks=tracks, events=events)
+
+    def _update_rf(self, detections, frame_id, t_sec) -> TrackerOutput:
+        """trackers 套件的 backend。
+
+        ⚠ 不傳 timestamp(固定步長模式)。傳了的話 trackers 會改以「秒」算緩衝,
+          而且卡爾曼一步走 經過秒數 × frame_rate 幀 —— supervision 是每次 update 走一步,
+          跟 bytetrack 比就多了一個變因。緩衝秒數由呼叫端換算成更新次數
+          (`eval_m4_chirla.tracker_config`),與 bytetrack 相同。
+
+        狀態只看**已發 id** 的 track(tracker_id == -1 的未確認 track 不發任何事件,
+        對應 bytetrack 路徑略過 NO_ID):
+          active   本次 update 有配到偵測(time_since_update == 0)
+          lost     還在 tracks 裡、本次沒配到
+          removed  上次還在、這次被 trackers 刪掉(緩衝到期)
+
+        ⚠ 與 bytetrack 路徑的差異:沒有「active 但本幀未配對 → 輸出預測框」這一支。
+          supervision 其實也一樣 —— 沒配到的 tracked track 當幀就轉 lost(core.py),
+          那一支只在 update_with_detections 事後以 IoU 0.5 找不回框時才會走到。
+        """
+        out = self._rf.update(detections)
+        rows, unassigned = {}, []
+        for i in range(len(out)):
+            row = (tuple(float(v) for v in out.xyxy[i]),
+                   int(out.class_id[i]) if out.class_id is not None else None,
+                   float(out.confidence[i]) if out.confidence is not None else None)
+            tid = int(out.tracker_id[i])
+            if tid == -1:
+                unassigned.append(row)
+            else:
+                rows[tid] = row
+
+        alive = {t.tracker_id: t for t in self._rf.tracks if t.tracker_id != -1}
+        active_ids = {tid for tid, t in alive.items() if t.time_since_update == 0}
+        lost_ids = set(alive) - active_ids
+        removed_ids = self._prev_alive - set(alive)
+
+        def matched(tid):
+            """本幀配到的 (框, 類別, 分數)。
+
+            ⚠ OC-SORT 的 track 跟丟後連續配對次數歸零,要再連續配到
+              minimum_consecutive_frames 次,輸出才會再給 id(之前輸出 -1),
+              但內部 tracker_id 不變、也確實配到了偵測 —— 對 M5 而言人沒換,
+              所以照樣算 active,框從 last_observation 對回輸出列。
+            """
+            if tid in rows:
+                return rows[tid]
+            obs = getattr(alive[tid], "last_observation", None)
+            if obs is not None:
+                key = tuple(float(v) for v in obs)
+                for r in unassigned:
+                    if r[0] == key:
+                        return r
+            box = tuple(float(v) for v in alive[tid].get_state_bbox())
+            return box, self._last_class.get(tid), None
+
+        def ev(kind, tid, box=None):
+            h = self._history.get(tid)
+            return TrackEvent(kind, tid, frame_id, self._last_class.get(tid),
+                              box if box is not None else (h[-1] if h else None),
+                              camera_id=self.camera_id, t_sec=t_sec)
+
+        events = []
+        for tid in sorted(active_ids - self._seen_ids):
+            self._seen_ids.add(tid)
+            self._start[tid] = frame_id
+            box, cid, _ = matched(tid)
+            events.append(TrackEvent("new_track", tid, frame_id, cid, box,
+                                     camera_id=self.camera_id, t_sec=t_sec))
+        for tid in sorted(active_ids & self._prev_lost):
+            events.append(ev("reacquired", tid, matched(tid)[0]))
+        for tid in sorted(lost_ids - self._prev_lost):
+            events.append(ev("lost_track", tid))
+        for tid in sorted(removed_ids):
+            events.append(ev("removed", tid))
+            for d in (self._history, self._last_class, self._hits, self._start):
+                d.pop(tid, None)
+        self._prev_lost = lost_ids
+        self._prev_alive = set(alive)
+
+        tracks = []
+        for tid in sorted(active_ids):
+            box, cid, conf = matched(tid)
+            if cid is not None:
+                self._last_class[tid] = cid
+            hist = self._history.setdefault(tid, deque(maxlen=self.history_len))
+            hist.append(box)
+            self._hits[tid] = self._hits.get(tid, 0) + 1
+            tracks.append(Track(
+                track_id=tid, bbox=box, class_id=cid, confidence=conf,
+                status=TrackStatus.ACTIVE, frame_id=frame_id,
+                start_frame=self._start[tid], hits=self._hits[tid],
                 history=list(hist)))
         return TrackerOutput(frame_id=frame_id, tracks=tracks, events=events)

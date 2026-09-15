@@ -11,3 +11,8 @@ scipy>=1.10             # M4 ByteTrack 匈牙利配對(linear_sum_assignment)
 # 遷移目標是獨立的 trackers 套件(update() 介面);未遷移前釘住 <0.30。
 # 觸點只在 src/m4_track/tracker.py,遷移時改該處即可。
 supervision>=0.24,<0.30
+# 2026-09-15 層 0 第二輪:換掉跟丟期間的配對方法 → Roboflow trackers(Apache 2.0,乾淨重寫的
+# SORT / ByteTrack / OC-SORT / BoT-SORT / C-BIoU)。預設 backend 仍是上面的 supervision,
+# 只有 configs/tracker.yaml 設 backend: rf_* 才用到。
+# ⚠ 它要求 numpy>=2.0.2、pydeprecate>=0.8;官方支援 Python 3.10~3.13。
+trackers==2.6.0

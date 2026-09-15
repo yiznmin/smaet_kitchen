@@ -13,6 +13,9 @@
 tracker 以 stride 5 被餵資料。要受控檢驗,必須對**同一批偵測**換門檻與 stride 重跑追蹤,
 而且每一格要夠快 —— 所以這支完全不碰 RF-DETR 與 M5。
 
+2026-09-15 起加 `--backend`:第一輪證明調參救不了 B(B 佔比五格都在 30~32%),
+第二輪換配對方法本身(docs/M4_層0_關聯方法_預先登記_20260915.md)。
+
 ## 量什麼(逐鏡頭 + 合計)
 
 - **真值框召回**,兩種分母並列:
@@ -21,14 +24,17 @@ tracker 以 stride 5 被餵資料。要受控檢驗,必須對**同一批偵測**
   · `全部取樣幀`:所有被取樣的幀上的 GT 都進分母 —— 較誠實,會比前者低
 - **誤偵率**:沒有對到任何真值的 track / 全部 track(層 1)
 - **A / B / C** 三類次數與間隔(定義同上;以事件時間排序,同一幀內依 tracker 發事件的順序)
+- **B 佔比** = B / (A+B+C)。⚠ 跨格比較看這個,不看 B 的絕對數:碎片變多時配對總數跟著變
+  (9/14 `s1` 的 B +67% 主要是配對總數 2,200 → 3,533)
 - **每位真人每台鏡頭的 track 數**
 - **身份混雜的 track**:對到 ≥2 個真值、且次多者 ≥3 幀 —— 一條 track 漂到別人身上的代理量
 
 ## ⚠ 緩衝秒數固定
 
-supervision 的 `max_time_lost = int(frame_rate/30 × lost_track_buffer)` 是**更新次數**。
+supervision 的 `max_time_lost = int(frame_rate/30 × lost_track_buffer)` 是**更新次數**;
+trackers 是 `max(1, ceil(frame_rate/30 × lost_track_buffer))`(KitchenTracker 以固定步長模式呼叫它)。
 換 stride 時若不換算,stride 1 的 30 次只有 1 秒,與 stride 5 的 5 秒不可比。
-所以本腳本以 `--lost-buffer-seconds` 為準,自動換算並斷言換算結果。
+所以本腳本以 `--lost-buffer-seconds` 為準,自動換算並對兩種公式都斷言換算結果。
 
 ## 重用,不重寫
 
@@ -39,6 +45,9 @@ supervision 的 `max_time_lost = int(frame_rate/30 × lost_track_buffer)` 是**�
     python scripts/eval_m4_chirla.py --cache-dir results/det_cache/coco_nano \\
         --root "D:/.../CHIRLA" --seqs seq_004 seq_006 --thr 0.3 --stride 5 --label base
 
+    # 換配對方法
+    python scripts/eval_m4_chirla.py ... --thr 0.10 --backend rf_cbiou --label cbiou
+
     # 本機 EPFL:沒有真值,只輸出 track 與事件供逐位比對
     python scripts/eval_m4_chirla.py --cache-dir results/det_cache/epfl_smoke \\
         --cameras cam1 cam2 --thr 0.3 --stride 5 --max-loops 25 --dump-dir <dir>
@@ -46,6 +55,7 @@ supervision 的 `max_time_lost = int(frame_rate/30 × lost_track_buffer)` 是**�
 import argparse
 import csv
 import json
+import math
 import statistics as st
 import sys
 import time
@@ -60,6 +70,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 from m4_track import KitchenTracker                                  # noqa: E402
 from m4_track.det_cache import DetCache, weights_id                  # noqa: E402
+from m4_track.tracker import RF_BACKENDS, rf_kwargs                  # noqa: E402
 
 # tracker 在同一次 update 裡發事件的順序(src/m4_track/tracker.py)
 _ORDER = {"new_track": 0, "reacquired": 1, "lost_track": 2, "removed": 3}
@@ -75,8 +86,23 @@ def tracker_config(tcfg, stride, fps, seconds):
     got = int(frame_rate / 30.0 * lost)
     if got != target:
         raise ValueError(f"緩衝換算失準:要 {target} 次,實際 {got} 次")
+    if tcfg.get("backend", "bytetrack") in RF_BACKENDS:
+        got_rf = max(1, math.ceil(frame_rate / 30.0 * lost))   # trackers 的公式
+        if got_rf != target:
+            raise ValueError(f"緩衝換算失準(trackers):要 {target} 次,實際 {got_rf} 次")
     return dict(tcfg, lost_track_buffer=lost), dict(
         updates=target, seconds=target * stride / fps, lost_track_buffer=lost)
+
+
+def effective_tracker_kwargs(tcfg):
+    """實際餵給 backend 的參數,寫進結果 json —— 預先登記要能對照「跑的就是登記的」。"""
+    backend = tcfg.get("backend", "bytetrack")
+    common = {k: tcfg[k] for k in ("track_activation_threshold", "lost_track_buffer",
+                                   "minimum_matching_threshold", "frame_rate",
+                                   "minimum_consecutive_frames")}
+    if backend in RF_BACKENDS:
+        return rf_kwargs(backend, common, (tcfg.get("backend_params") or {}).get(backend))
+    return common
 
 
 def run_camera(cache, cam, *, thr, stride, tcfg, max_loops):
@@ -98,37 +124,50 @@ def run_camera(cache, cam, *, thr, stride, tcfg, max_loops):
     return tracks, events, fps
 
 
-def classify_pairs(events, track_gt):
-    """同一真人、同一鏡頭的相鄰兩條 track → A / B / C 與間隔秒數。"""
+def classify_pairs(events, track_gt, detail=False):
+    """同一真人、同一鏡頭的相鄰兩條 track → A / B / C 與間隔秒數。
+
+    回傳 {類別: [(cam, 間隔秒), ...]}。
+    detail=True 時每筆多一個 dict(真人、前後 track id、跟丟與出生的影格),
+    給 `diag_m4_breaks.py` 用;預設關閉,輸出與 9/14 版逐筆相同。
+    """
     per = defaultdict(list)
     for e in events:
-        per[(e["cam"], e["tid"])].append((e["t"], _ORDER[e["kind"]], e["kind"]))
+        per[(e["cam"], e["tid"])].append((e["t"], _ORDER[e["kind"]], e["kind"], e["fid"]))
     by = defaultdict(list)
     for (cam, tid), es in per.items():
         es.sort()
-        if not any(k == "new_track" for _, _, k in es):
+        birth = next((x for x in es if x[2] == "new_track"), None)
+        if birth is None:
             continue
         gid = track_gt.get((cam, tid))
         if gid is None:
             continue
-        by[(cam, gid)].append((next(t for t, _, k in es if k == "new_track"), es))
-    out = defaultdict(list)                              # 類別 -> [(cam, 間隔秒)]
-    for (cam, _gid), lst in by.items():
+        by[(cam, gid)].append((birth[0], tid, birth[3], es))
+    out = defaultdict(list)
+    for (cam, gid), lst in by.items():
         lst.sort(key=lambda x: x[0])
-        for (_pt, pes), (nt, _nes) in zip(lst, lst[1:]):
-            state, lost_t = None, None
-            for t, _o, k in pes:
+        for (_pt, ptid, _pf, pes), (nt, ntid, nfid, _nes) in zip(lst, lst[1:]):
+            state, lost_t, lost_fid = None, None, None
+            for t, _o, k, fid in pes:
                 if t > nt:
                     break
                 state = _STATE[k]
                 if k == "lost_track":
-                    lost_t = t
+                    lost_t, lost_fid = t, fid
             if state == "active":
-                out["A"].append((cam, 0.0))
+                kind, gap = "A", 0.0
             elif state == "lost":
-                out["B"].append((cam, nt - lost_t))
+                kind, gap = "B", nt - lost_t
             elif state == "removed":
-                out["C"].append((cam, nt - (lost_t if lost_t is not None else nt)))
+                kind, gap = "C", nt - (lost_t if lost_t is not None else nt)
+            else:
+                continue
+            item = (cam, gap)
+            if detail:
+                item += (dict(gid=gid, prev_tid=ptid, new_tid=ntid,
+                              lost_fid=lost_fid, new_fid=nfid),)
+            out[kind].append(item)
     return out
 
 
@@ -152,10 +191,9 @@ def dump(dirpath, tracks, events):
             w.writerow([e["loop"], e["fid"], round(e["t"], 3), e["cam"], e["kind"], e["tid"]])
 
 
-def main():
-    ap = argparse.ArgumentParser()
+def add_common_args(ap):
+    """eval_m4_chirla 與 diag_m4_breaks 共用的旗標 —— 兩支必須跑同一個 tracker。"""
     ap.add_argument("--cache-dir", required=True)
-    ap.add_argument("--root", default=None, help="CHIRLA 根目錄;不給就不算真值指標")
     ap.add_argument("--seqs", nargs="+", default=None,
                     help="給了就讀 <cache-dir>/<seq>/<camera>.npz;不給就讀 <cache-dir>/<camera>.npz")
     ap.add_argument("--cameras", nargs="+", default=None)
@@ -163,21 +201,38 @@ def main():
     ap.add_argument("--stride", type=int, default=5)
     ap.add_argument("--lost-buffer-seconds", type=float, default=5.0)
     ap.add_argument("--tracker", default=str(ROOT / "configs" / "tracker.yaml"))
+    ap.add_argument("--backend", default=None,
+                    choices=("bytetrack",) + RF_BACKENDS, help="覆蓋 tracker.yaml 的 backend")
     ap.add_argument("--variant", default="nano")
     ap.add_argument("--weights", default=None)
     ap.add_argument("--person-cls", type=int, default=None)
-    ap.add_argument("--max-loops", type=int, default=-1)
-    ap.add_argument("--dump-dir", default=None)
     ap.add_argument("--label", default="run")
     ap.add_argument("--out", default=None)
-    args = ap.parse_args()
 
+
+def load_setup(args):
+    """回傳 (快取 expect, 基礎 tracker 設定)。"""
     person_cls = (args.person_cls if args.person_cls is not None
                   else (0 if args.weights else 1))
     expect = dict(variant=args.variant, weights_id=weights_id(args.weights),
                   person_cls=person_cls)
     with open(args.tracker, encoding="utf-8") as f:
         base_tcfg = (yaml.safe_load(f) or {}).get("tracker", {})
+    if args.backend:
+        base_tcfg = dict(base_tcfg, backend=args.backend)
+    return expect, base_tcfg
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    add_common_args(ap)
+    ap.add_argument("--root", default=None, help="CHIRLA 根目錄;不給就不算真值指標")
+    ap.add_argument("--max-loops", type=int, default=-1)
+    ap.add_argument("--dump-dir", default=None)
+    args = ap.parse_args()
+
+    expect, base_tcfg = load_setup(args)
+    backend = base_tcfg.get("backend", "bytetrack")
 
     if args.seqs:
         from run_m4m5_chirla_grid import CAMERAS
@@ -193,13 +248,13 @@ def main():
             raise SystemExit("--root 需要搭配 --seqs")
         import eval_m4m5_chirla as gt_mod
 
-    print(f"[{args.label}] thr={args.thr}  stride={args.stride}  "
+    print(f"[{args.label}] backend={backend}  thr={args.thr}  stride={args.stride}  "
           f"緩衝 {args.lost_buffer_seconds}s  單元 {len(units)}")
     per_cam = defaultdict(lambda: dict(n_tracks=0, n_ghost=0, gtm=0, gtt_trk=0,
                                        gtt_all=0, mixed=0, pairs=Counter()))
     per_gt_cam = Counter()
     all_gaps = defaultdict(list)
-    buf_info, t0 = None, time.time()
+    buf_info, tcfg, t0 = None, base_tcfg, time.time()
 
     for seq, cams, cdir in units:
         tracks_all, events_all, sampled = [], [], {}
@@ -264,13 +319,16 @@ def main():
             tot[k] += d[k]
         tot["pairs"].update(d["pairs"])
     tpg = list(per_gt_cam.values())
+    n_pairs = sum(tot["pairs"][k] for k in "ABC")
     summary = dict(
-        label=args.label, thr=args.thr, stride=args.stride, buffer=buf_info,
+        label=args.label, backend=backend, tracker_kwargs=effective_tracker_kwargs(tcfg),
+        thr=args.thr, stride=args.stride, buffer=buf_info,
         seqs=args.seqs, n_tracks=tot["n_tracks"],
         ghost_rate=pct(tot["n_ghost"], tot["n_tracks"]),
         recall_trackframes=pct(tot["gtm"], tot["gtt_trk"]),
         recall_allframes=pct(tot["gtm"], tot["gtt_all"]),
-        pairs=dict(tot["pairs"]), mixed_tracks=tot["mixed"],
+        pairs=dict(tot["pairs"]), n_pairs=n_pairs, b_share=pct(tot["pairs"]["B"], n_pairs),
+        mixed_tracks=tot["mixed"],
         tracks_per_gt_per_cam=dict(median=st.median(tpg) if tpg else None,
                                    mean=round(st.mean(tpg), 3) if tpg else None),
         gap_median_s={k: round(st.median(v), 3) for k, v in all_gaps.items() if v},
@@ -279,7 +337,8 @@ def main():
     print(f"  {'合計':<10}{tot['n_tracks']:>7}{summary['ghost_rate']:>8.1%}"
           f"{summary['recall_trackframes']:>14.1%}{summary['recall_allframes']:>14.1%}"
           f"{tot['pairs']['A']:>6}{tot['pairs']['B']:>6}{tot['pairs']['C']:>6}{tot['mixed']:>6}")
-    print(f"\n  每位真人每台鏡頭 track 數:{summary['tracks_per_gt_per_cam']}")
+    print(f"\n  B 佔相鄰配對:{summary['b_share']:.1%}(配對總數 {n_pairs:,})")
+    print(f"  每位真人每台鏡頭 track 數:{summary['tracks_per_gt_per_cam']}")
     print(f"  間隔中位(秒):{summary['gap_median_s']}")
     if summary["recall_trackframes"] < 0.2:
         print("  ⚠ 召回極低 —— 先懷疑幀號對齊(GT 1-based、fid 0-based),不要先懷疑模型")
