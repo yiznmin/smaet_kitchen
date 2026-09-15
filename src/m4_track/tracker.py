@@ -77,9 +77,12 @@ _BYTETRACK_KEYS = ("track_activation_threshold", "lost_track_buffer",
                    "minimum_matching_threshold", "frame_rate", "minimum_consecutive_frames")
 
 RF_BACKENDS = ("rf_botsort", "rf_cbiou", "rf_ocsort", "rf_mcbyte", "rf_mcbyte_nomask",
-               "rf_mcbyte_dcm", "rf_mcbyte_nomask_dcm")
+               "rf_mcbyte_dcm", "rf_mcbyte_nomask_dcm", "rf_mcbyte_nomask_hybrid")
 # McByte 需要每幀的 RGB 影像(遮罩傳遞);其他 backend 不收影像
-MCBYTE_BACKENDS = ("rf_mcbyte", "rf_mcbyte_nomask", "rf_mcbyte_dcm", "rf_mcbyte_nomask_dcm")
+MCBYTE_BACKENDS = ("rf_mcbyte", "rf_mcbyte_nomask", "rf_mcbyte_dcm", "rf_mcbyte_nomask_dcm",
+                   "rf_mcbyte_nomask_hybrid")
+# 2026-09-15 修法第 3 輪:*_hybrid = McByte 不開遮罩 + Hybrid-SORT 弱線索(src/m4_track/hybrid_cues.py);
+# 參數由 backend_params 的 tcm_first_weight / tcm_byte_weight / use_hmiou 給,不給 = 0 / 0 / false(= 原本 McByte)
 # 2026-09-15 修法第 2 輪:*_dcm = McByte + SparseTrack 偽深度分層配對(src/m4_track/sparse_dcm.py);
 # 層數由 backend_params 的 depth_levels_high / depth_levels_low 給,不給則都是 1(= 不分層)
 # McByte 遮罩權重的固定位置(model_result/ 已被 .gitignore 排除)
@@ -173,10 +176,12 @@ class KitchenTracker(BaseTracker):
             raise NotImplementedError(f"backend '{self.backend}' 尚未實作"
                                       f"(可用:bytetrack、{'、'.join(RF_BACKENDS)})")
         from trackers import BoTSORTTracker, CBIoUTracker, McByteTracker, OCSORTTracker
+        from m4_track.hybrid_cues import HybridMcByteTracker
         from m4_track.sparse_dcm import DCMMcByteTracker
         cls = dict(rf_botsort=BoTSORTTracker, rf_cbiou=CBIoUTracker, rf_ocsort=OCSORTTracker,
                    rf_mcbyte=McByteTracker, rf_mcbyte_nomask=McByteTracker,
-                   rf_mcbyte_dcm=DCMMcByteTracker, rf_mcbyte_nomask_dcm=DCMMcByteTracker)[self.backend]
+                   rf_mcbyte_dcm=DCMMcByteTracker, rf_mcbyte_nomask_dcm=DCMMcByteTracker,
+                   rf_mcbyte_nomask_hybrid=HybridMcByteTracker)[self.backend]
         kw = rf_kwargs(self.backend, self._bt_kwargs, self.backend_params)
         if kw.get("enable_mask_manager"):
             from trackers.core.mcbyte.tracker import McByteMaskConfig

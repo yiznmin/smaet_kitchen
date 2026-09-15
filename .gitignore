@@ -99,3 +99,6 @@ results/m4_round1/*_dump/
 # 2026-09-15 M4 修法第 2 輪(SparseTrack 分層):同上
 results/m4_round2/parts/
 results/m4_round2/*_dump/
+# 2026-09-15 M4 修法第 3 輪(Hybrid-SORT 弱線索):同上
+results/m4_round3/parts/
+results/m4_round3/*_dump/

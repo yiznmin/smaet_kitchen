@@ -1,0 +1,16 @@
+# M4 修法第 3 輪(2026-09-15):McByte 不開遮罩 + Hybrid-SORT 弱線索。
+# 由 configs/tracker.yaml 衍生,只改 backend 與 backend_params;其餘鍵值相同。
+tracker:
+  backend: rf_mcbyte_nomask_hybrid
+  track_activation_threshold: 0.25
+  minimum_matching_threshold: 0.8
+  lost_track_buffer: 30
+  frame_rate: 30
+  minimum_consecutive_frames: 1
+  history_len: 30
+  person_only: true
+  backend_params:
+    rf_mcbyte_nomask_hybrid:
+      tcm_first_weight: 1.0   # 第 1 階段信心分數線索權重;Hybrid-SORT 官方 MOT17/MOT20 設定 1.0
+      tcm_byte_weight: 1.0    # 第 2 階段(低分)信心分數線索權重;官方 1.0
+      use_hmiou: true          # 以高度調整 IoU 取代 IoU;官方 MOT17/MOT20 設定使用

@@ -143,6 +143,24 @@ class DCMMcByteTracker(McByteTracker):
             u_detection = list(range(n_d))
         return matched, sorted(u_tracks), sorted(u_detection)
 
+    # ── 2026-09-15 第 3 輪加的覆寫點;預設行為與原本 update 內的 closure 逐行相同 ──
+    def _before_association(self, strack_pool):
+        """第 1 階段配對前呼叫一次(strack_pool = confirmed + lost)。預設不做事。"""
+
+    def _sim_high(self, sub_tracklets, det_idx, high_boxes, high_scores, predicted_state_boxes):
+        raw = self._get_iou_matrix(sub_tracklets, high_boxes[det_idx] if len(det_idx) else np.empty((0, 4)),
+                                   predicted_state_boxes)
+        fused = _fuse_score(self.iou.normalize_for_fusion(raw.copy()), high_scores[det_idx])
+        return fused, raw
+
+    def _sim_low(self, sub_tracklets, det_idx, low_boxes, low_scores, predicted_state_boxes):
+        raw = self._get_iou_matrix(sub_tracklets, low_boxes[det_idx] if len(det_idx) else np.empty((0, 4)),
+                                   predicted_state_boxes)
+        return raw, raw
+
+    def _on_matched(self, track, score, was_lost):
+        """track.update 之後呼叫(score = 配到的偵測分數;was_lost = 配對前是否為 lost)。預設不做事。"""
+
     def update(
         self,
         detections: sv.Detections,
@@ -206,6 +224,7 @@ class DCMMcByteTracker(McByteTracker):
         high_boxes = detection_boxes[high_indices]
         low_boxes = detection_boxes[low_indices]
         high_scores = confidences[high_indices]
+        low_scores = confidences[low_indices]
 
         confirmed_tracks = []
         unconfirmed_tracks = []
@@ -227,12 +246,10 @@ class DCMMcByteTracker(McByteTracker):
 
         # Step 1 ── DCM:高分偵測 vs confirmed + lost,分 depth_levels_high 層
         strack_pool = confirmed_tracks + lost_tracks
+        self._before_association(strack_pool)
 
         def sim_high(sub_tracklets, det_idx):
-            raw = self._get_iou_matrix(sub_tracklets, high_boxes[det_idx] if len(det_idx) else np.empty((0, 4)),
-                                       predicted_state_boxes)
-            fused = _fuse_score(self.iou.normalize_for_fusion(raw.copy()), high_scores[det_idx])
-            return fused, raw
+            return self._sim_high(sub_tracklets, det_idx, high_boxes, high_scores, predicted_state_boxes)
 
         matched, unmatched_pool, unmatched_high = self._dcm(
             strack_pool, high_boxes, predicted_state_boxes, self.depth_levels_high,
@@ -240,7 +257,9 @@ class DCMMcByteTracker(McByteTracker):
 
         for row, col in matched:
             track = strack_pool[row]
+            was_lost = track.time_since_update > 1
             track.update(high_boxes[col])
+            self._on_matched(track, float(high_scores[col]), was_lost)
             if track.number_of_successful_updates >= self.minimum_consecutive_frames and track.tracker_id == -1:
                 track.tracker_id = self._allocate_tracker_id()
             out_det_indices.append(int(high_indices[col]))
@@ -250,9 +269,7 @@ class DCMMcByteTracker(McByteTracker):
         remaining_tracked = [strack_pool[i] for i in unmatched_pool if strack_pool[i].time_since_update == 1]
 
         def sim_low(sub_tracklets, det_idx):
-            raw = self._get_iou_matrix(sub_tracklets, low_boxes[det_idx] if len(det_idx) else np.empty((0, 4)),
-                                       predicted_state_boxes)
-            return raw, raw
+            return self._sim_low(sub_tracklets, det_idx, low_boxes, low_scores, predicted_state_boxes)
 
         matched, _, unmatched_low = self._dcm(
             remaining_tracked, low_boxes, predicted_state_boxes, self.depth_levels_low,
@@ -260,7 +277,9 @@ class DCMMcByteTracker(McByteTracker):
 
         for row, col in matched:
             track = remaining_tracked[row]
+            was_lost = track.time_since_update > 1
             track.update(low_boxes[col])
+            self._on_matched(track, float(low_scores[col]), was_lost)
             if track.number_of_successful_updates >= self.minimum_consecutive_frames and track.tracker_id == -1:
                 track.tracker_id = self._allocate_tracker_id()
             out_det_indices.append(int(low_indices[col]))
@@ -299,7 +318,9 @@ class DCMMcByteTracker(McByteTracker):
             for row, col in matched_uc:
                 track = unconfirmed_tracks[row]
                 orig_high_idx = unmatched_high_list[col]
+                was_lost = track.time_since_update > 1
                 track.update(high_boxes[orig_high_idx])
+                self._on_matched(track, float(high_scores[orig_high_idx]), was_lost)
                 if track.number_of_successful_updates >= self.minimum_consecutive_frames and track.tracker_id == -1:
                     track.tracker_id = self._allocate_tracker_id()
                 out_det_indices.append(int(high_indices[orig_high_idx]))
