@@ -1,0 +1,15 @@
+# M4 修法第 2 輪(2026-09-15):McByte 不開遮罩 + SparseTrack 偽深度分層配對。
+# 由 configs/tracker.yaml 衍生,只改 backend 與 backend_params(層數);其餘鍵值相同。
+tracker:
+  backend: rf_mcbyte_nomask_dcm
+  track_activation_threshold: 0.25
+  minimum_matching_threshold: 0.8
+  lost_track_buffer: 30
+  frame_rate: 30
+  minimum_consecutive_frames: 1
+  history_len: 30
+  person_only: true
+  backend_params:
+    rf_mcbyte_nomask_dcm:
+      depth_levels_high: 3    # 第 1 階段(高分偵測)層數;SparseTrack 官方設定皆為 1
+      depth_levels_low: 8     # 第 2 階段(低分偵測)層數;官方 MOT17 = 3、MOT20 = 8、DanceTrack = 12

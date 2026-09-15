@@ -76,9 +76,12 @@ class BaseTracker:
 _BYTETRACK_KEYS = ("track_activation_threshold", "lost_track_buffer",
                    "minimum_matching_threshold", "frame_rate", "minimum_consecutive_frames")
 
-RF_BACKENDS = ("rf_botsort", "rf_cbiou", "rf_ocsort", "rf_mcbyte", "rf_mcbyte_nomask")
+RF_BACKENDS = ("rf_botsort", "rf_cbiou", "rf_ocsort", "rf_mcbyte", "rf_mcbyte_nomask",
+               "rf_mcbyte_dcm", "rf_mcbyte_nomask_dcm")
 # McByte 需要每幀的 RGB 影像(遮罩傳遞);其他 backend 不收影像
-MCBYTE_BACKENDS = ("rf_mcbyte", "rf_mcbyte_nomask")
+MCBYTE_BACKENDS = ("rf_mcbyte", "rf_mcbyte_nomask", "rf_mcbyte_dcm", "rf_mcbyte_nomask_dcm")
+# 2026-09-15 修法第 2 輪:*_dcm = McByte + SparseTrack 偽深度分層配對(src/m4_track/sparse_dcm.py);
+# 層數由 backend_params 的 depth_levels_high / depth_levels_low 給,不給則都是 1(= 不分層)
 # McByte 遮罩權重的固定位置(model_result/ 已被 .gitignore 排除)
 # ⚠ Cutie cutie-base-mega 的訓練資料含 MOSE(CC BY-NC-SA 4.0,非商用)→ 只能用於驗證,不可出貨
 MCBYTE_SAM_CKPT = "model_result/mcbyte/sam_vit_b_01ec64.pth"
@@ -123,7 +126,7 @@ def rf_kwargs(backend, common, params=None):
             # 2026-09-15 修法第 1 輪:McByte = ByteTrack 式兩階段 + 傳遞的分割遮罩當關聯線索。
             # 固定鏡頭 → 關相機運動補償;rf_mcbyte_nomask 是只差遮罩的橋樑格。
             kw["enable_cmc"] = False
-            kw["enable_mask_manager"] = backend == "rf_mcbyte"
+            kw["enable_mask_manager"] = backend in ("rf_mcbyte", "rf_mcbyte_dcm")
     elif backend != "rf_ocsort":
         raise ValueError(f"不是 trackers 的 backend:{backend}")
     kw.update(params or {})
@@ -170,8 +173,10 @@ class KitchenTracker(BaseTracker):
             raise NotImplementedError(f"backend '{self.backend}' 尚未實作"
                                       f"(可用:bytetrack、{'、'.join(RF_BACKENDS)})")
         from trackers import BoTSORTTracker, CBIoUTracker, McByteTracker, OCSORTTracker
+        from m4_track.sparse_dcm import DCMMcByteTracker
         cls = dict(rf_botsort=BoTSORTTracker, rf_cbiou=CBIoUTracker, rf_ocsort=OCSORTTracker,
-                   rf_mcbyte=McByteTracker, rf_mcbyte_nomask=McByteTracker)[self.backend]
+                   rf_mcbyte=McByteTracker, rf_mcbyte_nomask=McByteTracker,
+                   rf_mcbyte_dcm=DCMMcByteTracker, rf_mcbyte_nomask_dcm=DCMMcByteTracker)[self.backend]
         kw = rf_kwargs(self.backend, self._bt_kwargs, self.backend_params)
         if kw.get("enable_mask_manager"):
             from trackers.core.mcbyte.tracker import McByteMaskConfig

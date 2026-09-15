@@ -96,3 +96,6 @@ results/m4_5cam/*_dump/
 # 2026-09-15 M4 修法第 1 輪(McByte):各台分開跑的匯出與合併後匯出 —— 由偵測快取、影片與設定可重新產生
 results/m4_round1/parts/
 results/m4_round1/*_dump/
+# 2026-09-15 M4 修法第 2 輪(SparseTrack 分層):同上
+results/m4_round2/parts/
+results/m4_round2/*_dump/
