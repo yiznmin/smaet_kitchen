@@ -1,0 +1,147 @@
+{
+  "label": "m4_m5_rf_botsort",
+  "backend": "rf_botsort",
+  "tracker_kwargs": {
+    "lost_track_buffer": 30,
+    "frame_rate": 30.0,
+    "high_conf_det_threshold": 0.25,
+    "track_activation_threshold": 0.35,
+    "minimum_iou_threshold_first_assoc": 0.19999999999999996,
+    "minimum_iou_threshold_second_assoc": 0.5,
+    "minimum_iou_threshold_unconfirmed_assoc": 0.3,
+    "minimum_consecutive_frames": 2,
+    "instant_first_frame_activation": true,
+    "enable_cmc": false
+  },
+  "thr": 0.1,
+  "stride": 5,
+  "buffer": {
+    "updates": 30,
+    "seconds": 5.0,
+    "lost_track_buffer": 30
+  },
+  "seqs": [
+    "seq_004",
+    "seq_006",
+    "seq_007",
+    "seq_020",
+    "seq_024",
+    "seq_025",
+    "seq_026"
+  ],
+  "n_tracks": 3647,
+  "ghost_rate": 0.33369893062791334,
+  "recall_trackframes": 0.9214565228439294,
+  "recall_allframes": 0.914952534140726,
+  "pairs": {
+    "C": 1310,
+    "A": 258,
+    "B": 542
+  },
+  "n_pairs": 2110,
+  "b_share": 0.25687203791469193,
+  "mixed_tracks": 335,
+  "tracks_per_gt_per_cam": {
+    "median": 7.0,
+    "mean": 7.594
+  },
+  "gap_median_s": {
+    "C": 25.667,
+    "A": 0.0,
+    "B": 1.0
+  },
+  "per_camera": {
+    "camera_1": {
+      "n_tracks": 580,
+      "n_ghost": 184,
+      "gtm": 29854,
+      "gtt_trk": 34420,
+      "gtt_all": 34603,
+      "mixed": 63,
+      "pairs": {
+        "C": 204,
+        "A": 55,
+        "B": 84
+      }
+    },
+    "camera_2": {
+      "n_tracks": 511,
+      "n_ghost": 78,
+      "gtm": 28868,
+      "gtt_trk": 30315,
+      "gtt_all": 30552,
+      "mixed": 60,
+      "pairs": {
+        "C": 248,
+        "A": 47,
+        "B": 91
+      }
+    },
+    "camera_3": {
+      "n_tracks": 640,
+      "n_ghost": 218,
+      "gtm": 43238,
+      "gtt_trk": 46377,
+      "gtt_all": 46446,
+      "mixed": 74,
+      "pairs": {
+        "C": 205,
+        "A": 54,
+        "B": 110
+      }
+    },
+    "camera_4": {
+      "n_tracks": 323,
+      "n_ghost": 34,
+      "gtm": 9821,
+      "gtt_trk": 10186,
+      "gtt_all": 10372,
+      "mixed": 25,
+      "pairs": {
+        "C": 186,
+        "A": 18,
+        "B": 44
+      }
+    },
+    "camera_5": {
+      "n_tracks": 926,
+      "n_ghost": 490,
+      "gtm": 15074,
+      "gtt_trk": 16880,
+      "gtt_all": 17045,
+      "mixed": 65,
+      "pairs": {
+        "C": 249,
+        "A": 55,
+        "B": 88
+      }
+    },
+    "camera_6": {
+      "n_tracks": 403,
+      "n_ghost": 185,
+      "gtm": 5611,
+      "gtt_trk": 5836,
+      "gtt_all": 5977,
+      "mixed": 16,
+      "pairs": {
+        "C": 145,
+        "A": 10,
+        "B": 22
+      }
+    },
+    "camera_7": {
+      "n_tracks": 264,
+      "n_ghost": 28,
+      "gtm": 12586,
+      "gtt_trk": 13402,
+      "gtt_all": 13540,
+      "mixed": 32,
+      "pairs": {
+        "C": 73,
+        "B": 103,
+        "A": 19
+      }
+    }
+  },
+  "seconds": 19.2
+}

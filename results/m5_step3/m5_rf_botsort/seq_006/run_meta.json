@@ -1,0 +1,290 @@
+{
+  "camera_video_map": {
+    "camera_1": "D:/新增資料夾/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_006/camera_1_2023-06-13-13_24_46.avi",
+    "camera_2": "D:/新增資料夾/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_006/camera_2_2023-06-13-13_24_46.avi",
+    "camera_3": "D:/新增資料夾/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_006/camera_3_2023-06-13-13_24_46.avi",
+    "camera_4": "D:/新增資料夾/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_006/camera_4_2023-06-13-13_24_46.avi",
+    "camera_5": "D:/新增資料夾/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_006/camera_5_2023-06-13-13_24_46.avi",
+    "camera_6": "D:/新增資料夾/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_006/camera_6_2023-06-13-13_24_46.avi",
+    "camera_7": "D:/新增資料夾/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_006/camera_7_2023-06-13-13_24_46.avi"
+  },
+  "videos": {
+    "camera_1": {
+      "width": 1080,
+      "height": 720,
+      "fps": 30.0,
+      "nb_frames": 6225
+    },
+    "camera_2": {
+      "width": 1080,
+      "height": 720,
+      "fps": 30.0,
+      "nb_frames": 6225
+    },
+    "camera_3": {
+      "width": 1080,
+      "height": 720,
+      "fps": 30.0,
+      "nb_frames": 6243
+    },
+    "camera_4": {
+      "width": 1080,
+      "height": 720,
+      "fps": 30.0,
+      "nb_frames": 6301
+    },
+    "camera_5": {
+      "width": 1080,
+      "height": 720,
+      "fps": 30.0,
+      "nb_frames": 6225
+    },
+    "camera_6": {
+      "width": 1080,
+      "height": 720,
+      "fps": 30.0,
+      "nb_frames": 6225
+    },
+    "camera_7": {
+      "width": 1080,
+      "height": 720,
+      "fps": 30.0,
+      "nb_frames": 6217
+    }
+  },
+  "topology_path": "configs/fix_grid/base.yaml",
+  "n_links": 3,
+  "n_overlapping_pairs": 7,
+  "n_homographies": 0,
+  "world_xy_available": false,
+  "ground_plane_effective": false,
+  "velocity_effective": false,
+  "weights": null,
+  "person_cls": 1,
+  "embedder": "none",
+  "thr": 0.1,
+  "det_cache": "results/det_cache/coco_nano/seq_006",
+  "det_cache_meta": {
+    "camera_1": {
+      "variant": "nano",
+      "weights_id": null,
+      "person_cls": 1,
+      "cache_thr": 0.05,
+      "cache_stride": 1,
+      "complete": true,
+      "n_scanned": 6225,
+      "max_fid": 6224,
+      "video": "D:\\新增資料夾\\CHIRLA\\CHIRLA_data\\CHIRLA\\videos\\seq_006\\camera_1_2023-06-13-13_24_46.avi",
+      "video_meta": {
+        "width": 1080,
+        "height": 720,
+        "fps": 30.0,
+        "nb_frames": 6225
+      },
+      "n_det": 169092,
+      "seconds": 195.1,
+      "cache_version": 1
+    },
+    "camera_2": {
+      "variant": "nano",
+      "weights_id": null,
+      "person_cls": 1,
+      "cache_thr": 0.05,
+      "cache_stride": 1,
+      "complete": true,
+      "n_scanned": 6225,
+      "max_fid": 6224,
+      "video": "D:\\新增資料夾\\CHIRLA\\CHIRLA_data\\CHIRLA\\videos\\seq_006\\camera_2_2023-06-13-13_24_46.avi",
+      "video_meta": {
+        "width": 1080,
+        "height": 720,
+        "fps": 30.0,
+        "nb_frames": 6225
+      },
+      "n_det": 69688,
+      "seconds": 188.1,
+      "cache_version": 1
+    },
+    "camera_3": {
+      "variant": "nano",
+      "weights_id": null,
+      "person_cls": 1,
+      "cache_thr": 0.05,
+      "cache_stride": 1,
+      "complete": true,
+      "n_scanned": 6243,
+      "max_fid": 6242,
+      "video": "D:\\新增資料夾\\CHIRLA\\CHIRLA_data\\CHIRLA\\videos\\seq_006\\camera_3_2023-06-13-13_24_46.avi",
+      "video_meta": {
+        "width": 1080,
+        "height": 720,
+        "fps": 30.0,
+        "nb_frames": 6243
+      },
+      "n_det": 157196,
+      "seconds": 201.8,
+      "cache_version": 1
+    },
+    "camera_4": {
+      "variant": "nano",
+      "weights_id": null,
+      "person_cls": 1,
+      "cache_thr": 0.05,
+      "cache_stride": 1,
+      "complete": true,
+      "n_scanned": 6301,
+      "max_fid": 6300,
+      "video": "D:\\新增資料夾\\CHIRLA\\CHIRLA_data\\CHIRLA\\videos\\seq_006\\camera_4_2023-06-13-13_24_46.avi",
+      "video_meta": {
+        "width": 1080,
+        "height": 720,
+        "fps": 30.0,
+        "nb_frames": 6301
+      },
+      "n_det": 799,
+      "seconds": 206.5,
+      "cache_version": 1
+    },
+    "camera_5": {
+      "variant": "nano",
+      "weights_id": null,
+      "person_cls": 1,
+      "cache_thr": 0.05,
+      "cache_stride": 1,
+      "complete": true,
+      "n_scanned": 6225,
+      "max_fid": 6224,
+      "video": "D:\\新增資料夾\\CHIRLA\\CHIRLA_data\\CHIRLA\\videos\\seq_006\\camera_5_2023-06-13-13_24_46.avi",
+      "video_meta": {
+        "width": 1080,
+        "height": 720,
+        "fps": 30.0,
+        "nb_frames": 6225
+      },
+      "n_det": 63315,
+      "seconds": 187.5,
+      "cache_version": 1
+    },
+    "camera_6": {
+      "variant": "nano",
+      "weights_id": null,
+      "person_cls": 1,
+      "cache_thr": 0.05,
+      "cache_stride": 1,
+      "complete": true,
+      "n_scanned": 6225,
+      "max_fid": 6224,
+      "video": "D:\\新增資料夾\\CHIRLA\\CHIRLA_data\\CHIRLA\\videos\\seq_006\\camera_6_2023-06-13-13_24_46.avi",
+      "video_meta": {
+        "width": 1080,
+        "height": 720,
+        "fps": 30.0,
+        "nb_frames": 6225
+      },
+      "n_det": 4740,
+      "seconds": 200.7,
+      "cache_version": 1
+    },
+    "camera_7": {
+      "variant": "nano",
+      "weights_id": null,
+      "person_cls": 1,
+      "cache_thr": 0.05,
+      "cache_stride": 1,
+      "complete": true,
+      "n_scanned": 6217,
+      "max_fid": 6216,
+      "video": "D:\\新增資料夾\\CHIRLA\\CHIRLA_data\\CHIRLA\\videos\\seq_006\\camera_7_2023-06-13-13_24_46.avi",
+      "video_meta": {
+        "width": 1080,
+        "height": 720,
+        "fps": 30.0,
+        "nb_frames": 6217
+      },
+      "n_det": 195,
+      "seconds": 202.5,
+      "cache_version": 1
+    }
+  },
+  "tracker_path": "configs/tracker_rf_botsort.yaml",
+  "tracker_cfg": {
+    "backend": "rf_botsort",
+    "track_activation_threshold": 0.25,
+    "minimum_matching_threshold": 0.8,
+    "lost_track_buffer": 30,
+    "frame_rate": 30,
+    "minimum_consecutive_frames": 1,
+    "history_len": 30,
+    "person_only": true,
+    "backend_params": {
+      "rf_cbiou": {
+        "buffer_ratio_first": 0.3,
+        "buffer_ratio_second": 0.5
+      },
+      "rf_ocsort": {}
+    }
+  },
+  "stride": 5,
+  "max_frames": -1,
+  "ttl_loops": 600,
+  "ttl_seconds": 100.0,
+  "lost_track_buffer_loops": 30,
+  "lost_track_buffer_seconds": 5.0,
+  "n_loops": 1261,
+  "n_loops_full": 1244,
+  "coverage": 1.0137,
+  "truncated": false,
+  "per_cam_loops": {
+    "camera_1": 1245,
+    "camera_2": 1245,
+    "camera_3": 1249,
+    "camera_4": 1261,
+    "camera_5": 1245,
+    "camera_6": 1245,
+    "camera_7": 1244
+  },
+  "n_det": 38883,
+  "n_det_per_cam": {
+    "camera_1": 16953,
+    "camera_2": 2606,
+    "camera_3": 17840,
+    "camera_4": 13,
+    "camera_5": 1470,
+    "camera_6": 1,
+    "camera_7": 0
+  },
+  "ms_per_loop": {
+    "p50": 0.0,
+    "p95": 13.8,
+    "max": 16.7
+  },
+  "wall_seconds": 55.6,
+  "total_chefs": 97,
+  "candidate_histogram": {
+    "0": 11,
+    "1": 2,
+    "2": 3,
+    "3": 7,
+    "4": 7,
+    "5": 113
+  },
+  "resident_final": {
+    "active": 17,
+    "gone": 48,
+    "track_to_chef": 21,
+    "_exit": 48,
+    "_cam": 17,
+    "_pending_exit": 10,
+    "_world": 0,
+    "_vel": 0,
+    "margin_blocked": 0,
+    "same_cam_conflicts": 41,
+    "revotes": 0,
+    "revote_switch": 0,
+    "revote_no_emb": 0,
+    "_votes": 0,
+    "revote_pending": 0,
+    "revote_resolved": 0
+  },
+  "llr_threshold": 1.6094379124341003
+}
