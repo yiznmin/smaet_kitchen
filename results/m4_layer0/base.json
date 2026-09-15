@@ -1,5 +1,13 @@
 {
   "label": "base",
+  "backend": "bytetrack",
+  "tracker_kwargs": {
+    "track_activation_threshold": 0.25,
+    "lost_track_buffer": 30,
+    "minimum_matching_threshold": 0.8,
+    "frame_rate": 30,
+    "minimum_consecutive_frames": 1
+  },
   "thr": 0.3,
   "stride": 5,
   "buffer": {
@@ -25,6 +33,8 @@
     "A": 287,
     "B": 683
   },
+  "n_pairs": 2200,
+  "b_share": 0.3104545454545454,
   "mixed_tracks": 411,
   "tracks_per_gt_per_cam": {
     "median": 7.0,
@@ -128,5 +138,5 @@
       }
     }
   },
-  "seconds": 23.3
+  "seconds": 24.5
 }
