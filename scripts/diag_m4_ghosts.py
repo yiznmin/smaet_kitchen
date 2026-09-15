@@ -59,7 +59,8 @@ def load_rows(path):
     with open(path, encoding="utf-8") as f:
         return [dict(fid=int(r["video_fid"]), cam=r["camera_id"], tid=int(r["track_id"]),
                      bbox=(float(r["x1"]), float(r["y1"]), float(r["x2"]), float(r["y2"])),
-                     conf=float(r["conf"]))
+                     # ⚠ bytetrack(supervision)的匯出有些列 conf 是空字串 → 讀成 None,不當 0
+                     conf=float(r["conf"]) if r["conf"] != "" else None)
                 for r in csv.DictReader(f)]
 
 
@@ -115,7 +116,10 @@ def features(frames, boxes, confs):
     ext = max(max(cx) - min(cx), max(cy) - min(cy)) / h_med if h_med > 0 else 0.0
     return dict(cat=cat, n=n, match_rate=rate, dup_share=dup, near_share=near,
                 iou_median=st.median(x[1] for x in frames),
-                conf_mean=sum(confs) / n, h_med=h_med,
+                # 空白的 conf 不算進平均;整條都空白時為 None(q() 會略過)
+                conf_mean=(sum(c for c in confs if c is not None) / sum(1 for c in confs if c is not None)
+                           if any(c is not None for c in confs) else None),
+                h_med=h_med,
                 w_med=st.median(b[2] - b[0] for b in boxes),
                 move_ratio=ext, static=ext < STATIC_RATIO)
 
@@ -261,8 +265,11 @@ def main():
     print(f"   H1 ① 佔多數且多為靜止:① 佔 {h1a:.1%}、① 中靜止 {h1b:.1%} → "
           f"{'成立' if h1a > 0.5 and h1b > 0.5 else '不成立'}")
     for cam in ("camera_5", "camera_6"):
-        c = cam_out.get(cam, {}).get("cats", {})
-        top = max(c, key=c.get) if c else None
+        if cam not in cam_out:
+            print(f"   H2 {cam} 以 ① 為主:不適用(此鏡頭不在資料中)")
+            continue
+        c = cam_out[cam]["cats"]
+        top = max(c, key=c.get) if any(c.values()) else None
         print(f"   H2 {cam} 以 ① 為主:最大類 = {top} → {'成立' if top == CATS[0] else '不成立'}")
     h3 = cc[CATS[1]] / len(ghosts)
     print(f"   H3 ② 佔 ≥ 20%:② 佔 {h3:.1%} → {'成立' if h3 >= 0.2 else '不成立'}"
