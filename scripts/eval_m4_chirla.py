@@ -70,7 +70,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 from m4_track import KitchenTracker                                  # noqa: E402
 from m4_track.det_cache import DetCache, weights_id                  # noqa: E402
-from m4_track.tracker import RF_BACKENDS, rf_kwargs                  # noqa: E402
+from m4_track.tracker import MCBYTE_BACKENDS, RF_BACKENDS, rf_kwargs  # noqa: E402
 
 # tracker 在同一次 update 裡發事件的順序(src/m4_track/tracker.py)
 _ORDER = {"new_track": 0, "reacquired": 1, "lost_track": 2, "removed": 3}
@@ -105,15 +105,34 @@ def effective_tracker_kwargs(tcfg):
     return common
 
 
-def run_camera(cache, cam, *, thr, stride, tcfg, max_loops):
+def run_camera(cache, cam, *, thr, stride, tcfg, max_loops, video=None):
+    """video:McByte 後端需要的影片路徑。逐幀 grab、只在取樣幀 read,幀號與
+    common.video_io.iter_frames 相同;送進 tracker 的是 RGB。"""
     meta = cache.meta
     fps = float(meta["video_meta"]["fps"])
     tr = KitchenTracker.from_config(tcfg, camera_id=cam)
     tracks, events = [], []
+    cap, vf = None, 0
+    if video is not None:
+        import cv2
+        cap = cv2.VideoCapture(str(video))
+        if not cap.isOpened():
+            raise RuntimeError(f"無法開啟影片: {video}")
     for loop_i, fid in enumerate(range(0, int(meta["max_fid"]) + 1, stride)):
         if max_loops >= 0 and loop_i >= max_loops:
             break
-        out = tr.update(cache.get(fid, thr), loop_i, timestamp=fid / fps)
+        frame = None
+        if cap is not None:
+            while vf < fid:
+                if not cap.grab():
+                    raise RuntimeError(f"{video} 在第 {vf} 幀提前結束")
+                vf += 1
+            ok, bgr = cap.read()
+            if not ok:
+                raise RuntimeError(f"{video} 讀不到第 {fid} 幀")
+            vf += 1
+            frame = bgr[:, :, ::-1].copy()
+        out = tr.update(cache.get(fid, thr), loop_i, timestamp=fid / fps, frame=frame)
         for t in out.tracks:
             tracks.append(dict(loop=loop_i, fid=fid, cam=cam, tid=t.track_id,
                                bbox=None if t.bbox is None else tuple(t.bbox),
@@ -263,8 +282,17 @@ def main():
             fps = float(cache.meta["video_meta"]["fps"])
             tcfg, buf_info = tracker_config(base_tcfg, args.stride, fps,
                                             args.lost_buffer_seconds)
+            video = None
+            if backend in MCBYTE_BACKENDS:
+                if not (args.root and args.seqs):
+                    raise SystemExit(f"{backend} 需要影片:請給 --root 與 --seqs")
+                import glob
+                vids = sorted(glob.glob(f"{args.root}/videos/{seq}/{cam}_*.avi"))
+                if len(vids) != 1:
+                    raise SystemExit(f"{seq} {cam} 找到 {len(vids)} 支影片(應為 1)")
+                video = vids[0]
             tr, ev, _ = run_camera(cache, cam, thr=args.thr, stride=args.stride,
-                                   tcfg=tcfg, max_loops=args.max_loops)
+                                   tcfg=tcfg, max_loops=args.max_loops, video=video)
             tracks_all += tr
             events_all += ev
             sampled[cam] = sorted({t["fid"] for t in tr} |

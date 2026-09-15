@@ -65,7 +65,7 @@ class TrackerOutput:
 class BaseTracker:
     """可切換追蹤器介面。未來 BoT-SORT / OC-SORT 實作同一份 update 契約即可。"""
 
-    def update(self, detections, frame_id, timestamp=None) -> TrackerOutput:
+    def update(self, detections, frame_id, timestamp=None, frame=None) -> TrackerOutput:
         raise NotImplementedError
 
     def reset(self) -> None:
@@ -76,7 +76,13 @@ class BaseTracker:
 _BYTETRACK_KEYS = ("track_activation_threshold", "lost_track_buffer",
                    "minimum_matching_threshold", "frame_rate", "minimum_consecutive_frames")
 
-RF_BACKENDS = ("rf_botsort", "rf_cbiou", "rf_ocsort")
+RF_BACKENDS = ("rf_botsort", "rf_cbiou", "rf_ocsort", "rf_mcbyte", "rf_mcbyte_nomask")
+# McByte 需要每幀的 RGB 影像(遮罩傳遞);其他 backend 不收影像
+MCBYTE_BACKENDS = ("rf_mcbyte", "rf_mcbyte_nomask")
+# McByte 遮罩權重的固定位置(model_result/ 已被 .gitignore 排除)
+# ⚠ Cutie cutie-base-mega 的訓練資料含 MOSE(CC BY-NC-SA 4.0,非商用)→ 只能用於驗證,不可出貨
+MCBYTE_SAM_CKPT = "model_result/mcbyte/sam_vit_b_01ec64.pth"
+MCBYTE_CUTIE_CKPT = "model_result/mcbyte/cutie-base-mega.pth"
 
 
 def rf_kwargs(backend, common, params=None):
@@ -102,7 +108,7 @@ def rf_kwargs(backend, common, params=None):
     kw = dict(lost_track_buffer=int(common["lost_track_buffer"]),
               frame_rate=float(common["frame_rate"]),
               high_conf_det_threshold=act)
-    if backend in ("rf_botsort", "rf_cbiou"):
+    if backend in ("rf_botsort", "rf_cbiou") + MCBYTE_BACKENDS:
         kw.update(track_activation_threshold=act + 0.1,
                   minimum_iou_threshold_first_assoc=1.0 - float(common["minimum_matching_threshold"]),
                   minimum_iou_threshold_second_assoc=0.5,
@@ -113,6 +119,11 @@ def rf_kwargs(backend, common, params=None):
                   instant_first_frame_activation=True)
         if backend == "rf_botsort":
             kw["enable_cmc"] = False       # 固定鏡頭,且評估不解碼影片、沒有 frame 可給
+        if backend in MCBYTE_BACKENDS:
+            # 2026-09-15 修法第 1 輪:McByte = ByteTrack 式兩階段 + 傳遞的分割遮罩當關聯線索。
+            # 固定鏡頭 → 關相機運動補償;rf_mcbyte_nomask 是只差遮罩的橋樑格。
+            kw["enable_cmc"] = False
+            kw["enable_mask_manager"] = backend == "rf_mcbyte"
     elif backend != "rf_ocsort":
         raise ValueError(f"不是 trackers 的 backend:{backend}")
     kw.update(params or {})
@@ -158,10 +169,15 @@ class KitchenTracker(BaseTracker):
         if self.backend not in RF_BACKENDS:
             raise NotImplementedError(f"backend '{self.backend}' 尚未實作"
                                       f"(可用:bytetrack、{'、'.join(RF_BACKENDS)})")
-        from trackers import BoTSORTTracker, CBIoUTracker, OCSORTTracker
-        cls = dict(rf_botsort=BoTSORTTracker, rf_cbiou=CBIoUTracker,
-                   rf_ocsort=OCSORTTracker)[self.backend]
-        self._rf = cls(**rf_kwargs(self.backend, self._bt_kwargs, self.backend_params))
+        from trackers import BoTSORTTracker, CBIoUTracker, McByteTracker, OCSORTTracker
+        cls = dict(rf_botsort=BoTSORTTracker, rf_cbiou=CBIoUTracker, rf_ocsort=OCSORTTracker,
+                   rf_mcbyte=McByteTracker, rf_mcbyte_nomask=McByteTracker)[self.backend]
+        kw = rf_kwargs(self.backend, self._bt_kwargs, self.backend_params)
+        if kw.get("enable_mask_manager"):
+            from trackers.core.mcbyte.tracker import McByteMaskConfig
+            kw["mask_config"] = McByteMaskConfig(sam_checkpoint_path=MCBYTE_SAM_CKPT,
+                                                 cutie_weights_path=MCBYTE_CUTIE_CKPT)
+        self._rf = cls(**kw)
 
     def _reset_state(self):
         self._seen_ids = set()          # 曾經 active 過的 id(判 new_track)
@@ -177,14 +193,15 @@ class KitchenTracker(BaseTracker):
         (self._bt if self._bt is not None else self._rf).reset()
         self._reset_state()
 
-    def update(self, detections, frame_id, timestamp=None) -> TrackerOutput:
+    def update(self, detections, frame_id, timestamp=None, frame=None) -> TrackerOutput:
+        # frame:RGB 影像,只有 McByte 後端會用(遮罩);其他後端忽略
         # ByteTrack 需要 confidence;空幀也要呼叫,好讓 lost/removed 計時前進
         if len(detections) and getattr(detections, "confidence", None) is None:
             raise ValueError("detections.confidence 不可為 None(ByteTrack 需要分數)")
 
         t_sec = float(timestamp) if timestamp is not None else frame_id / float(self.frame_rate)
         if self._rf is not None:
-            return self._update_rf(detections, frame_id, t_sec)
+            return self._update_rf(detections, frame_id, t_sec, frame)
 
         matched = self._bt.update_with_detections(detections)
         matched_map = {}
@@ -274,7 +291,7 @@ class KitchenTracker(BaseTracker):
                 history=list(hist)))
         return TrackerOutput(frame_id=frame_id, tracks=tracks, events=events)
 
-    def _update_rf(self, detections, frame_id, t_sec) -> TrackerOutput:
+    def _update_rf(self, detections, frame_id, t_sec, frame=None) -> TrackerOutput:
         """trackers 套件的 backend。
 
         ⚠ 不傳 timestamp(固定步長模式)。傳了的話 trackers 會改以「秒」算緩衝,
@@ -292,7 +309,12 @@ class KitchenTracker(BaseTracker):
           supervision 其實也一樣 —— 沒配到的 tracked track 當幀就轉 lost(core.py),
           那一支只在 update_with_detections 事後以 IoU 0.5 找不回框時才會走到。
         """
-        out = self._rf.update(detections)
+        if self.backend in MCBYTE_BACKENDS:
+            if frame is None:
+                raise ValueError(f"{self.backend} 需要每幀的 RGB 影像(frame=)")
+            out = self._rf.update(detections, frame=frame)
+        else:
+            out = self._rf.update(detections)
         rows, unassigned = {}, []
         for i in range(len(out)):
             row = (tuple(float(v) for v in out.xyxy[i]),
