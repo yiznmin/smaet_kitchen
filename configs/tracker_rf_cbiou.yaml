@@ -1,0 +1,19 @@
+# 2026-09-15 步驟 3 用:由 configs/tracker.yaml 衍生,唯一差異是 backend: rf_cbiou(其餘逐字相同)
+# M4 多目標追蹤。純運動追蹤(Kalman + IoU + 匈牙利),不含外觀 Re-ID(那屬 M5)。
+tracker:
+  # bytetrack(預設,supervision)| rf_botsort | rf_cbiou | rf_ocsort(Roboflow trackers 套件,Apache 2.0)
+  # ⚠ rf_* 需要 `pip install trackers==2.6.0`。下面的共用鍵依 supervision 的語意對映成
+  #   trackers 的參數(src/m4_track/tracker.py 的 rf_kwargs),backend_params 再覆蓋。
+  backend: rf_cbiou
+  track_activation_threshold: 0.25   # 高分偵測門檻:啟動/維持軌跡
+  minimum_matching_threshold: 0.8    # IoU 匹配門檻;低→精確但易斷裂
+  lost_track_buffer: 30              # 目標消失後保留幀數(遮擋恢復);對應 spec「短暫遮擋」
+  frame_rate: 30                     # 影片幀率(換算 max_time_lost)
+  minimum_consecutive_frames: 1      # 連續達標幀數才算有效軌跡(>1 可壓誤啟動)
+  history_len: 30                    # 每軌跡保留的 bbox 歷史長度
+  person_only: true                  # demo:僅追蹤 person(COCO base 可跑,免微調權重)
+  backend_params:                    # 只讀與 backend 同名的那一段
+    rf_cbiou:                        # C-BIoU(WACV 2023):框放大再算 IoU;兩個都設 0 ≡ rf_botsort
+      buffer_ratio_first: 0.3        # 套件預設
+      buffer_ratio_second: 0.5       # 套件預設
+    rf_ocsort: {}                    # OC-SORT(CVPR 2023):IoU 0.3、連續 3 幀、方向權重 0.2、delta_t 3(套件預設)

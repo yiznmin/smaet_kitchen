@@ -540,6 +540,10 @@ def main():
         "thr": args.thr,
         "det_cache": args.det_cache,
         "det_cache_meta": ({c: caches[c].meta for c in cams} if caches is not None else None),
+        # ⚠ 2026-09-15 前沒記追蹤器設定 —— 換了 backend(rf_botsort / rf_cbiou)之後,
+        #   光看 run_meta 無法證明「跑的就是登記的那個追蹤器」。只新增欄位,不影響任何決策。
+        "tracker_path": str(args.tracker),
+        "tracker_cfg": tcfg,
         "stride": args.stride, "max_frames": args.max_frames,
         "ttl_loops": args.ttl, "ttl_seconds": args.ttl * args.stride / args.fps,
         "lost_track_buffer_loops": tcfg.get("lost_track_buffer"),

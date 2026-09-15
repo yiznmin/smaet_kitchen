@@ -88,3 +88,6 @@ results/chirla_diag/**/tracks.csv
 results/det_cache/
 # eval_m4_chirla.py --dump-dir 的逐位比對用輸出(拋棄式)
 results/m4_dump_*/
+# 2026-09-15 步驟 3:每格的逐幀 track 與 M4 匯出 —— 由偵測快取與設定檔可重新產生
+results/m5_step3/**/tracks.csv
+results/m5_step3/**/m4dump/
