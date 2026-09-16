@@ -53,11 +53,20 @@ def sim_matrix(gb, tb):
     return m
 
 
-def unit_inputs(gt_cam, trk_by_fid, stride):
-    """回傳一個 (序列, 鏡頭) 單元的 gt_ids、tracker_ids、similarity 三個逐幀清單。"""
+def unit_inputs(gt_cam, trk_by_fid, stride, fid_range=None):
+    """回傳一個 (序列, 鏡頭) 單元的 gt_ids、tracker_ids、similarity 三個逐幀清單。
+
+    fid_range=(lo, hi):只算這個影格範圍(0-based,兩端都含)。
+      2026-09-16 難度分級交付要「一個窗 = 一個評估單元」而本檔原本只能整段序列算。
+      ⚠ 不給就是原本的行為,輸出逐位不變 —— 既有結果必須可回歸。
+      ⚠ 這裡**不會**把 GT 濾成只剩目標身份:窗內若混進別人而追蹤器追了他,
+        那必須算我們的錯。獨佔是在挑窗時保證的,不是在算指標時假裝的。
+    """
     last = max(gt_cam) if gt_cam else 0          # 標註幀號是 1-based
     gids, tids, sims = [], [], []
-    for fid in range(0, last, stride):
+    rng = (range(fid_range[0], fid_range[1] + 1, stride) if fid_range
+           else range(0, last, stride))
+    for fid in rng:
         g = gt_cam.get(fid + 1, [])
         t = trk_by_fid.get(fid, [])
         gids.append(np.array([x[0] for x in g], dtype=int))
