@@ -88,6 +88,12 @@ results/chirla_diag/**/tracks.csv
 results/det_cache/
 # eval_m4_chirla.py --dump-dir 的逐位比對用輸出(拋棄式)
 results/m4_dump_*/
+# 2026-09-16 難度分級交付的 **EPFL 排練**產物(影片、抽幀、假標註清單)。
+# ⚠ 只忽略這一層 —— CHIRLA 的 results/levels/level_manifest.json 是**要提交**的
+#   (預先登記要求挑窗清單在算任何指標之前先入庫)。
+# ⚠ EPFL 是 CC-BY-NC:排練影片只能內部看,不得交付、不得入庫。
+#   而且那份「真值」是從系統自己的輸出造的,拿它算出的數字不是效能評估。
+results/levels/epfl_rehearsal/
 # 2026-09-15 步驟 3:每格的逐幀 track 與 M4 匯出 —— 由偵測快取與設定檔可重新產生
 results/m5_step3/**/tracks.csv
 results/m5_step3/**/m4dump/
