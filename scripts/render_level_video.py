@@ -71,8 +71,18 @@ def load_tracks(run_dir, cams, lo, hi):
     return per_loop, chefs, fids
 
 
+# 字型缺字會畫成豆腐方塊(微軟正黑體沒有 ⚠)。畫面上出現 □ 看起來像程式壞了,
+# 而且交付影片不該有那種東西 —— 已知會缺的符號先換成 ASCII。
+_CAPTION_SUBST = {"⚠": "[!]", "✓": "[v]", "✗": "[x]", "·": "-", "—": "-", "→": "->"}
+
+
 def caption(text, width, font_path, height=34):
     """中文字幕條。⚠ cv2.putText 畫不了中文,所以用 PIL 畫一次再逐幀貼上。
+
+    兩個實際踩到的坑(2026-09-16 看 EPFL 排練影片時發現):
+      1. **缺字變豆腐**:見上面的替換表。
+      2. **文字太長被右邊切掉**:640 寬的單鏡頭面板放不下完整說明,而被切掉的
+         往往正是授權與「不可交付」那半句 —— 那是最不能掉的。所以自動縮字級到放得下。
 
     找不到字型就**明確失敗**,不要默默退回 ASCII —— 交付影片少了出處說明,
     被轉寄出去之後沒有人知道它是什麼。
@@ -82,9 +92,17 @@ def caption(text, width, font_path, height=34):
     p = Path(font_path)
     if not p.exists():
         raise SystemExit(f"找不到中文字型 {p} —— 請用 --font 指定(例:C:/Windows/Fonts/msjh.ttc)")
+    for a, b in _CAPTION_SUBST.items():
+        text = text.replace(a, b)
     img = Image.new("RGB", (width, height), (18, 18, 18))
     d = ImageDraw.Draw(img)
-    d.text((10, 7), text, font=ImageFont.truetype(str(p), 18), fill=(235, 235, 235))
+    size, font = 18, None
+    while size >= 10:
+        font = ImageFont.truetype(str(p), size)
+        if d.textlength(text, font=font) <= width - 20:
+            break
+        size -= 1
+    d.text((10, max(0, (height - size) // 2 - 1)), text, font=font, fill=(235, 235, 235))
     return np.array(img)[:, :, ::-1].copy()          # RGB → BGR
 
 
@@ -206,8 +224,11 @@ def render(win, run_root, out_dir, args):
             panels.append(draw_panel(frame, trks, c, chefs, fid / fps_src, width=args.width))
         canvas = even(stitch(panels))
         if strip is None:
+            # ⚠ 授權與資料來源由 --label 帶進來,**不可寫死** ——
+            #   寫死的話用別的資料集渲染時,畫面上會掛著錯誤的授權宣告,
+            #   而影片一旦被轉寄出去,看的人只會相信畫面上那一行。
             txt = (f"{win['level']} {win['window_id']}  |  {seq} {'+'.join(cams)}  |  "
-                   f"{args.label}  |  CHIRLA CC-BY-4.0  |  "
+                   f"{args.label}  |  "
                    f"stride={stride} → {fps_out:g} fps"
                    + ("(實時)" if args.fps_mode == "realtime" else f"({stride}倍速)"))
             strip = caption(txt, canvas.shape[1], args.font)
