@@ -111,8 +111,11 @@ class SpatioTemporalIdentityManager(IdentityManager):
 
 
     def _score_candidates(self, camera_id, t, emb, bbox, zone, world_xy, world_v,
-                          exclude_key=None):
+                          exclude_key=None, cue_token=None):
         """算出所有通過物理可能性檢查的候選 [(score, chef_id, app_cos)]。
+
+        cue_token:這次偵測讀到的身份訊號(2026-09-16 上限實驗,見 m5_reid/cue.py)。
+          None 或拓撲沒開 cue → 完全不影響分數,與 9/15 的結果逐位相同。
 
         ⚠ **這段從 `on_new_track` 抽出來,一個字都沒改。** 抽出來的唯一理由是
           讓 P1 的重新投票走**完全相同**的評分邏輯 —— 兩條路若分歧,
@@ -161,6 +164,9 @@ class SpatioTemporalIdentityManager(IdentityManager):
                     continue
                 app = cosine(emb, chef.embedding)
                 score = w_st * sp + w_app * app
+            # 身份訊號(2026-09-16):兩次讀數比對。關閉時 cue_lr 為 None,這行不執行。
+            if self.topo.cue_lr is not None:
+                score += self.topo.cue_lr.llr(cue_token, chef.cue_token)
             cands.append((score, cid, app))
 
         # (b) 該 chef 此刻正被某台「與本鏡頭重疊」的相機看著 → 幾何關聯
@@ -245,19 +251,26 @@ class SpatioTemporalIdentityManager(IdentityManager):
                     #   保留它只是為了讓沒有單應性的鏡頭對仍能運作,不是認可它。
                     k = max(min(overlap_pool.get(c, 1) for c in cams), 1)
                     score = self.f["overlap_llr"] - math.log(k) + self.topo.app_lr.llr(app)
+            # 身份訊號(2026-09-16):這是重疊路徑上**唯一能區分候選**的證據 ——
+            # 常數項對每位候選都一樣,稀釋項只看鏡頭上有幾個人,兩者都回答不了「是誰」。
+            if self.topo.cue_lr is not None:
+                score += self.topo.cue_lr.llr(cue_token, chef.cue_token)
             cands.append((score, cid, app))
         return cands
 
     def on_new_track(self, track_id, *, camera_id=None, frame_id=0, t_sec=None,
                      crop=None, embedding=None, bbox=None, zone=None, world_xy=None,
-                     world_v=None):
+                     world_v=None, cue_token=None):
         self.tick(frame_id)
         t = self._t(frame_id, t_sec, camera_id)
         emb = l2norm(embedding if embedding is not None else self.embedder.extract(crop))
         llr_mode = self.f["mode"] == "llr"
         thr = self.topo.llr_threshold if llr_mode else self.f["combined_threshold"]
 
-        cands = self._score_candidates(camera_id, t, emb, bbox, zone, world_xy, world_v)
+        # ⚠ 先評分再存 token。反過來的話,這條 track 現在的讀數會先被寫進候選身上,
+        #   再拿去跟自己比對 —— 每位候選都會變成完美吻合,證據自我佐證。
+        cands = self._score_candidates(camera_id, t, emb, bbox, zone, world_xy, world_v,
+                                       cue_token=cue_token)
 
         self.last_candidates = len(cands)
         self._cand_hist[min(len(cands), 5)] += 1
@@ -298,6 +311,10 @@ class SpatioTemporalIdentityManager(IdentityManager):
                 chef.track_ids.append(gk)
             chef.last_seen = frame_id
             chef.embedding = l2norm(self.ema * chef.embedding + (1 - self.ema) * emb)
+            # 身份訊號:存這一次的讀數。⚠ 讀不到(None)時**保留上一次成功的讀數**,
+            #   覆寫成 None 等於把已經拿到的證據丟掉。
+            if cue_token is not None:
+                chef.cue_token = cue_token
             self.track_to_chef[gk] = best_id
             self._cam[best_id] = (camera_id, t)
             if bbox is not None:                       # F4:見 on_track_update
@@ -310,7 +327,8 @@ class SpatioTemporalIdentityManager(IdentityManager):
 
         cid = self._next                                        # 開新廚師
         self._next += 1
-        self.active[cid] = ChefIdentity(cid, emb, [gk], "active", frame_id, frame_id)
+        self.active[cid] = ChefIdentity(cid, emb, [gk], "active", frame_id, frame_id,
+                                        cue_token)
         self.track_to_chef[gk] = cid
         self._cam[cid] = (camera_id, t)
         if bbox is not None:                           # F4:見 on_track_update
@@ -323,9 +341,22 @@ class SpatioTemporalIdentityManager(IdentityManager):
         shown = 0.0 if best_score == float("-inf") else round(best_score, 4)
         return MatchResult(track_id, cid, False, shown, frame_id)
 
+    def _store_cue(self, chef_id, cue_token):
+        """把這次的讀數存到該 chef 身上。
+
+        ⚠ 一律在**評分之後**呼叫。先存再評分的話,這位 chef 會拿自己剛寫進去的
+          讀數跟自己比對,變成完美吻合 —— 與 exclude_key 防的是同一種自我佐證。
+        ⚠ 讀不到(None)時不覆寫,保留上一次成功的讀數。
+        """
+        if cue_token is None or chef_id is None:
+            return
+        chef = self.active.get(chef_id) or self.gone.get(chef_id)
+        if chef is not None:
+            chef.cue_token = cue_token
+
     def on_track_update(self, track_id, *, camera_id=None, frame_id=0, t_sec=None,
                         world_xy=None, bbox=None, world_v=None,
-                        embedding=None, crop=None, zone=None):
+                        embedding=None, crop=None, zone=None, cue_token=None):
         """M4 每幀(或每隔幾幀)回報「這條 track 還在,現在在這裡」。
 
         ⚠ 這個介面是**地面校正的前提**,不是可有可無的優化。
@@ -373,7 +404,7 @@ class SpatioTemporalIdentityManager(IdentityManager):
         # ⚠ exclude_key 把**這條 track 自己**排除:不排除的話,這位 chef 會因為
         #   「他正在這台鏡頭上」而自我佐證,投票永遠投給現任。
         cands = self._score_candidates(camera_id, t, emb, bbox, zone, world_xy,
-                                       world_v, exclude_key=gk)
+                                       world_v, exclude_key=gk, cue_token=cue_token)
 
         if rv["assignment"] == "hungarian":
             # P2:先緩衝,等這台鏡頭這一輪的 track 都進來了再一次解全域指派。
@@ -381,12 +412,15 @@ class SpatioTemporalIdentityManager(IdentityManager):
             # 而 revote_pending 這個診斷會讓那件事看得見(不是靜默失效)。
             self._pending_vote.setdefault(camera_id, []).append(
                 dict(gk=gk, cid=cid, cands=cands, frame_id=frame_id, t=t,
-                     emb=emb, bbox=bbox))
+                     emb=emb, bbox=bbox, cue_token=cue_token))
             return cid
 
         self._cast_vote(gk, cid, cands, frame_id, t, camera_id, emb, bbox)
         votes = self._votes[gk]
-        return self._settle(gk, cid, frame_id, t, camera_id, emb, bbox)
+        new_cid = self._settle(gk, cid, frame_id, t, camera_id, emb, bbox)
+        # 評分與投票都結束了,才把這次的讀數存到(可能已經改判的)那位 chef 身上。
+        self._store_cue(new_cid, cue_token)
+        return new_cid
 
     def _cast_vote(self, gk, cid, cands, frame_id, t, camera_id, emb, bbox,
                    forced=None):
@@ -462,8 +496,10 @@ class SpatioTemporalIdentityManager(IdentityManager):
                             camera_id, it["emb"], it["bbox"],
                             forced=picked.get(i, it["cid"]))
         for it in pend:
-            self._settle(it["gk"], it["cid"], it["frame_id"], it["t"], camera_id,
-                         it["emb"], it["bbox"])
+            new_cid = self._settle(it["gk"], it["cid"], it["frame_id"], it["t"],
+                                   camera_id, it["emb"], it["bbox"])
+            # 與 greedy 路徑一樣:投完票才存讀數(先存會自我佐證)
+            self._store_cue(new_cid, it.get("cue_token"))
         self._n_resolved += len(pend)
         return len(pend)
 

@@ -133,6 +133,15 @@ _DEFAULT_FUSION = {
     #   出現多條新 track 很罕見,在那裡做批次指派收益極小而複雜度高。
     "revote": {"enabled": False, "stride_loops": 8, "window": 15,
                "min_votes": 3, "switch_margin": 2, "assignment": "greedy"},
+    # 身份訊號(2026-09-16 上限實驗)。**預設關閉**,關閉時 cue_lr 為 None,
+    # identity_st 完全跳過該項,與 9/15 的結果逐位相同。
+    #
+    # 它假設「每次偵測都能讀到一個準確率 accuracy 的身份標記」,用來量這套架構的**上限**:
+    # 訊號要多準,誤併率才會 ≤ 1%?這個答案直接決定要不要在廚師身上加可辨識標記。
+    # ⚠ 實驗用的訊號是從真值合成的(scripts/m5_track_video.py --oracle-cue),
+    #   所以只有那支腳本明確給旗標時才會有 token 進來;正式評估路徑拿不到訊號。
+    # n_ids = 讀取器的字彙大小(有幾個不同的標記)。null = 由 runner 依真值表決定。
+    "cue": {"enabled": False, "accuracy": None, "n_ids": None, "clip": 8.0},
     "max_z": 6.0,                           # 轉場分布的遠尾截斷(省算,非決策門)
     # ── v2(mode=weighted_sum)參數 ──────────────────────────────────
     "w_st": 0.7, "w_app": 0.3, "k_sigma": 2.0, "combined_threshold": 0.35,
@@ -283,6 +292,21 @@ class CameraTopology:
                             assignment=asg)
                        if rv.get("enabled", False) else None)
 
+        # 身份訊號(2026-09-16 上限實驗)。關閉時為 None,identity_st 完全跳過。
+        # ⚠ n_ids 可以留 null,由 runner 依真值表算出後呼叫 set_cue_n_ids() ——
+        #   讀取器的字彙大小是**跑的時候**才知道的(每個序列的身份數不同),
+        #   寫死在拓撲裡會讓同一份設定檔在不同序列上代表不同的證據強度。
+        cu = f.get("cue") or {}
+        self.cue_lr = None
+        if cu.get("enabled", False):
+            from m5_reid.cue import CueLR
+            if cu.get("accuracy") is None:
+                raise ValueError("cue.enabled 為 true 時必須指定 accuracy")
+            self._cue_cfg = dict(accuracy=float(cu["accuracy"]),
+                                 clip=cu.get("clip", 8.0))
+            if cu.get("n_ids") is not None:
+                self.cue_lr = CueLR(n_ids=int(cu["n_ids"]), **self._cue_cfg)
+
         # F4:建 {目標鏡頭: {來源鏡頭: CrossViewLR}}。
         # 查詢方向是「來源鏡頭的 bbox → 目標鏡頭的 bbox」,所以存進來時
         # 兩個方向都要建 —— 反向用 H 的反矩陣。
@@ -323,6 +347,20 @@ class CameraTopology:
                 raise ValueError(
                     "transit_place 與 direction 不可同時開啟 —— "
                     "DirectionLR 是同一份資訊的離散粗糙版,同時開會重複計算證據。")
+
+    def set_cue_n_ids(self, n_ids):
+        """補上讀取器的字彙大小(有幾個不同的標記)。cue 沒開就是 no-op。
+
+        ⚠ 這個值是**跑的時候**才知道的(每個序列的身份數不同),寫死在拓撲裡會讓
+          同一份設定檔在不同序列上代表不同的證據強度 —— 而那種差異不會報錯,
+          只會讓各序列的結果不可比。所以由 runner 依真值表算出後呼叫這裡。
+        """
+        from m5_reid.cue import CueLR
+
+        if not (self.fusion.get("cue") or {}).get("enabled", False):
+            return None
+        self.cue_lr = CueLR(n_ids=int(n_ids), **self._cue_cfg)
+        return self.cue_lr
 
     def transit_place(self, cam_from, cam_to):
         """回傳該連結的 TransitPlaceLR;沒有就 None(呼叫端加 0)。"""

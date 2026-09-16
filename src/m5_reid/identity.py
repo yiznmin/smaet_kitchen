@@ -25,6 +25,10 @@ class ChefIdentity:
     state: str                          # "active" | "gone"
     first_seen: int
     last_seen: int
+    # 2026-09-16 上限實驗:這位 chef 身上最近一次讀到的身份訊號(見 m5_reid/cue.py)。
+    # ⚠ 存的是**一次有雜訊的讀數**,不是真值 —— CueLR 的推導就是建立在「兩次讀數比對」
+    #   之上,存真值會讓證據強度被高估。預設 None = 沒有訊號,行為與加這個欄位之前相同。
+    cue_token: int | None = None
 
 
 @dataclass

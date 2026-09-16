@@ -41,6 +41,7 @@ from common.video_io import iter_frames, video_meta            # noqa: E402
 from m3.classes import NAMES                                  # noqa: E402
 from m4_track import KitchenTracker                           # noqa: E402
 from m4_track.det_cache import DetCache, weights_id            # noqa: E402
+from m5_reid.cue import reading_key, synth_token               # noqa: E402
 from m5_reid.identity_st import SpatioTemporalIdentityManager  # noqa: E402
 from m5_reid.spatiotemporal import CameraTopology             # noqa: E402
 
@@ -255,9 +256,17 @@ def main():
     # ⚠ 快取的模型/權重/person_cls 與本次不符時直接報錯,不會安靜地用錯的偵測。
     ap.add_argument("--det-cache", default=None,
                     help="偵測快取目錄(內含 <camera>.npz)。不給就照常即時偵測")
+    # 上限實驗(2026-09-16)。⚠ **這是唯一會讓真值進入決策的旗標** ——
+    # 它模擬「每個框都能讀到一個準確率 p 的身份標記」,用來量這套架構的上限,
+    # 回答「要不要加可辨識標記、標記要多準」。不給它時真值仍然只進診斷。
+    # 需要搭配 --track-gt(訊號從真值合成)與拓撲的 fusion.cue.enabled。
+    ap.add_argument("--oracle-cue", default=None,
+                    help="合成身份訊號,格式 p=<0~1>,seed=<int>[,burst=<幀>]。"
+                         "burst > 0 時錯誤成群出現(模擬標記被遮住)")
     args = ap.parse_args()
 
     # 真值只進診斷,不進決策 —— 這條界線一旦破了,整套評估就沒有意義。
+    # ⚠ 唯一的例外是下面的 --oracle-cue(2026-09-16 上限實驗),而它必須明講。
     track_gt = None
     if args.track_gt:
         raw = json.loads(Path(args.track_gt).read_text(encoding="utf-8"))
@@ -265,11 +274,41 @@ def main():
         print(f"四層歸因診斷:載入 {len(track_gt):,} 條 track 的真值對照")
     last_chef_of_gt = {}
 
+    # 上限實驗:合成身份訊號(見 src/m5_reid/cue.py)。
+    # 它模擬「每次偵測都能讀到一個準確率 p 的標記」,用來量這套架構的上限。
+    cue = None
+    if args.oracle_cue:
+        if track_gt is None:
+            raise SystemExit("--oracle-cue 需要 --track-gt —— 訊號是從真值合成的")
+        kv = dict(part.split("=", 1) for part in args.oracle_cue.split(","))
+        bad = set(kv) - {"p", "seed", "burst"}
+        if bad:
+            raise SystemExit(f"--oracle-cue 只認得 p / seed / burst,收到 {sorted(bad)}")
+        ids = tuple(sorted({v for v in track_gt.values() if v is not None}))
+        if len(ids) < 2:
+            raise SystemExit(f"真值只有 {len(ids)} 個身份,合成不出有意義的讀取器")
+        cue = dict(p=float(kv["p"]), seed=int(kv.get("seed", 0)),
+                   burst=int(kv.get("burst", 0)), ids=ids, n_ids=len(ids),
+                   n_read=0, n_correct=0)
+        print(f"⚠ 上限實驗:合成身份訊號 p={cue['p']} seed={cue['seed']} "
+              f"burst={cue['burst']},讀取器字彙 {cue['n_ids']} 個身份")
+        print("  **真值進入決策** —— 這一格只量架構上限,不可與正式評估的數字並列。")
+
     cams = args.cameras or [Path(v).stem for v in args.videos]
     if len(cams) != len(args.videos):
         raise SystemExit("--cameras 數量必須與 --videos 相同")
 
     topo = CameraTopology.from_yaml(args.topology)
+    # 上限實驗:讀取器的字彙大小(有幾個不同的標記)由真值表決定,不寫死在拓撲裡 ——
+    # 每個序列的身份數不同,寫死會讓同一份設定檔在不同序列上代表不同的證據強度。
+    # ⚠ 兩邊只開一邊都是設定錯誤,而且**不會報錯只會安靜地沒有訊號**,所以擋在這裡。
+    cue_enabled = bool((topo.fusion.get("cue") or {}).get("enabled", False))
+    if cue is not None and not cue_enabled:
+        raise SystemExit("--oracle-cue 需要拓撲的 fusion.cue.enabled: true(見 configs/oracle/)")
+    if cue_enabled and cue is None:
+        raise SystemExit("拓撲開了 fusion.cue 卻沒給 --oracle-cue —— 不會有任何訊號進來")
+    if cue is not None:
+        print(f"  {topo.set_cue_n_ids(cue['n_ids']).describe()}")
     # 診斷用:判定 L4「排第一但沒過門檻」要跟 on_new_track 用同一個門檻值
     thr = (topo.llr_threshold if topo.fusion["mode"] == "llr"
            else topo.fusion["combined_threshold"])
@@ -395,6 +434,22 @@ def main():
             # ① 心跳:先把「誰此刻在畫面上、在哪裡」全部餵進去,再做綁定決策。
             #    M4 每幀都有 tracks,但 M5 只吃事件 —— 這個介面缺口是第五、六輪
             #    在模擬裡踩出來的,真實管線同樣需要,而且順序必須在事件之前。
+            # 上限實驗:這一輪先把每條 track 的讀數算好。心跳與出生事件**共用同一個
+            # 讀數** —— 同一幀不可能讀兩次標記;而且每條 track 每輪只計一次,
+            # 否則 V3 的實際讀對率會被重複計數灌水。cue 關閉時這裡是空的。
+            toks = {}
+            if cue is not None:
+                for c, (_frame, out) in per_cam.items():
+                    for tr in out.tracks:
+                        gt = track_gt.get((c, tr.track_id))
+                        tok = synth_token(gt, cue["ids"],
+                                          key=reading_key(c, tr.track_id, n_frames,
+                                                          cue["burst"]),
+                                          accuracy=cue["p"], seed=cue["seed"])
+                        toks[(c, tr.track_id)] = tok
+                        if gt is not None:      # 誤偵身上沒有標記可讀,不計入讀對率
+                            cue["n_read"] += 1
+                            cue["n_correct"] += int(tok == gt)
             for c, (_frame, out) in per_cam.items():
                 for tr in out.tracks:
                     # P1 累積投票要 embedding 才投得了票。⚠ 但抽 crop + 跑
@@ -405,7 +460,8 @@ def main():
                           and tr.bbox is not None else None)
                     m5.on_track_update(tr.track_id, camera_id=c, frame_id=n_frames,
                                        t_sec=t_sec, bbox=tr.bbox, crop=cr,
-                                       world_xy=topo.world_xy(c, tr.bbox))
+                                       world_xy=topo.world_xy(c, tr.bbox),
+                                       cue_token=toks.get((c, tr.track_id)))
                     # 逐幀軌跡:M4 在真實影片上的量化目前完全空白,這是唯一的資料來源。
                     # conf 為空 = 這一幀沒配對上、用 Kalman 預測框 → 「空轉」的證據。
                     b = tr.bbox or (None,) * 4
@@ -432,7 +488,8 @@ def main():
                         cr = crop_of(frame, ev.bbox) if ev.bbox is not None else None
                         r = m5.on_new_track(ev.track_id, camera_id=c, frame_id=ev.frame_id,
                                             t_sec=ev.t_sec, bbox=ev.bbox, crop=cr,
-                                            world_xy=topo.world_xy(c, ev.bbox))
+                                            world_xy=topo.world_xy(c, ev.bbox),
+                                            cue_token=toks.get((c, ev.track_id)))
                         row = dict(loop_i=n_frames, video_fid=last_fid[c],
                                    t_sec=round(ev.t_sec, 3), camera_id=c,
                                    track_id=ev.track_id, chef_id=r.chef_id,
@@ -557,6 +614,14 @@ def main():
         "candidate_histogram": m5.candidate_histogram(),
         "resident_final": m5.resident_stats(),
         "llr_threshold": getattr(topo, "llr_threshold", None),
+        # 上限實驗(2026-09-16):這一格是不是 oracle 格、訊號多準、**實際**讀對率。
+        # ⚠ 硬性驗收就是比對 observed_accuracy 與登記的 p —— 兩者不符表示訊號沒接上,
+        #   而那種錯誤在指標上看起來只是「效果不好」,不會自己現形。
+        "oracle_cue": (None if cue is None else
+                       {"p": cue["p"], "seed": cue["seed"], "burst": cue["burst"],
+                        "n_ids": cue["n_ids"], "n_readings": cue["n_read"],
+                        "observed_accuracy": (round(cue["n_correct"] / cue["n_read"], 6)
+                                              if cue["n_read"] else None)}),
     }
     (out_dir / "run_meta.json").write_text(
         json.dumps(meta, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
