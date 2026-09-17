@@ -1,0 +1,44 @@
+[
+  {
+    "window_id": "L1-train-seq_000-camera_6-003945",
+    "frames": 62,
+    "fps": 6.0,
+    "size": [
+      640,
+      460
+    ],
+    "boxes": 70,
+    "with_chef": 70,
+    "bytes": 337036,
+    "codec": "h264",
+    "path": "results\\levels\\videos\\B\\L1-train-seq_000-camera_6-003945.mp4"
+  },
+  {
+    "window_id": "L2-train-seq_000-camera_1-003910",
+    "frames": 178,
+    "fps": 6.0,
+    "size": [
+      640,
+      460
+    ],
+    "boxes": 213,
+    "with_chef": 213,
+    "bytes": 1113146,
+    "codec": "h264",
+    "path": "results\\levels\\videos\\B\\L2-train-seq_000-camera_1-003910.mp4"
+  },
+  {
+    "window_id": "L3S-train-seq_000-camera_6+camera_7-004450",
+    "frames": 35,
+    "fps": 6.0,
+    "size": [
+      1280,
+      460
+    ],
+    "boxes": 62,
+    "with_chef": 62,
+    "bytes": 394024,
+    "codec": "h264",
+    "path": "results\\levels\\videos\\B\\L3S-train-seq_000-camera_6+camera_7-004450.mp4"
+  }
+]

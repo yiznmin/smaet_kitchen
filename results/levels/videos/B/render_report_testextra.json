@@ -1,0 +1,100 @@
+[
+  {
+    "window_id": "L1-test-seq_025-camera_7-005225",
+    "frames": 52,
+    "fps": 6.0,
+    "size": [
+      640,
+      460
+    ],
+    "boxes": 51,
+    "with_chef": 51,
+    "bytes": 508126,
+    "codec": "h264",
+    "path": "results\\levels\\videos\\B\\L1-test-seq_025-camera_7-005225.mp4"
+  },
+  {
+    "window_id": "L1-test-seq_026-camera_5-005835",
+    "frames": 45,
+    "fps": 6.0,
+    "size": [
+      640,
+      460
+    ],
+    "boxes": 123,
+    "with_chef": 123,
+    "bytes": 254539,
+    "codec": "h264",
+    "path": "results\\levels\\videos\\B\\L1-test-seq_026-camera_5-005835.mp4"
+  },
+  {
+    "window_id": "L2-test-seq_004-camera_7-004775",
+    "frames": 64,
+    "fps": 6.0,
+    "size": [
+      640,
+      460
+    ],
+    "boxes": 44,
+    "with_chef": 44,
+    "bytes": 309917,
+    "codec": "h264",
+    "path": "results\\levels\\videos\\B\\L2-test-seq_004-camera_7-004775.mp4"
+  },
+  {
+    "window_id": "L2-test-seq_024-camera_4-012085",
+    "frames": 36,
+    "fps": 6.0,
+    "size": [
+      640,
+      460
+    ],
+    "boxes": 27,
+    "with_chef": 27,
+    "bytes": 249391,
+    "codec": "h264",
+    "path": "results\\levels\\videos\\B\\L2-test-seq_024-camera_4-012085.mp4"
+  },
+  {
+    "window_id": "L2-test-seq_024-camera_4-014700",
+    "frames": 20,
+    "fps": 6.0,
+    "size": [
+      640,
+      460
+    ],
+    "boxes": 10,
+    "with_chef": 10,
+    "bytes": 139478,
+    "codec": "h264",
+    "path": "results\\levels\\videos\\B\\L2-test-seq_024-camera_4-014700.mp4"
+  },
+  {
+    "window_id": "L3T-test-seq_004-camera_6+camera_7-004590",
+    "frames": 60,
+    "fps": 6.0,
+    "size": [
+      1280,
+      460
+    ],
+    "boxes": 41,
+    "with_chef": 41,
+    "bytes": 553720,
+    "codec": "h264",
+    "path": "results\\levels\\videos\\B\\L3T-test-seq_004-camera_6+camera_7-004590.mp4"
+  },
+  {
+    "window_id": "L3T-test-seq_024-camera_5+camera_6-013975",
+    "frames": 29,
+    "fps": 6.0,
+    "size": [
+      1280,
+      460
+    ],
+    "boxes": 21,
+    "with_chef": 20,
+    "bytes": 376849,
+    "codec": "h264",
+    "path": "results\\levels\\videos\\B\\L3T-test-seq_024-camera_5+camera_6-013975.mp4"
+  }
+]
