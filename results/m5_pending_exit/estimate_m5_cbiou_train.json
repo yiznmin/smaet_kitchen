@@ -1,0 +1,106 @@
+{
+  "run_root": "results/levels/runs/m5_cbiou_train",
+  "seqs": [
+    "seq_000",
+    "seq_001",
+    "seq_002"
+  ],
+  "topology": "configs/fix_grid/base.yaml",
+  "threshold": 1.6094379124341003,
+  "total": {
+    "counts": {
+      "decisions": 458,
+      "attributable": 271,
+      "want_pending": 111,
+      "want_pending|OK": 101,
+      "risk_ghost_or_first_now_bound": 30,
+      "want_pending|L2_not_in_candidates": 6,
+      "wrong_to_wrong": 4,
+      "want_pending_score_ge_thr": 32,
+      "harm_break_to_merge": 6,
+      "want_pending|L3_not_top1": 4,
+      "ok_unchanged": 4
+    },
+    "want_dt_s": {
+      "p50": 1.833,
+      "p90": 4.0,
+      "max": 5.0
+    },
+    "want_score": {
+      "p10": -1.934,
+      "p50": 0.352,
+      "min": -2.767
+    }
+  },
+  "per_seq": {
+    "seq_000": {
+      "counts": {
+        "decisions": 346,
+        "attributable": 217,
+        "want_pending": 87,
+        "want_pending|OK": 81,
+        "risk_ghost_or_first_now_bound": 28,
+        "want_pending|L2_not_in_candidates": 5,
+        "wrong_to_wrong": 1,
+        "want_pending_score_ge_thr": 25,
+        "harm_break_to_merge": 5,
+        "want_pending|L3_not_top1": 1,
+        "ok_unchanged": 2
+      },
+      "want_dt_s": {
+        "p50": 2.167,
+        "p90": 4.167,
+        "max": 5.0
+      },
+      "want_score": {
+        "p10": -1.764,
+        "p50": 0.344,
+        "min": -2.676
+      }
+    },
+    "seq_001": {
+      "counts": {
+        "decisions": 40,
+        "attributable": 15,
+        "want_pending": 5,
+        "want_pending|OK": 5,
+        "want_pending_score_ge_thr": 1
+      },
+      "want_dt_s": {
+        "p50": 2.333,
+        "p90": 2.6998,
+        "max": 2.833
+      },
+      "want_score": {
+        "p10": 0.5114,
+        "p50": 0.922,
+        "min": 0.363
+      }
+    },
+    "seq_002": {
+      "counts": {
+        "decisions": 72,
+        "attributable": 39,
+        "want_pending": 19,
+        "want_pending|OK": 15,
+        "want_pending_score_ge_thr": 6,
+        "risk_ghost_or_first_now_bound": 2,
+        "want_pending|L3_not_top1": 3,
+        "wrong_to_wrong": 3,
+        "harm_break_to_merge": 1,
+        "want_pending|L2_not_in_candidates": 1,
+        "ok_unchanged": 2
+      },
+      "want_dt_s": {
+        "p50": 1.333,
+        "p90": 3.167,
+        "max": 4.0
+      },
+      "want_score": {
+        "p10": -2.3002,
+        "p50": 0.179,
+        "min": -2.767
+      }
+    }
+  }
+}

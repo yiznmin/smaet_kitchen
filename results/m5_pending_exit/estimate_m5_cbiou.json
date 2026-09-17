@@ -1,0 +1,240 @@
+{
+  "run_root": "results/m5_step3/m5_cbiou",
+  "seqs": [
+    "seq_004",
+    "seq_006",
+    "seq_007",
+    "seq_020",
+    "seq_024",
+    "seq_025",
+    "seq_026"
+  ],
+  "topology": "configs/fix_grid/base.yaml",
+  "threshold": 1.6094379124341003,
+  "total": {
+    "counts": {
+      "decisions": 3273,
+      "attributable": 2101,
+      "want_pending": 894,
+      "want_pending|OK": 707,
+      "want_pending_score_ge_thr": 319,
+      "risk_ghost_or_first_now_bound": 351,
+      "harm_break_to_merge": 137,
+      "ok_unchanged": 81,
+      "want_pending|L2_not_in_candidates": 106,
+      "want_pending|L3_not_top1": 72,
+      "rescued": 56,
+      "rescued|L2_not_in_candidates": 49,
+      "wrong_to_wrong": 38,
+      "want_pending|L4_below_threshold": 9,
+      "rescued|L4_below_threshold": 1,
+      "rescued|L3_not_top1": 6,
+      "harm_ok_to_wrong": 2
+    },
+    "want_dt_s": {
+      "p50": 1.667,
+      "p90": 4.167,
+      "max": 5.0
+    },
+    "want_score": {
+      "p10": -0.8934999999999998,
+      "p50": 0.872,
+      "min": -2.765
+    }
+  },
+  "per_seq": {
+    "seq_004": {
+      "counts": {
+        "decisions": 529,
+        "attributable": 334,
+        "want_pending": 165,
+        "want_pending|OK": 143,
+        "want_pending_score_ge_thr": 56,
+        "risk_ghost_or_first_now_bound": 60,
+        "harm_break_to_merge": 13,
+        "ok_unchanged": 12,
+        "want_pending|L2_not_in_candidates": 14,
+        "want_pending|L3_not_top1": 8,
+        "rescued": 3,
+        "rescued|L2_not_in_candidates": 3,
+        "wrong_to_wrong": 5
+      },
+      "want_dt_s": {
+        "p50": 1.667,
+        "p90": 4.2665999999999995,
+        "max": 5.0
+      },
+      "want_score": {
+        "p10": -0.879,
+        "p50": 0.732,
+        "min": -2.35
+      }
+    },
+    "seq_006": {
+      "counts": {
+        "decisions": 117,
+        "attributable": 49,
+        "harm_break_to_merge": 8,
+        "want_pending": 8,
+        "want_pending|L2_not_in_candidates": 3,
+        "want_pending_score_ge_thr": 2,
+        "rescued": 2,
+        "rescued|L2_not_in_candidates": 2,
+        "risk_ghost_or_first_now_bound": 18,
+        "wrong_to_wrong": 1,
+        "want_pending|OK": 5
+      },
+      "want_dt_s": {
+        "p50": 1.75,
+        "p90": 2.7168999999999994,
+        "max": 4.0
+      },
+      "want_score": {
+        "p10": -1.0333999999999999,
+        "p50": 1.0825,
+        "min": -1.13
+      }
+    },
+    "seq_007": {
+      "counts": {
+        "decisions": 72,
+        "attributable": 34,
+        "risk_ghost_or_first_now_bound": 7,
+        "want_pending": 7,
+        "want_pending|L2_not_in_candidates": 5,
+        "want_pending_score_ge_thr": 3,
+        "rescued": 1,
+        "rescued|L2_not_in_candidates": 1,
+        "want_pending|OK": 2,
+        "ok_unchanged": 2,
+        "harm_break_to_merge": 6
+      },
+      "want_dt_s": {
+        "p50": 1.833,
+        "p90": 3.4000000000000004,
+        "max": 4.0
+      },
+      "want_score": {
+        "p10": 0.02760000000000007,
+        "p50": 1.432,
+        "min": -0.309
+      }
+    },
+    "seq_020": {
+      "counts": {
+        "decisions": 975,
+        "attributable": 630,
+        "risk_ghost_or_first_now_bound": 128,
+        "want_pending": 294,
+        "want_pending|OK": 222,
+        "want_pending_score_ge_thr": 113,
+        "ok_unchanged": 37,
+        "harm_break_to_merge": 47,
+        "wrong_to_wrong": 14,
+        "want_pending|L2_not_in_candidates": 32,
+        "rescued": 21,
+        "rescued|L2_not_in_candidates": 16,
+        "want_pending|L4_below_threshold": 7,
+        "rescued|L4_below_threshold": 1,
+        "want_pending|L3_not_top1": 33,
+        "rescued|L3_not_top1": 4,
+        "harm_ok_to_wrong": 2
+      },
+      "want_dt_s": {
+        "p50": 1.4165,
+        "p90": 4.0,
+        "max": 5.0
+      },
+      "want_score": {
+        "p10": -1.0709,
+        "p50": 0.921,
+        "min": -2.438
+      }
+    },
+    "seq_024": {
+      "counts": {
+        "decisions": 582,
+        "attributable": 372,
+        "risk_ghost_or_first_now_bound": 51,
+        "harm_break_to_merge": 28,
+        "want_pending": 131,
+        "want_pending|OK": 104,
+        "want_pending_score_ge_thr": 53,
+        "ok_unchanged": 10,
+        "want_pending|L3_not_top1": 4,
+        "rescued": 14,
+        "rescued|L3_not_top1": 1,
+        "want_pending|L4_below_threshold": 1,
+        "wrong_to_wrong": 7,
+        "want_pending|L2_not_in_candidates": 22,
+        "rescued|L2_not_in_candidates": 13
+      },
+      "want_dt_s": {
+        "p50": 1.667,
+        "p90": 3.833,
+        "max": 5.0
+      },
+      "want_score": {
+        "p10": -0.72,
+        "p50": 0.943,
+        "min": -2.424
+      }
+    },
+    "seq_025": {
+      "counts": {
+        "decisions": 555,
+        "attributable": 392,
+        "want_pending": 165,
+        "want_pending|OK": 130,
+        "harm_break_to_merge": 25,
+        "want_pending|L2_not_in_candidates": 17,
+        "want_pending_score_ge_thr": 54,
+        "risk_ghost_or_first_now_bound": 49,
+        "rescued": 9,
+        "rescued|L2_not_in_candidates": 9,
+        "want_pending|L4_below_threshold": 1,
+        "ok_unchanged": 6,
+        "want_pending|L3_not_top1": 17,
+        "wrong_to_wrong": 6
+      },
+      "want_dt_s": {
+        "p50": 1.833,
+        "p90": 4.333,
+        "max": 5.0
+      },
+      "want_score": {
+        "p10": -0.7013999999999998,
+        "p50": 0.924,
+        "min": -2.2
+      }
+    },
+    "seq_026": {
+      "counts": {
+        "decisions": 443,
+        "attributable": 290,
+        "want_pending": 124,
+        "want_pending|OK": 101,
+        "want_pending_score_ge_thr": 38,
+        "ok_unchanged": 14,
+        "wrong_to_wrong": 5,
+        "risk_ghost_or_first_now_bound": 38,
+        "harm_break_to_merge": 10,
+        "want_pending|L3_not_top1": 10,
+        "want_pending|L2_not_in_candidates": 13,
+        "rescued": 6,
+        "rescued|L3_not_top1": 1,
+        "rescued|L2_not_in_candidates": 5
+      },
+      "want_dt_s": {
+        "p50": 1.833,
+        "p90": 4.1169,
+        "max": 5.0
+      },
+      "want_score": {
+        "p10": -0.8689999999999999,
+        "p50": 0.852,
+        "min": -2.765
+      }
+    }
+  }
+}
