@@ -192,7 +192,14 @@ def render(win, run_root, out_dir, args):
     fps_out = fps_src / stride if args.fps_mode == "realtime" else fps_src
     caps = {}
     for c in cams:
-        p = Path(vmap[c])
+        src = vmap[c]
+        # 資料集搬家後 run_meta 仍是舊路徑(2026-09-17 CHIRLA 搬到 D:/yizhen/CHIRLA)。
+        # 只換前綴、不改 run_meta —— 已提交的執行結果保持原樣
+        for old, new in args.video_root_remap:
+            if src.startswith(old):
+                src = new + src[len(old):]
+                break
+        p = Path(src)
         p = p if p.is_absolute() else ROOT / p
         cap = cv2.VideoCapture(str(p))
         if not cap.isOpened():
@@ -278,7 +285,10 @@ def main():
     ap.add_argument("--font", default="C:/Windows/Fonts/msjh.ttc")
     ap.add_argument("--label", default="m5_cbiou", help="字幕條上的執行標籤")
     ap.add_argument("--out", default=None, help="渲染摘要 json")
+    ap.add_argument("--video-root-remap", nargs="+", default=[], metavar="舊前綴=新前綴",
+                    help="run_meta 影片路徑的前綴替換;不給時行為不變")
     args = ap.parse_args()
+    args.video_root_remap = [tuple(x.split("=", 1)) for x in args.video_root_remap]
 
     man = json.loads(Path(args.manifest).read_text(encoding="utf-8"))
     wins = man["windows"]
