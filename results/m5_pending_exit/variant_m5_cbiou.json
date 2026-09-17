@@ -1,0 +1,115 @@
+{
+  "run_root": "results/m5_step3/m5_cbiou",
+  "seqs": [
+    "seq_004",
+    "seq_006",
+    "seq_007",
+    "seq_020",
+    "seq_024",
+    "seq_025",
+    "seq_026"
+  ],
+  "threshold": 1.6094379124341003,
+  "horizon_s": 100.0,
+  "total": {
+    "actual": {
+      "錯": 499,
+      "對": 962,
+      "開新": 640
+    },
+    "E1": {
+      "outcomes": {
+        "錯": 564,
+        "對": 990,
+        "開新": 547
+      },
+      "transitions": {
+        "開新→錯": 65,
+        "開新→對": 28
+      },
+      "delta": {
+        "對": 28,
+        "開新": -93,
+        "錯": 65
+      },
+      "weighted_cost": {
+        "actual": 3135,
+        "variant": 3367
+      },
+      "first_appearance_bound": {
+        "actual": 27,
+        "variant": 27
+      },
+      "ghost_bound": {
+        "actual": 798,
+        "variant": 0
+      }
+    },
+    "E2": {
+      "outcomes": {
+        "錯": 631,
+        "對": 1016,
+        "開新": 454
+      },
+      "transitions": {
+        "開新→錯": 137,
+        "開新→對": 49,
+        "錯→對": 7,
+        "對→錯": 2
+      },
+      "delta": {
+        "對": 54,
+        "開新": -186,
+        "錯": 132
+      },
+      "weighted_cost": {
+        "actual": 3135,
+        "variant": 3609
+      },
+      "first_appearance_bound": {
+        "actual": 27,
+        "variant": 27
+      },
+      "ghost_bound": {
+        "actual": 798,
+        "variant": 349
+      }
+    },
+    "E3": {
+      "outcomes": {
+        "錯": 773,
+        "對": 1068,
+        "開新": 260
+      },
+      "transitions": {
+        "開新→錯": 279,
+        "開新→對": 101,
+        "錯→對": 7,
+        "對→錯": 2
+      },
+      "delta": {
+        "對": 106,
+        "開新": -380,
+        "錯": 274
+      },
+      "weighted_cost": {
+        "actual": 3135,
+        "variant": 4125
+      },
+      "first_appearance_bound": {
+        "actual": 27,
+        "variant": 27
+      },
+      "ghost_bound": {
+        "actual": 798,
+        "variant": 588
+      }
+    },
+    "n": {
+      "decisions": 3273,
+      "attributable": 2101,
+      "first": 59,
+      "ghost": 1113
+    }
+  }
+}

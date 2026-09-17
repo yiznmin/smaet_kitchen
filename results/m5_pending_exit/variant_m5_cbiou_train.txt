@@ -1,0 +1,95 @@
+{
+  "actual": {
+    "錯": 54,
+    "對": 169,
+    "開新": 48
+  },
+  "E1": {
+    "outcomes": {
+      "錯": 54,
+      "對": 170,
+      "開新": 47
+    },
+    "transitions": {
+      "開新→對": 1
+    },
+    "delta": {
+      "對": 1,
+      "開新": -1,
+      "錯": 0
+    },
+    "weighted_cost": {
+      "actual": 318,
+      "variant": 317
+    },
+    "first_appearance_bound": {
+      "actual": 15,
+      "variant": 15
+    },
+    "ghost_bound": {
+      "actual": 139,
+      "variant": 0
+    }
+  },
+  "E2": {
+    "outcomes": {
+      "錯": 60,
+      "對": 169,
+      "開新": 42
+    },
+    "transitions": {
+      "開新→錯": 6
+    },
+    "delta": {
+      "對": 0,
+      "開新": -6,
+      "錯": 6
+    },
+    "weighted_cost": {
+      "actual": 318,
+      "variant": 342
+    },
+    "first_appearance_bound": {
+      "actual": 15,
+      "variant": 15
+    },
+    "ghost_bound": {
+      "actual": 139,
+      "variant": 30
+    }
+  },
+  "E3": {
+    "outcomes": {
+      "錯": 67,
+      "對": 177,
+      "開新": 27
+    },
+    "transitions": {
+      "開新→錯": 13,
+      "開新→對": 8
+    },
+    "delta": {
+      "對": 8,
+      "開新": -21,
+      "錯": 13
+    },
+    "weighted_cost": {
+      "actual": 318,
+      "variant": 362
+    },
+    "first_appearance_bound": {
+      "actual": 15,
+      "variant": 15
+    },
+    "ghost_bound": {
+      "actual": 139,
+      "variant": 52
+    }
+  },
+  "n": {
+    "decisions": 458,
+    "attributable": 271,
+    "first": 25,
+    "ghost": 162
+  }
+}
