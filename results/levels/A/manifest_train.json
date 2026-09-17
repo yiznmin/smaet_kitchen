@@ -1,0 +1,5172 @@
+{
+  "params": {
+    "stride": 5,
+    "merge_gap": 15,
+    "max_window_s": 60.0,
+    "l1_min_s": 20.0,
+    "l1_max_s": 60.0,
+    "l2_min_gap_s": 2.0,
+    "l2_max_gap_s": 30.0,
+    "l2_min_seg_s": 3.0,
+    "l2_buffer_s": 5.0,
+    "l3_max_dt_s": 30.0,
+    "l3_min_overlap_s": 5.0,
+    "take": 2
+  },
+  "splits": {
+    "train": [
+      "seq_000",
+      "seq_001",
+      "seq_002"
+    ],
+    "test": [
+      "seq_004",
+      "seq_006",
+      "seq_007",
+      "seq_024",
+      "seq_025",
+      "seq_026"
+    ],
+    "extra": [
+      "seq_020"
+    ]
+  },
+  "topology": "D:\\yizhen\\smart_kitchen\\configs\\camera_topology.chirla.yaml",
+  "git_sha": "1c6a113bac2500d06f5422e03b16d5553b15342e",
+  "argv": [
+    "--root",
+    "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA",
+    "--train-seqs",
+    "seq_000",
+    "seq_001",
+    "seq_002",
+    "--test-seqs",
+    "seq_004",
+    "seq_006",
+    "seq_007",
+    "seq_024",
+    "seq_025",
+    "seq_026",
+    "--extra-seqs",
+    "seq_020",
+    "--out",
+    "results/levels/level_manifest.json"
+  ],
+  "counts": {
+    "L2|train": 1,
+    "L3S|train": 42,
+    "L3T|train": 90,
+    "L1|train": 1,
+    "L2|test": 3,
+    "L3S|test": 223,
+    "L3T|test": 377,
+    "L1|test": 1,
+    "L3S|extra": 61,
+    "L3T|extra": 183
+  },
+  "n_rendered": 17,
+  "selfcheck_failures": [],
+  "windows": [
+    {
+      "window_id": "L2-train-seq_000-camera_1-004030",
+      "level": "L2",
+      "selection_rule": "L2",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_1"
+      ],
+      "gt_id": 3,
+      "start_frame": 4031,
+      "end_frame": 4796,
+      "start_fid": 4030,
+      "end_fid": 4795,
+      "t_start_s": 134.333,
+      "t_end_s": 159.833,
+      "duration_s": 25.5,
+      "n_sampled_frames": 154,
+      "exclusive": true,
+      "n_other_ids": 0,
+      "rendered": true,
+      "segments_s": [
+        7.333,
+        15.0
+      ],
+      "gaps_s": [
+        3.167
+      ],
+      "gap_band": "within_buffer",
+      "trimmed": false
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_1+camera_2-006385",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_1",
+        "camera_2"
+      ],
+      "gt_id": 10,
+      "start_frame": 6386,
+      "end_frame": 6551,
+      "start_fid": 6385,
+      "end_fid": 6550,
+      "t_start_s": 212.833,
+      "t_end_s": 218.333,
+      "duration_s": 5.5,
+      "n_sampled_frames": 34,
+      "exclusive": false,
+      "n_other_ids": 1,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 5.5,
+      "trimmed": false,
+      "pair_classes": [
+        "other"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_1+camera_2-006600",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_1",
+        "camera_2"
+      ],
+      "gt_id": 10,
+      "start_frame": 6601,
+      "end_frame": 6766,
+      "start_fid": 6600,
+      "end_fid": 6765,
+      "t_start_s": 220.0,
+      "t_end_s": 225.5,
+      "duration_s": 5.5,
+      "n_sampled_frames": 34,
+      "exclusive": false,
+      "n_other_ids": 1,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 5.5,
+      "trimmed": false,
+      "pair_classes": [
+        "other"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_1+camera_3-006405",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_1",
+        "camera_3"
+      ],
+      "gt_id": 10,
+      "start_frame": 6406,
+      "end_frame": 6711,
+      "start_fid": 6405,
+      "end_fid": 6710,
+      "t_start_s": 213.5,
+      "t_end_s": 223.667,
+      "duration_s": 10.167,
+      "n_sampled_frames": 62,
+      "exclusive": false,
+      "n_other_ids": 3,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 10.167,
+      "trimmed": false,
+      "pair_classes": [
+        "other"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_2+camera_3-008325",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_3"
+      ],
+      "gt_id": 10,
+      "start_frame": 8326,
+      "end_frame": 8916,
+      "start_fid": 8325,
+      "end_fid": 8915,
+      "t_start_s": 277.5,
+      "t_end_s": 297.167,
+      "duration_s": 19.667,
+      "n_sampled_frames": 119,
+      "exclusive": false,
+      "n_other_ids": 6,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 19.667,
+      "trimmed": false,
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_2+camera_5-006760",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_5"
+      ],
+      "gt_id": 10,
+      "start_frame": 6761,
+      "end_frame": 6936,
+      "start_fid": 6760,
+      "end_fid": 6935,
+      "t_start_s": 225.333,
+      "t_end_s": 231.167,
+      "duration_s": 5.833,
+      "n_sampled_frames": 36,
+      "exclusive": false,
+      "n_other_ids": 3,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 5.833,
+      "trimmed": false,
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_4+camera_5-000155",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_4",
+        "camera_5"
+      ],
+      "gt_id": 10,
+      "start_frame": 156,
+      "end_frame": 1191,
+      "start_fid": 155,
+      "end_fid": 1190,
+      "t_start_s": 5.167,
+      "t_end_s": 39.667,
+      "duration_s": 34.5,
+      "n_sampled_frames": 208,
+      "exclusive": false,
+      "n_other_ids": 5,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        14.333
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_4",
+          "to": "camera_5",
+          "dt_s": 14.333,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_4+camera_2-001050",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_4",
+        "camera_2"
+      ],
+      "gt_id": 10,
+      "start_frame": 1051,
+      "end_frame": 1136,
+      "start_fid": 1050,
+      "end_fid": 1135,
+      "t_start_s": 35.0,
+      "t_end_s": 37.833,
+      "duration_s": 2.833,
+      "n_sampled_frames": 18,
+      "exclusive": false,
+      "n_other_ids": 1,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        0.5
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_4",
+          "to": "camera_2",
+          "dt_s": 0.5,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_2+camera_6-001100",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_6"
+      ],
+      "gt_id": 10,
+      "start_frame": 1101,
+      "end_frame": 1366,
+      "start_fid": 1100,
+      "end_fid": 1365,
+      "t_start_s": 36.667,
+      "t_end_s": 45.5,
+      "duration_s": 8.833,
+      "n_sampled_frames": 54,
+      "exclusive": false,
+      "n_other_ids": 4,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        3.0
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_2",
+          "to": "camera_6",
+          "dt_s": 3.0,
+          "pair_class": "truly_disjoint"
+        }
+      ],
+      "pair_classes": [
+        "truly_disjoint"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_7+camera_5-001910",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_7",
+        "camera_5"
+      ],
+      "gt_id": 10,
+      "start_frame": 1911,
+      "end_frame": 2746,
+      "start_fid": 1910,
+      "end_fid": 2745,
+      "t_start_s": 63.667,
+      "t_end_s": 91.5,
+      "duration_s": 27.833,
+      "n_sampled_frames": 168,
+      "exclusive": false,
+      "n_other_ids": 5,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        6.5
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_7",
+          "to": "camera_5",
+          "dt_s": 6.5,
+          "pair_class": "other"
+        }
+      ],
+      "pair_classes": [
+        "other"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_2+camera_4-002250",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_4"
+      ],
+      "gt_id": 10,
+      "start_frame": 2251,
+      "end_frame": 2321,
+      "start_fid": 2250,
+      "end_fid": 2320,
+      "t_start_s": 75.0,
+      "t_end_s": 77.333,
+      "duration_s": 2.333,
+      "n_sampled_frames": 15,
+      "exclusive": false,
+      "n_other_ids": 1,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        0.333
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_2",
+          "to": "camera_4",
+          "dt_s": 0.333,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_4+camera_5-002295",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_4",
+        "camera_5"
+      ],
+      "gt_id": 10,
+      "start_frame": 2296,
+      "end_frame": 3371,
+      "start_fid": 2295,
+      "end_fid": 3370,
+      "t_start_s": 76.5,
+      "t_end_s": 112.333,
+      "duration_s": 35.833,
+      "n_sampled_frames": 216,
+      "exclusive": false,
+      "n_other_ids": 5,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        16.667
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_4",
+          "to": "camera_5",
+          "dt_s": 16.667,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_2+camera_6-003650",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_6"
+      ],
+      "gt_id": 10,
+      "start_frame": 3651,
+      "end_frame": 3941,
+      "start_fid": 3650,
+      "end_fid": 3940,
+      "t_start_s": 121.667,
+      "t_end_s": 131.333,
+      "duration_s": 9.667,
+      "n_sampled_frames": 59,
+      "exclusive": false,
+      "n_other_ids": 5,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        3.167
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_2",
+          "to": "camera_6",
+          "dt_s": 3.167,
+          "pair_class": "truly_disjoint"
+        }
+      ],
+      "pair_classes": [
+        "truly_disjoint"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_6+camera_7-003790",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_6",
+        "camera_7"
+      ],
+      "gt_id": 10,
+      "start_frame": 3791,
+      "end_frame": 4291,
+      "start_fid": 3790,
+      "end_fid": 4290,
+      "t_start_s": 126.333,
+      "t_end_s": 143.0,
+      "duration_s": 16.667,
+      "n_sampled_frames": 101,
+      "exclusive": false,
+      "n_other_ids": 2,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        0.333
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_6",
+          "to": "camera_7",
+          "dt_s": 0.333,
+          "pair_class": "other"
+        }
+      ],
+      "pair_classes": [
+        "other"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_6+camera_5-004255",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_6",
+        "camera_5"
+      ],
+      "gt_id": 10,
+      "start_frame": 4256,
+      "end_frame": 5591,
+      "start_fid": 4255,
+      "end_fid": 5590,
+      "t_start_s": 141.833,
+      "t_end_s": 186.333,
+      "duration_s": 44.5,
+      "n_sampled_frames": 268,
+      "exclusive": false,
+      "n_other_ids": 4,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        2.667
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_6",
+          "to": "camera_5",
+          "dt_s": 2.667,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_2+camera_4-004580",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_4"
+      ],
+      "gt_id": 10,
+      "start_frame": 4581,
+      "end_frame": 4656,
+      "start_fid": 4580,
+      "end_fid": 4655,
+      "t_start_s": 152.667,
+      "t_end_s": 155.167,
+      "duration_s": 2.5,
+      "n_sampled_frames": 16,
+      "exclusive": false,
+      "n_other_ids": 1,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        0.5
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_2",
+          "to": "camera_4",
+          "dt_s": 0.5,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_4+camera_2-005465",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_4",
+        "camera_2"
+      ],
+      "gt_id": 10,
+      "start_frame": 5466,
+      "end_frame": 5536,
+      "start_fid": 5465,
+      "end_fid": 5535,
+      "t_start_s": 182.167,
+      "t_end_s": 184.5,
+      "duration_s": 2.333,
+      "n_sampled_frames": 15,
+      "exclusive": false,
+      "n_other_ids": 1,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        0.333
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_4",
+          "to": "camera_2",
+          "dt_s": 0.333,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_2+camera_6-005505",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_6"
+      ],
+      "gt_id": 10,
+      "start_frame": 5506,
+      "end_frame": 6131,
+      "start_fid": 5505,
+      "end_fid": 6130,
+      "t_start_s": 183.5,
+      "t_end_s": 204.333,
+      "duration_s": 20.833,
+      "n_sampled_frames": 126,
+      "exclusive": false,
+      "n_other_ids": 4,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        2.333
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_2",
+          "to": "camera_6",
+          "dt_s": 2.333,
+          "pair_class": "truly_disjoint"
+        }
+      ],
+      "pair_classes": [
+        "truly_disjoint"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_7+camera_5-005965",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_7",
+        "camera_5"
+      ],
+      "gt_id": 10,
+      "start_frame": 5966,
+      "end_frame": 6346,
+      "start_fid": 5965,
+      "end_fid": 6345,
+      "t_start_s": 198.833,
+      "t_end_s": 211.5,
+      "duration_s": 12.667,
+      "n_sampled_frames": 77,
+      "exclusive": false,
+      "n_other_ids": 4,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        7.333
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_7",
+          "to": "camera_5",
+          "dt_s": 7.333,
+          "pair_class": "other"
+        }
+      ],
+      "pair_classes": [
+        "other"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_4+camera_2-008200",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_4",
+        "camera_2"
+      ],
+      "gt_id": 10,
+      "start_frame": 8201,
+      "end_frame": 8916,
+      "start_fid": 8200,
+      "end_fid": 8915,
+      "t_start_s": 273.333,
+      "t_end_s": 297.167,
+      "duration_s": 23.833,
+      "n_sampled_frames": 144,
+      "exclusive": false,
+      "n_other_ids": 5,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        0.667
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_4",
+          "to": "camera_2",
+          "dt_s": 0.667,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_1+camera_2-003015",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_1",
+        "camera_2"
+      ],
+      "gt_id": 9,
+      "start_frame": 3016,
+      "end_frame": 3521,
+      "start_fid": 3015,
+      "end_fid": 3520,
+      "t_start_s": 100.5,
+      "t_end_s": 117.333,
+      "duration_s": 16.833,
+      "n_sampled_frames": 102,
+      "exclusive": false,
+      "n_other_ids": 3,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 16.833,
+      "trimmed": false,
+      "pair_classes": [
+        "other"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_1+camera_2+camera_3-003030",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_1",
+        "camera_2",
+        "camera_3"
+      ],
+      "gt_id": 9,
+      "start_frame": 3031,
+      "end_frame": 3456,
+      "start_fid": 3030,
+      "end_fid": 3455,
+      "t_start_s": 101.0,
+      "t_end_s": 115.167,
+      "duration_s": 14.167,
+      "n_sampled_frames": 86,
+      "exclusive": false,
+      "n_other_ids": 4,
+      "rendered": true,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 14.167,
+      "trimmed": false,
+      "pair_classes": [
+        "other",
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_5+camera_6-000110",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_5",
+        "camera_6"
+      ],
+      "gt_id": 9,
+      "start_frame": 111,
+      "end_frame": 511,
+      "start_fid": 110,
+      "end_fid": 510,
+      "t_start_s": 3.667,
+      "t_end_s": 17.0,
+      "duration_s": 13.333,
+      "n_sampled_frames": 81,
+      "exclusive": false,
+      "n_other_ids": 5,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        1.667
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_5",
+          "to": "camera_6",
+          "dt_s": 1.667,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_7+camera_6-000380",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_7",
+        "camera_6"
+      ],
+      "gt_id": 9,
+      "start_frame": 381,
+      "end_frame": 706,
+      "start_fid": 380,
+      "end_fid": 705,
+      "t_start_s": 12.667,
+      "t_end_s": 23.5,
+      "duration_s": 10.833,
+      "n_sampled_frames": 66,
+      "exclusive": false,
+      "n_other_ids": 2,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        5.333
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_7",
+          "to": "camera_6",
+          "dt_s": 5.333,
+          "pair_class": "other"
+        }
+      ],
+      "pair_classes": [
+        "other"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_6+camera_5-001095",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_6",
+        "camera_5"
+      ],
+      "gt_id": 9,
+      "start_frame": 1096,
+      "end_frame": 1791,
+      "start_fid": 1095,
+      "end_fid": 1790,
+      "t_start_s": 36.5,
+      "t_end_s": 59.667,
+      "duration_s": 23.167,
+      "n_sampled_frames": 140,
+      "exclusive": false,
+      "n_other_ids": 5,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        2.5
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_6",
+          "to": "camera_5",
+          "dt_s": 2.5,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_2+camera_4-001425",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_4"
+      ],
+      "gt_id": 9,
+      "start_frame": 1426,
+      "end_frame": 1501,
+      "start_fid": 1425,
+      "end_fid": 1500,
+      "t_start_s": 47.5,
+      "t_end_s": 50.0,
+      "duration_s": 2.5,
+      "n_sampled_frames": 16,
+      "exclusive": false,
+      "n_other_ids": 2,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        0.5
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_2",
+          "to": "camera_4",
+          "dt_s": 0.5,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_4+camera_5-001475",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_4",
+        "camera_5"
+      ],
+      "gt_id": 9,
+      "start_frame": 1476,
+      "end_frame": 2941,
+      "start_fid": 1475,
+      "end_fid": 2940,
+      "t_start_s": 49.167,
+      "t_end_s": 98.0,
+      "duration_s": 48.833,
+      "n_sampled_frames": 294,
+      "exclusive": false,
+      "n_other_ids": 5,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        28.5
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_4",
+          "to": "camera_5",
+          "dt_s": 28.5,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_4+camera_2-002640",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_4",
+        "camera_2"
+      ],
+      "gt_id": 9,
+      "start_frame": 2641,
+      "end_frame": 2701,
+      "start_fid": 2640,
+      "end_fid": 2700,
+      "t_start_s": 88.0,
+      "t_end_s": 90.0,
+      "duration_s": 2.0,
+      "n_sampled_frames": 13,
+      "exclusive": true,
+      "n_other_ids": 0,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        0.5
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_4",
+          "to": "camera_2",
+          "dt_s": 0.5,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_3+camera_5-003030",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_3",
+        "camera_5"
+      ],
+      "gt_id": 9,
+      "start_frame": 3031,
+      "end_frame": 3911,
+      "start_fid": 3030,
+      "end_fid": 3910,
+      "t_start_s": 101.0,
+      "t_end_s": 130.333,
+      "duration_s": 29.333,
+      "n_sampled_frames": 177,
+      "exclusive": false,
+      "n_other_ids": 7,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        2.667
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_3",
+          "to": "camera_5",
+          "dt_s": 2.667,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_5+camera_6-003535",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_5",
+        "camera_6"
+      ],
+      "gt_id": 9,
+      "start_frame": 3536,
+      "end_frame": 4621,
+      "start_fid": 3535,
+      "end_fid": 4620,
+      "t_start_s": 117.833,
+      "t_end_s": 154.0,
+      "duration_s": 36.167,
+      "n_sampled_frames": 218,
+      "exclusive": false,
+      "n_other_ids": 4,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        0.667
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_5",
+          "to": "camera_6",
+          "dt_s": 0.667,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_7+camera_5-004450",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_7",
+        "camera_5"
+      ],
+      "gt_id": 9,
+      "start_frame": 4451,
+      "end_frame": 5566,
+      "start_fid": 4450,
+      "end_fid": 5565,
+      "t_start_s": 148.333,
+      "t_end_s": 185.5,
+      "duration_s": 37.167,
+      "n_sampled_frames": 224,
+      "exclusive": false,
+      "n_other_ids": 4,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        11.167
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_7",
+          "to": "camera_5",
+          "dt_s": 11.167,
+          "pair_class": "other"
+        }
+      ],
+      "pair_classes": [
+        "other"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_2+camera_4-005045",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_4"
+      ],
+      "gt_id": 9,
+      "start_frame": 5046,
+      "end_frame": 5136,
+      "start_fid": 5045,
+      "end_fid": 5135,
+      "t_start_s": 168.167,
+      "t_end_s": 171.167,
+      "duration_s": 3.0,
+      "n_sampled_frames": 19,
+      "exclusive": false,
+      "n_other_ids": 3,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        0.833
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_2",
+          "to": "camera_4",
+          "dt_s": 0.833,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_4+camera_2-006900",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_4",
+        "camera_2"
+      ],
+      "gt_id": 9,
+      "start_frame": 6901,
+      "end_frame": 7111,
+      "start_fid": 6900,
+      "end_fid": 7110,
+      "t_start_s": 230.0,
+      "t_end_s": 237.0,
+      "duration_s": 7.0,
+      "n_sampled_frames": 43,
+      "exclusive": false,
+      "n_other_ids": 3,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        2.0
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_4",
+          "to": "camera_2",
+          "dt_s": 2.0,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_2+camera_6-007145",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_6"
+      ],
+      "gt_id": 9,
+      "start_frame": 7146,
+      "end_frame": 8266,
+      "start_fid": 7145,
+      "end_fid": 8265,
+      "t_start_s": 238.167,
+      "t_end_s": 275.5,
+      "duration_s": 37.333,
+      "n_sampled_frames": 225,
+      "exclusive": false,
+      "n_other_ids": 5,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        8.833
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_2",
+          "to": "camera_6",
+          "dt_s": 8.833,
+          "pair_class": "truly_disjoint"
+        }
+      ],
+      "pair_classes": [
+        "truly_disjoint"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_6+camera_5-007450",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_6",
+        "camera_5"
+      ],
+      "gt_id": 9,
+      "start_frame": 7451,
+      "end_frame": 8421,
+      "start_fid": 7450,
+      "end_fid": 8420,
+      "t_start_s": 248.333,
+      "t_end_s": 280.667,
+      "duration_s": 32.333,
+      "n_sampled_frames": 195,
+      "exclusive": false,
+      "n_other_ids": 4,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        2.833
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_6",
+          "to": "camera_5",
+          "dt_s": 2.833,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_5+camera_2-008350",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_5",
+        "camera_2"
+      ],
+      "gt_id": 9,
+      "start_frame": 8351,
+      "end_frame": 8536,
+      "start_fid": 8350,
+      "end_fid": 8535,
+      "t_start_s": 278.333,
+      "t_end_s": 284.5,
+      "duration_s": 6.167,
+      "n_sampled_frames": 38,
+      "exclusive": false,
+      "n_other_ids": 3,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        0.333
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_5",
+          "to": "camera_2",
+          "dt_s": 0.333,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_1+camera_2-000175",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_1",
+        "camera_2"
+      ],
+      "gt_id": 3,
+      "start_frame": 176,
+      "end_frame": 336,
+      "start_fid": 175,
+      "end_fid": 335,
+      "t_start_s": 5.833,
+      "t_end_s": 11.167,
+      "duration_s": 5.333,
+      "n_sampled_frames": 33,
+      "exclusive": false,
+      "n_other_ids": 1,
+      "rendered": true,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 5.333,
+      "trimmed": false,
+      "pair_classes": [
+        "other"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_1+camera_2-004030",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_1",
+        "camera_2"
+      ],
+      "gt_id": 3,
+      "start_frame": 4031,
+      "end_frame": 4251,
+      "start_fid": 4030,
+      "end_fid": 4250,
+      "t_start_s": 134.333,
+      "t_end_s": 141.667,
+      "duration_s": 7.333,
+      "n_sampled_frames": 45,
+      "exclusive": false,
+      "n_other_ids": 2,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 7.333,
+      "trimmed": false,
+      "pair_classes": [
+        "other"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_1+camera_2+camera_3-004045",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_1",
+        "camera_2",
+        "camera_3"
+      ],
+      "gt_id": 3,
+      "start_frame": 4046,
+      "end_frame": 4251,
+      "start_fid": 4045,
+      "end_fid": 4250,
+      "t_start_s": 134.833,
+      "t_end_s": 141.667,
+      "duration_s": 6.833,
+      "n_sampled_frames": 42,
+      "exclusive": false,
+      "n_other_ids": 5,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 6.833,
+      "trimmed": false,
+      "pair_classes": [
+        "other",
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_2+camera_3-004045",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_3"
+      ],
+      "gt_id": 3,
+      "start_frame": 4046,
+      "end_frame": 4426,
+      "start_fid": 4045,
+      "end_fid": 4425,
+      "t_start_s": 134.833,
+      "t_end_s": 147.5,
+      "duration_s": 12.667,
+      "n_sampled_frames": 77,
+      "exclusive": false,
+      "n_other_ids": 5,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 12.667,
+      "trimmed": false,
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_2+camera_3-008430",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_3"
+      ],
+      "gt_id": 3,
+      "start_frame": 8431,
+      "end_frame": 8851,
+      "start_fid": 8430,
+      "end_fid": 8850,
+      "t_start_s": 281.0,
+      "t_end_s": 295.0,
+      "duration_s": 14.0,
+      "n_sampled_frames": 85,
+      "exclusive": false,
+      "n_other_ids": 6,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 14.0,
+      "trimmed": false,
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_2+camera_5-004795",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_5"
+      ],
+      "gt_id": 3,
+      "start_frame": 4796,
+      "end_frame": 5231,
+      "start_fid": 4795,
+      "end_fid": 5230,
+      "t_start_s": 159.833,
+      "t_end_s": 174.333,
+      "duration_s": 14.5,
+      "n_sampled_frames": 88,
+      "exclusive": false,
+      "n_other_ids": 5,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 14.5,
+      "trimmed": false,
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_2+camera_5-006985",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_5"
+      ],
+      "gt_id": 3,
+      "start_frame": 6986,
+      "end_frame": 7136,
+      "start_fid": 6985,
+      "end_fid": 7135,
+      "t_start_s": 232.833,
+      "t_end_s": 237.833,
+      "duration_s": 5.0,
+      "n_sampled_frames": 31,
+      "exclusive": false,
+      "n_other_ids": 3,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 5.0,
+      "trimmed": false,
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_2+camera_5-007345",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_5"
+      ],
+      "gt_id": 3,
+      "start_frame": 7346,
+      "end_frame": 7601,
+      "start_fid": 7345,
+      "end_fid": 7600,
+      "t_start_s": 244.833,
+      "t_end_s": 253.333,
+      "duration_s": 8.5,
+      "n_sampled_frames": 52,
+      "exclusive": false,
+      "n_other_ids": 5,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 8.5,
+      "trimmed": false,
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_2+camera_5-007740",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_5"
+      ],
+      "gt_id": 3,
+      "start_frame": 7741,
+      "end_frame": 8046,
+      "start_fid": 7740,
+      "end_fid": 8045,
+      "t_start_s": 258.0,
+      "t_end_s": 268.167,
+      "duration_s": 10.167,
+      "n_sampled_frames": 62,
+      "exclusive": false,
+      "n_other_ids": 4,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 10.167,
+      "trimmed": false,
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_3+camera_5-000260",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_3",
+        "camera_5"
+      ],
+      "gt_id": 3,
+      "start_frame": 261,
+      "end_frame": 421,
+      "start_fid": 260,
+      "end_fid": 420,
+      "t_start_s": 8.667,
+      "t_end_s": 14.0,
+      "duration_s": 5.333,
+      "n_sampled_frames": 33,
+      "exclusive": false,
+      "n_other_ids": 4,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        2.167
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_3",
+          "to": "camera_5",
+          "dt_s": 2.167,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_5+camera_6-000330",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_5",
+        "camera_6"
+      ],
+      "gt_id": 3,
+      "start_frame": 331,
+      "end_frame": 631,
+      "start_fid": 330,
+      "end_fid": 630,
+      "t_start_s": 11.0,
+      "t_end_s": 21.0,
+      "duration_s": 10.0,
+      "n_sampled_frames": 61,
+      "exclusive": false,
+      "n_other_ids": 4,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        1.667
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_5",
+          "to": "camera_6",
+          "dt_s": 1.667,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_6+camera_5-001030",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_6",
+        "camera_5"
+      ],
+      "gt_id": 3,
+      "start_frame": 1031,
+      "end_frame": 1606,
+      "start_fid": 1030,
+      "end_fid": 1605,
+      "t_start_s": 34.333,
+      "t_end_s": 53.5,
+      "duration_s": 19.167,
+      "n_sampled_frames": 116,
+      "exclusive": false,
+      "n_other_ids": 5,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        2.333
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_6",
+          "to": "camera_5",
+          "dt_s": 2.333,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_2+camera_4-001315",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_4"
+      ],
+      "gt_id": 3,
+      "start_frame": 1316,
+      "end_frame": 1451,
+      "start_fid": 1315,
+      "end_fid": 1450,
+      "t_start_s": 43.833,
+      "t_end_s": 48.333,
+      "duration_s": 4.5,
+      "n_sampled_frames": 28,
+      "exclusive": false,
+      "n_other_ids": 2,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        0.5
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_2",
+          "to": "camera_4",
+          "dt_s": 0.5,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_4+camera_5-001355",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_4",
+        "camera_5"
+      ],
+      "gt_id": 3,
+      "start_frame": 1356,
+      "end_frame": 1711,
+      "start_fid": 1355,
+      "end_fid": 1710,
+      "t_start_s": 45.167,
+      "t_end_s": 57.0,
+      "duration_s": 11.833,
+      "n_sampled_frames": 72,
+      "exclusive": false,
+      "n_other_ids": 4,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        7.167
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_4",
+          "to": "camera_5",
+          "dt_s": 7.167,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_4+camera_2-002460",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_4",
+        "camera_2"
+      ],
+      "gt_id": 3,
+      "start_frame": 2461,
+      "end_frame": 2531,
+      "start_fid": 2460,
+      "end_fid": 2530,
+      "t_start_s": 82.0,
+      "t_end_s": 84.333,
+      "duration_s": 2.333,
+      "n_sampled_frames": 15,
+      "exclusive": true,
+      "n_other_ids": 0,
+      "rendered": true,
+      "segments_s": [],
+      "gaps_s": [
+        0.667
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_4",
+          "to": "camera_2",
+          "dt_s": 0.667,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_2+camera_6-002505",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_6"
+      ],
+      "gt_id": 3,
+      "start_frame": 2506,
+      "end_frame": 2951,
+      "start_fid": 2505,
+      "end_fid": 2950,
+      "t_start_s": 83.5,
+      "t_end_s": 98.333,
+      "duration_s": 14.833,
+      "n_sampled_frames": 90,
+      "exclusive": false,
+      "n_other_ids": 2,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        2.833
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_2",
+          "to": "camera_6",
+          "dt_s": 2.833,
+          "pair_class": "truly_disjoint"
+        }
+      ],
+      "pair_classes": [
+        "truly_disjoint"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_6+camera_5-003475",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_6",
+        "camera_5"
+      ],
+      "gt_id": 3,
+      "start_frame": 3476,
+      "end_frame": 3871,
+      "start_fid": 3475,
+      "end_fid": 3870,
+      "t_start_s": 115.833,
+      "t_end_s": 129.0,
+      "duration_s": 13.167,
+      "n_sampled_frames": 80,
+      "exclusive": false,
+      "n_other_ids": 4,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        5.167
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_6",
+          "to": "camera_5",
+          "dt_s": 5.167,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_5+camera_2-003775",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_5",
+        "camera_2"
+      ],
+      "gt_id": 3,
+      "start_frame": 3776,
+      "end_frame": 4426,
+      "start_fid": 3775,
+      "end_fid": 4425,
+      "t_start_s": 125.833,
+      "t_end_s": 147.5,
+      "duration_s": 21.667,
+      "n_sampled_frames": 131,
+      "exclusive": false,
+      "n_other_ids": 4,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        0.5
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_5",
+          "to": "camera_2",
+          "dt_s": 0.5,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_5+camera_1-003920",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_5",
+        "camera_1"
+      ],
+      "gt_id": 3,
+      "start_frame": 3921,
+      "end_frame": 4251,
+      "start_fid": 3920,
+      "end_fid": 4250,
+      "t_start_s": 130.667,
+      "t_end_s": 141.667,
+      "duration_s": 11.0,
+      "n_sampled_frames": 67,
+      "exclusive": false,
+      "n_other_ids": 2,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        1.0
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_5",
+          "to": "camera_1",
+          "dt_s": 1.0,
+          "pair_class": "other"
+        }
+      ],
+      "pair_classes": [
+        "other"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_4+camera_2-005785",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_4",
+        "camera_2"
+      ],
+      "gt_id": 3,
+      "start_frame": 5786,
+      "end_frame": 5876,
+      "start_fid": 5785,
+      "end_fid": 5875,
+      "t_start_s": 192.833,
+      "t_end_s": 195.833,
+      "duration_s": 3.0,
+      "n_sampled_frames": 19,
+      "exclusive": false,
+      "n_other_ids": 1,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        1.0
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_4",
+          "to": "camera_2",
+          "dt_s": 1.0,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_2+camera_6-005835",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_6"
+      ],
+      "gt_id": 3,
+      "start_frame": 5836,
+      "end_frame": 6201,
+      "start_fid": 5835,
+      "end_fid": 6200,
+      "t_start_s": 194.5,
+      "t_end_s": 206.667,
+      "duration_s": 12.167,
+      "n_sampled_frames": 74,
+      "exclusive": false,
+      "n_other_ids": 4,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        4.167
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_2",
+          "to": "camera_6",
+          "dt_s": 4.167,
+          "pair_class": "truly_disjoint"
+        }
+      ],
+      "pair_classes": [
+        "truly_disjoint"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_6+camera_7-006000",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_6",
+        "camera_7"
+      ],
+      "gt_id": 3,
+      "start_frame": 6001,
+      "end_frame": 6496,
+      "start_fid": 6000,
+      "end_fid": 6495,
+      "t_start_s": 200.0,
+      "t_end_s": 216.5,
+      "duration_s": 16.5,
+      "n_sampled_frames": 100,
+      "exclusive": false,
+      "n_other_ids": 3,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        1.333
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_6",
+          "to": "camera_7",
+          "dt_s": 1.333,
+          "pair_class": "other"
+        }
+      ],
+      "pair_classes": [
+        "other"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_6+camera_5-006660",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_6",
+        "camera_5"
+      ],
+      "gt_id": 3,
+      "start_frame": 6661,
+      "end_frame": 7206,
+      "start_fid": 6660,
+      "end_fid": 7205,
+      "t_start_s": 222.0,
+      "t_end_s": 240.167,
+      "duration_s": 18.167,
+      "n_sampled_frames": 110,
+      "exclusive": false,
+      "n_other_ids": 4,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        3.167
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_6",
+          "to": "camera_5",
+          "dt_s": 3.167,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_3+camera_5-007265",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_3",
+        "camera_5"
+      ],
+      "gt_id": 3,
+      "start_frame": 7266,
+      "end_frame": 8046,
+      "start_fid": 7265,
+      "end_fid": 8045,
+      "t_start_s": 242.167,
+      "t_end_s": 268.167,
+      "duration_s": 26.0,
+      "n_sampled_frames": 157,
+      "exclusive": false,
+      "n_other_ids": 6,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        2.0
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_3",
+          "to": "camera_5",
+          "dt_s": 2.0,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_4+camera_2-007620",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_4",
+        "camera_2"
+      ],
+      "gt_id": 3,
+      "start_frame": 7621,
+      "end_frame": 8216,
+      "start_fid": 7620,
+      "end_fid": 8215,
+      "t_start_s": 254.0,
+      "t_end_s": 273.833,
+      "duration_s": 19.833,
+      "n_sampled_frames": 120,
+      "exclusive": false,
+      "n_other_ids": 4,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        1.167
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_4",
+          "to": "camera_2",
+          "dt_s": 1.167,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_1+camera_3-000385",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_1",
+        "camera_3"
+      ],
+      "gt_id": 5,
+      "start_frame": 386,
+      "end_frame": 536,
+      "start_fid": 385,
+      "end_fid": 535,
+      "t_start_s": 12.833,
+      "t_end_s": 17.833,
+      "duration_s": 5.0,
+      "n_sampled_frames": 31,
+      "exclusive": false,
+      "n_other_ids": 1,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 5.0,
+      "trimmed": false,
+      "pair_classes": [
+        "other"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_1+camera_3-000850",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_1",
+        "camera_3"
+      ],
+      "gt_id": 5,
+      "start_frame": 851,
+      "end_frame": 1006,
+      "start_fid": 850,
+      "end_fid": 1005,
+      "t_start_s": 28.333,
+      "t_end_s": 33.5,
+      "duration_s": 5.167,
+      "n_sampled_frames": 32,
+      "exclusive": false,
+      "n_other_ids": 2,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 5.167,
+      "trimmed": false,
+      "pair_classes": [
+        "other"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_2+camera_3-003225",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_3"
+      ],
+      "gt_id": 5,
+      "start_frame": 3226,
+      "end_frame": 3386,
+      "start_fid": 3225,
+      "end_fid": 3385,
+      "t_start_s": 107.5,
+      "t_end_s": 112.833,
+      "duration_s": 5.333,
+      "n_sampled_frames": 33,
+      "exclusive": false,
+      "n_other_ids": 4,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 5.333,
+      "trimmed": false,
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_2+camera_3-003415",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_3"
+      ],
+      "gt_id": 5,
+      "start_frame": 3416,
+      "end_frame": 5216,
+      "start_fid": 3415,
+      "end_fid": 5215,
+      "t_start_s": 113.833,
+      "t_end_s": 173.833,
+      "duration_s": 60.0,
+      "n_sampled_frames": 361,
+      "exclusive": false,
+      "n_other_ids": 7,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 183.333,
+      "trimmed": true,
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_5+camera_2-000000",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_5",
+        "camera_2"
+      ],
+      "gt_id": 5,
+      "start_frame": 1,
+      "end_frame": 496,
+      "start_fid": 0,
+      "end_fid": 495,
+      "t_start_s": 0.0,
+      "t_end_s": 16.5,
+      "duration_s": 16.5,
+      "n_sampled_frames": 100,
+      "exclusive": false,
+      "n_other_ids": 4,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        0.5
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_5",
+          "to": "camera_2",
+          "dt_s": 0.5,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_4+camera_5-001115",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_4",
+        "camera_5"
+      ],
+      "gt_id": 5,
+      "start_frame": 1116,
+      "end_frame": 2216,
+      "start_fid": 1115,
+      "end_fid": 2215,
+      "t_start_s": 37.167,
+      "t_end_s": 73.833,
+      "duration_s": 36.667,
+      "n_sampled_frames": 221,
+      "exclusive": false,
+      "n_other_ids": 5,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        20.167
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_4",
+          "to": "camera_5",
+          "dt_s": 20.167,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_4+camera_2-002095",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_4",
+        "camera_2"
+      ],
+      "gt_id": 5,
+      "start_frame": 2096,
+      "end_frame": 2186,
+      "start_fid": 2095,
+      "end_fid": 2185,
+      "t_start_s": 69.833,
+      "t_end_s": 72.833,
+      "duration_s": 3.0,
+      "n_sampled_frames": 19,
+      "exclusive": false,
+      "n_other_ids": 2,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        1.0
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_4",
+          "to": "camera_2",
+          "dt_s": 1.0,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_2+camera_6-002150",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_6"
+      ],
+      "gt_id": 5,
+      "start_frame": 2151,
+      "end_frame": 2371,
+      "start_fid": 2150,
+      "end_fid": 2370,
+      "t_start_s": 71.667,
+      "t_end_s": 79.0,
+      "duration_s": 7.333,
+      "n_sampled_frames": 45,
+      "exclusive": false,
+      "n_other_ids": 2,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        2.0
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_2",
+          "to": "camera_6",
+          "dt_s": 2.0,
+          "pair_class": "truly_disjoint"
+        }
+      ],
+      "pair_classes": [
+        "truly_disjoint"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_6+camera_7-002245",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_6",
+        "camera_7"
+      ],
+      "gt_id": 5,
+      "start_frame": 2246,
+      "end_frame": 2851,
+      "start_fid": 2245,
+      "end_fid": 2850,
+      "t_start_s": 74.833,
+      "t_end_s": 95.0,
+      "duration_s": 20.167,
+      "n_sampled_frames": 122,
+      "exclusive": false,
+      "n_other_ids": 1,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        0.167
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_6",
+          "to": "camera_7",
+          "dt_s": 0.167,
+          "pair_class": "other"
+        }
+      ],
+      "pair_classes": [
+        "other"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_6+camera_5-002820",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_6",
+        "camera_5"
+      ],
+      "gt_id": 5,
+      "start_frame": 2821,
+      "end_frame": 3161,
+      "start_fid": 2820,
+      "end_fid": 3160,
+      "t_start_s": 94.0,
+      "t_end_s": 105.333,
+      "duration_s": 11.333,
+      "n_sampled_frames": 69,
+      "exclusive": false,
+      "n_other_ids": 5,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        2.667
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_6",
+          "to": "camera_5",
+          "dt_s": 2.667,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_1+camera_2-003255",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_1",
+        "camera_2"
+      ],
+      "gt_id": 5,
+      "start_frame": 3256,
+      "end_frame": 5056,
+      "start_fid": 3255,
+      "end_fid": 5055,
+      "t_start_s": 108.5,
+      "t_end_s": 168.5,
+      "duration_s": 60.0,
+      "n_sampled_frames": 361,
+      "exclusive": false,
+      "n_other_ids": 5,
+      "rendered": true,
+      "segments_s": [],
+      "gaps_s": [
+        4.0
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": true,
+      "transitions": [
+        {
+          "from": "camera_1",
+          "to": "camera_2",
+          "dt_s": 4.0,
+          "pair_class": "other"
+        }
+      ],
+      "pair_classes": [
+        "other"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_1+camera_2-001255",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_1",
+        "camera_2"
+      ],
+      "gt_id": 1,
+      "start_frame": 1256,
+      "end_frame": 1451,
+      "start_fid": 1255,
+      "end_fid": 1450,
+      "t_start_s": 41.833,
+      "t_end_s": 48.333,
+      "duration_s": 6.5,
+      "n_sampled_frames": 40,
+      "exclusive": false,
+      "n_other_ids": 2,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 6.5,
+      "trimmed": false,
+      "pair_classes": [
+        "other"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_1+camera_2-003085",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_1",
+        "camera_2"
+      ],
+      "gt_id": 1,
+      "start_frame": 3086,
+      "end_frame": 3241,
+      "start_fid": 3085,
+      "end_fid": 3240,
+      "t_start_s": 102.833,
+      "t_end_s": 108.0,
+      "duration_s": 5.167,
+      "n_sampled_frames": 32,
+      "exclusive": false,
+      "n_other_ids": 3,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 5.167,
+      "trimmed": false,
+      "pair_classes": [
+        "other"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_1+camera_3-007805",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_1",
+        "camera_3"
+      ],
+      "gt_id": 1,
+      "start_frame": 7806,
+      "end_frame": 7956,
+      "start_fid": 7805,
+      "end_fid": 7955,
+      "t_start_s": 260.167,
+      "t_end_s": 265.167,
+      "duration_s": 5.0,
+      "n_sampled_frames": 31,
+      "exclusive": false,
+      "n_other_ids": 2,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 5.0,
+      "trimmed": false,
+      "pair_classes": [
+        "other"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_2+camera_3-008765",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_3"
+      ],
+      "gt_id": 1,
+      "start_frame": 8766,
+      "end_frame": 8916,
+      "start_fid": 8765,
+      "end_fid": 8915,
+      "t_start_s": 292.167,
+      "t_end_s": 297.167,
+      "duration_s": 5.0,
+      "n_sampled_frames": 31,
+      "exclusive": false,
+      "n_other_ids": 6,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 5.0,
+      "trimmed": false,
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_6+camera_7-006100",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_6",
+        "camera_7"
+      ],
+      "gt_id": 1,
+      "start_frame": 6101,
+      "end_frame": 6326,
+      "start_fid": 6100,
+      "end_fid": 6325,
+      "t_start_s": 203.333,
+      "t_end_s": 210.833,
+      "duration_s": 7.5,
+      "n_sampled_frames": 46,
+      "exclusive": false,
+      "n_other_ids": 3,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 7.5,
+      "trimmed": false,
+      "pair_classes": [
+        "other"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_6+camera_7-006345",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_6",
+        "camera_7"
+      ],
+      "gt_id": 1,
+      "start_frame": 6346,
+      "end_frame": 6721,
+      "start_fid": 6345,
+      "end_fid": 6720,
+      "t_start_s": 211.5,
+      "t_end_s": 224.0,
+      "duration_s": 12.5,
+      "n_sampled_frames": 76,
+      "exclusive": false,
+      "n_other_ids": 2,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 12.5,
+      "trimmed": false,
+      "pair_classes": [
+        "other"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_6+camera_7-006740",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_6",
+        "camera_7"
+      ],
+      "gt_id": 1,
+      "start_frame": 6741,
+      "end_frame": 6966,
+      "start_fid": 6740,
+      "end_fid": 6965,
+      "t_start_s": 224.667,
+      "t_end_s": 232.167,
+      "duration_s": 7.5,
+      "n_sampled_frames": 46,
+      "exclusive": false,
+      "n_other_ids": 2,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 7.5,
+      "trimmed": false,
+      "pair_classes": [
+        "other"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_6+camera_5-000920",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_6",
+        "camera_5"
+      ],
+      "gt_id": 1,
+      "start_frame": 921,
+      "end_frame": 1216,
+      "start_fid": 920,
+      "end_fid": 1215,
+      "t_start_s": 30.667,
+      "t_end_s": 40.5,
+      "duration_s": 9.833,
+      "n_sampled_frames": 60,
+      "exclusive": false,
+      "n_other_ids": 5,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        2.333
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_6",
+          "to": "camera_5",
+          "dt_s": 2.333,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_5+camera_2-001110",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_5",
+        "camera_2"
+      ],
+      "gt_id": 1,
+      "start_frame": 1111,
+      "end_frame": 1501,
+      "start_fid": 1110,
+      "end_fid": 1500,
+      "t_start_s": 37.0,
+      "t_end_s": 50.0,
+      "duration_s": 13.0,
+      "n_sampled_frames": 79,
+      "exclusive": false,
+      "n_other_ids": 4,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        0.5
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_5",
+          "to": "camera_2",
+          "dt_s": 0.5,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_5+camera_4-001430",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_5",
+        "camera_4"
+      ],
+      "gt_id": 1,
+      "start_frame": 1431,
+      "end_frame": 2376,
+      "start_fid": 1430,
+      "end_fid": 2375,
+      "t_start_s": 47.667,
+      "t_end_s": 79.167,
+      "duration_s": 31.5,
+      "n_sampled_frames": 190,
+      "exclusive": false,
+      "n_other_ids": 5,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        0.333
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_5",
+          "to": "camera_4",
+          "dt_s": 0.333,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_2+camera_5-002390",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_5"
+      ],
+      "gt_id": 1,
+      "start_frame": 2391,
+      "end_frame": 3041,
+      "start_fid": 2390,
+      "end_fid": 3040,
+      "t_start_s": 79.667,
+      "t_end_s": 101.333,
+      "duration_s": 21.667,
+      "n_sampled_frames": 131,
+      "exclusive": false,
+      "n_other_ids": 5,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        12.5
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_2",
+          "to": "camera_5",
+          "dt_s": 12.5,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_3+camera_2-003250",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_3",
+        "camera_2"
+      ],
+      "gt_id": 1,
+      "start_frame": 3251,
+      "end_frame": 3496,
+      "start_fid": 3250,
+      "end_fid": 3495,
+      "t_start_s": 108.333,
+      "t_end_s": 116.5,
+      "duration_s": 8.167,
+      "n_sampled_frames": 50,
+      "exclusive": false,
+      "n_other_ids": 3,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        0.833
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_3",
+          "to": "camera_2",
+          "dt_s": 0.833,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_3+camera_1-003295",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_3",
+        "camera_1"
+      ],
+      "gt_id": 1,
+      "start_frame": 3296,
+      "end_frame": 3451,
+      "start_fid": 3295,
+      "end_fid": 3450,
+      "t_start_s": 109.833,
+      "t_end_s": 115.0,
+      "duration_s": 5.167,
+      "n_sampled_frames": 32,
+      "exclusive": false,
+      "n_other_ids": 3,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        1.333
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_3",
+          "to": "camera_1",
+          "dt_s": 1.333,
+          "pair_class": "other"
+        }
+      ],
+      "pair_classes": [
+        "other"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_2+camera_4-003925",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_4"
+      ],
+      "gt_id": 1,
+      "start_frame": 3926,
+      "end_frame": 4451,
+      "start_fid": 3925,
+      "end_fid": 4450,
+      "t_start_s": 130.833,
+      "t_end_s": 148.333,
+      "duration_s": 17.5,
+      "n_sampled_frames": 106,
+      "exclusive": false,
+      "n_other_ids": 3,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        0.333
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_2",
+          "to": "camera_4",
+          "dt_s": 0.333,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_3+camera_5-004220",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_3",
+        "camera_5"
+      ],
+      "gt_id": 1,
+      "start_frame": 4221,
+      "end_frame": 4681,
+      "start_fid": 4220,
+      "end_fid": 4680,
+      "t_start_s": 140.667,
+      "t_end_s": 156.0,
+      "duration_s": 15.333,
+      "n_sampled_frames": 93,
+      "exclusive": false,
+      "n_other_ids": 6,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        5.333
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_3",
+          "to": "camera_5",
+          "dt_s": 5.333,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_4+camera_2-005285",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_4",
+        "camera_2"
+      ],
+      "gt_id": 1,
+      "start_frame": 5286,
+      "end_frame": 5381,
+      "start_fid": 5285,
+      "end_fid": 5380,
+      "t_start_s": 176.167,
+      "t_end_s": 179.333,
+      "duration_s": 3.167,
+      "n_sampled_frames": 20,
+      "exclusive": false,
+      "n_other_ids": 3,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        0.833
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_4",
+          "to": "camera_2",
+          "dt_s": 0.833,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_2+camera_6-005345",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_6"
+      ],
+      "gt_id": 1,
+      "start_frame": 5346,
+      "end_frame": 5576,
+      "start_fid": 5345,
+      "end_fid": 5575,
+      "t_start_s": 178.167,
+      "t_end_s": 185.833,
+      "duration_s": 7.667,
+      "n_sampled_frames": 47,
+      "exclusive": false,
+      "n_other_ids": 2,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        2.333
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_2",
+          "to": "camera_6",
+          "dt_s": 2.333,
+          "pair_class": "truly_disjoint"
+        }
+      ],
+      "pair_classes": [
+        "truly_disjoint"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_6+camera_7-005450",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_6",
+        "camera_7"
+      ],
+      "gt_id": 1,
+      "start_frame": 5451,
+      "end_frame": 6326,
+      "start_fid": 5450,
+      "end_fid": 6325,
+      "t_start_s": 181.667,
+      "t_end_s": 210.833,
+      "duration_s": 29.167,
+      "n_sampled_frames": 176,
+      "exclusive": false,
+      "n_other_ids": 3,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        1.333
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_6",
+          "to": "camera_7",
+          "dt_s": 1.333,
+          "pair_class": "other"
+        }
+      ],
+      "pair_classes": [
+        "other"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_7+camera_5-006740",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_7",
+        "camera_5"
+      ],
+      "gt_id": 1,
+      "start_frame": 6741,
+      "end_frame": 7766,
+      "start_fid": 6740,
+      "end_fid": 7765,
+      "t_start_s": 224.667,
+      "t_end_s": 258.833,
+      "duration_s": 34.167,
+      "n_sampled_frames": 206,
+      "exclusive": false,
+      "n_other_ids": 4,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        17.333
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_7",
+          "to": "camera_5",
+          "dt_s": 17.333,
+          "pair_class": "other"
+        }
+      ],
+      "pair_classes": [
+        "other"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_5+camera_2-007485",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_5",
+        "camera_2"
+      ],
+      "gt_id": 1,
+      "start_frame": 7486,
+      "end_frame": 7911,
+      "start_fid": 7485,
+      "end_fid": 7910,
+      "t_start_s": 249.5,
+      "t_end_s": 263.667,
+      "duration_s": 14.167,
+      "n_sampled_frames": 86,
+      "exclusive": false,
+      "n_other_ids": 4,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        0.167
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_5",
+          "to": "camera_2",
+          "dt_s": 0.167,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_1+camera_2-008030",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_1",
+        "camera_2"
+      ],
+      "gt_id": 6,
+      "start_frame": 8031,
+      "end_frame": 8181,
+      "start_fid": 8030,
+      "end_fid": 8180,
+      "t_start_s": 267.667,
+      "t_end_s": 272.667,
+      "duration_s": 5.0,
+      "n_sampled_frames": 31,
+      "exclusive": false,
+      "n_other_ids": 3,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 5.0,
+      "trimmed": false,
+      "pair_classes": [
+        "other"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_1+camera_3-001835",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_1",
+        "camera_3"
+      ],
+      "gt_id": 6,
+      "start_frame": 1836,
+      "end_frame": 2011,
+      "start_fid": 1835,
+      "end_fid": 2010,
+      "t_start_s": 61.167,
+      "t_end_s": 67.0,
+      "duration_s": 5.833,
+      "n_sampled_frames": 36,
+      "exclusive": false,
+      "n_other_ids": 1,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 5.833,
+      "trimmed": false,
+      "pair_classes": [
+        "other"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_2+camera_3-008040",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_3"
+      ],
+      "gt_id": 6,
+      "start_frame": 8041,
+      "end_frame": 8201,
+      "start_fid": 8040,
+      "end_fid": 8200,
+      "t_start_s": 268.0,
+      "t_end_s": 273.333,
+      "duration_s": 5.333,
+      "n_sampled_frames": 33,
+      "exclusive": false,
+      "n_other_ids": 3,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 5.333,
+      "trimmed": false,
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_4+camera_2-000865",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_4",
+        "camera_2"
+      ],
+      "gt_id": 6,
+      "start_frame": 866,
+      "end_frame": 951,
+      "start_fid": 865,
+      "end_fid": 950,
+      "t_start_s": 28.833,
+      "t_end_s": 31.667,
+      "duration_s": 2.833,
+      "n_sampled_frames": 18,
+      "exclusive": false,
+      "n_other_ids": 1,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        0.667
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_4",
+          "to": "camera_2",
+          "dt_s": 0.667,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_2+camera_6-000915",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_6"
+      ],
+      "gt_id": 6,
+      "start_frame": 916,
+      "end_frame": 1166,
+      "start_fid": 915,
+      "end_fid": 1165,
+      "t_start_s": 30.5,
+      "t_end_s": 38.833,
+      "duration_s": 8.333,
+      "n_sampled_frames": 51,
+      "exclusive": false,
+      "n_other_ids": 5,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        2.5
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_2",
+          "to": "camera_6",
+          "dt_s": 2.5,
+          "pair_class": "truly_disjoint"
+        }
+      ],
+      "pair_classes": [
+        "truly_disjoint"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_6+camera_5-001450",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_6",
+        "camera_5"
+      ],
+      "gt_id": 6,
+      "start_frame": 1451,
+      "end_frame": 1801,
+      "start_fid": 1450,
+      "end_fid": 1800,
+      "t_start_s": 48.333,
+      "t_end_s": 60.0,
+      "duration_s": 11.667,
+      "n_sampled_frames": 71,
+      "exclusive": false,
+      "n_other_ids": 5,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        2.333
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_6",
+          "to": "camera_5",
+          "dt_s": 2.333,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_5+camera_2-001705",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_5",
+        "camera_2"
+      ],
+      "gt_id": 6,
+      "start_frame": 1706,
+      "end_frame": 1941,
+      "start_fid": 1705,
+      "end_fid": 1940,
+      "t_start_s": 56.833,
+      "t_end_s": 64.667,
+      "duration_s": 7.833,
+      "n_sampled_frames": 48,
+      "exclusive": false,
+      "n_other_ids": 3,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        0.333
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_5",
+          "to": "camera_2",
+          "dt_s": 0.333,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_4+camera_5-002195",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_4",
+        "camera_5"
+      ],
+      "gt_id": 6,
+      "start_frame": 2196,
+      "end_frame": 3296,
+      "start_fid": 2195,
+      "end_fid": 3295,
+      "t_start_s": 73.167,
+      "t_end_s": 109.833,
+      "duration_s": 36.667,
+      "n_sampled_frames": 221,
+      "exclusive": false,
+      "n_other_ids": 5,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        17.0
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_4",
+          "to": "camera_5",
+          "dt_s": 17.0,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_4+camera_2-003135",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_4",
+        "camera_2"
+      ],
+      "gt_id": 6,
+      "start_frame": 3136,
+      "end_frame": 3231,
+      "start_fid": 3135,
+      "end_fid": 3230,
+      "t_start_s": 104.5,
+      "t_end_s": 107.667,
+      "duration_s": 3.167,
+      "n_sampled_frames": 20,
+      "exclusive": false,
+      "n_other_ids": 3,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        1.167
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_4",
+          "to": "camera_2",
+          "dt_s": 1.167,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_2+camera_6-003205",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_6"
+      ],
+      "gt_id": 6,
+      "start_frame": 3206,
+      "end_frame": 3566,
+      "start_fid": 3205,
+      "end_fid": 3565,
+      "t_start_s": 106.833,
+      "t_end_s": 118.833,
+      "duration_s": 12.0,
+      "n_sampled_frames": 73,
+      "exclusive": false,
+      "n_other_ids": 4,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        3.5
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_2",
+          "to": "camera_6",
+          "dt_s": 3.5,
+          "pair_class": "truly_disjoint"
+        }
+      ],
+      "pair_classes": [
+        "truly_disjoint"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_6+camera_7-003335",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_6",
+        "camera_7"
+      ],
+      "gt_id": 6,
+      "start_frame": 3336,
+      "end_frame": 3686,
+      "start_fid": 3335,
+      "end_fid": 3685,
+      "t_start_s": 111.167,
+      "t_end_s": 122.833,
+      "duration_s": 11.667,
+      "n_sampled_frames": 71,
+      "exclusive": false,
+      "n_other_ids": 1,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        0.333
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_6",
+          "to": "camera_7",
+          "dt_s": 0.333,
+          "pair_class": "other"
+        }
+      ],
+      "pair_classes": [
+        "other"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_6+camera_5-003800",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_6",
+        "camera_5"
+      ],
+      "gt_id": 6,
+      "start_frame": 3801,
+      "end_frame": 5601,
+      "start_fid": 3800,
+      "end_fid": 5600,
+      "t_start_s": 126.667,
+      "t_end_s": 186.667,
+      "duration_s": 60.0,
+      "n_sampled_frames": 361,
+      "exclusive": false,
+      "n_other_ids": 4,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        2.667
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": true,
+      "transitions": [
+        {
+          "from": "camera_6",
+          "to": "camera_5",
+          "dt_s": 2.667,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_2+camera_4-004120",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_4"
+      ],
+      "gt_id": 6,
+      "start_frame": 4121,
+      "end_frame": 4191,
+      "start_fid": 4120,
+      "end_fid": 4190,
+      "t_start_s": 137.333,
+      "t_end_s": 139.667,
+      "duration_s": 2.333,
+      "n_sampled_frames": 15,
+      "exclusive": false,
+      "n_other_ids": 3,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        0.333
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_2",
+          "to": "camera_4",
+          "dt_s": 0.333,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_4+camera_2-004935",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_4",
+        "camera_2"
+      ],
+      "gt_id": 6,
+      "start_frame": 4936,
+      "end_frame": 5096,
+      "start_fid": 4935,
+      "end_fid": 5095,
+      "t_start_s": 164.5,
+      "t_end_s": 169.833,
+      "duration_s": 5.333,
+      "n_sampled_frames": 33,
+      "exclusive": false,
+      "n_other_ids": 3,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        0.167
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_4",
+          "to": "camera_2",
+          "dt_s": 0.167,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_2+camera_4-005240",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_4"
+      ],
+      "gt_id": 6,
+      "start_frame": 5241,
+      "end_frame": 5431,
+      "start_fid": 5240,
+      "end_fid": 5430,
+      "t_start_s": 174.667,
+      "t_end_s": 181.0,
+      "duration_s": 6.333,
+      "n_sampled_frames": 39,
+      "exclusive": false,
+      "n_other_ids": 3,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        1.5
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_2",
+          "to": "camera_4",
+          "dt_s": 1.5,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_4+camera_2-006020",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_4",
+        "camera_2"
+      ],
+      "gt_id": 6,
+      "start_frame": 6021,
+      "end_frame": 6091,
+      "start_fid": 6020,
+      "end_fid": 6090,
+      "t_start_s": 200.667,
+      "t_end_s": 203.0,
+      "duration_s": 2.333,
+      "n_sampled_frames": 15,
+      "exclusive": false,
+      "n_other_ids": 1,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        0.5
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_4",
+          "to": "camera_2",
+          "dt_s": 0.5,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_2+camera_6-006060",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_6"
+      ],
+      "gt_id": 6,
+      "start_frame": 6061,
+      "end_frame": 6296,
+      "start_fid": 6060,
+      "end_fid": 6295,
+      "t_start_s": 202.0,
+      "t_end_s": 209.833,
+      "duration_s": 7.833,
+      "n_sampled_frames": 48,
+      "exclusive": false,
+      "n_other_ids": 4,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        2.333
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_2",
+          "to": "camera_6",
+          "dt_s": 2.333,
+          "pair_class": "truly_disjoint"
+        }
+      ],
+      "pair_classes": [
+        "truly_disjoint"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_6+camera_7-006160",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_6",
+        "camera_7"
+      ],
+      "gt_id": 6,
+      "start_frame": 6161,
+      "end_frame": 6751,
+      "start_fid": 6160,
+      "end_fid": 6750,
+      "t_start_s": 205.333,
+      "t_end_s": 225.0,
+      "duration_s": 19.667,
+      "n_sampled_frames": 119,
+      "exclusive": false,
+      "n_other_ids": 2,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        1.167
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_6",
+          "to": "camera_7",
+          "dt_s": 1.167,
+          "pair_class": "other"
+        }
+      ],
+      "pair_classes": [
+        "other"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_000-camera_6+camera_5-006695",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_6",
+        "camera_5"
+      ],
+      "gt_id": 6,
+      "start_frame": 6696,
+      "end_frame": 8001,
+      "start_fid": 6695,
+      "end_fid": 8000,
+      "t_start_s": 223.167,
+      "t_end_s": 266.667,
+      "duration_s": 43.5,
+      "n_sampled_frames": 262,
+      "exclusive": false,
+      "n_other_ids": 4,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        4.667
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_6",
+          "to": "camera_5",
+          "dt_s": 4.667,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L1-train-seq_001-camera_1-000000",
+      "level": "L1",
+      "selection_rule": "L1",
+      "split": "train",
+      "seq": "seq_001",
+      "cameras": [
+        "camera_1"
+      ],
+      "gt_id": 9,
+      "start_frame": 1,
+      "end_frame": 1801,
+      "start_fid": 0,
+      "end_fid": 1800,
+      "t_start_s": 0.0,
+      "t_end_s": 60.0,
+      "duration_s": 60.0,
+      "n_sampled_frames": 361,
+      "exclusive": true,
+      "n_other_ids": 0,
+      "rendered": true,
+      "segments_s": [
+        130.0
+      ],
+      "gaps_s": [],
+      "gap_band": null,
+      "trimmed": true
+    },
+    {
+      "window_id": "L3S-train-seq_001-camera_1+camera_3-000000",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_001",
+      "cameras": [
+        "camera_1",
+        "camera_3"
+      ],
+      "gt_id": 9,
+      "start_frame": 1,
+      "end_frame": 1801,
+      "start_fid": 0,
+      "end_fid": 1800,
+      "t_start_s": 0.0,
+      "t_end_s": 60.0,
+      "duration_s": 60.0,
+      "n_sampled_frames": 361,
+      "exclusive": false,
+      "n_other_ids": 6,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 130.0,
+      "trimmed": true,
+      "pair_classes": [
+        "other"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_001-camera_5+camera_4-003535",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_001",
+      "cameras": [
+        "camera_5",
+        "camera_4"
+      ],
+      "gt_id": 18,
+      "start_frame": 3536,
+      "end_frame": 3901,
+      "start_fid": 3535,
+      "end_fid": 3900,
+      "t_start_s": 117.833,
+      "t_end_s": 130.0,
+      "duration_s": 12.167,
+      "n_sampled_frames": 74,
+      "exclusive": false,
+      "n_other_ids": 2,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        7.833
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_5",
+          "to": "camera_4",
+          "dt_s": 7.833,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_001-camera_2+camera_3-000000",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_001",
+      "cameras": [
+        "camera_2",
+        "camera_3"
+      ],
+      "gt_id": 5,
+      "start_frame": 1,
+      "end_frame": 1801,
+      "start_fid": 0,
+      "end_fid": 1800,
+      "t_start_s": 0.0,
+      "t_end_s": 60.0,
+      "duration_s": 60.0,
+      "n_sampled_frames": 361,
+      "exclusive": false,
+      "n_other_ids": 6,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 130.0,
+      "trimmed": true,
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_001-camera_2+camera_3-000190",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_001",
+      "cameras": [
+        "camera_2",
+        "camera_3"
+      ],
+      "gt_id": 1,
+      "start_frame": 191,
+      "end_frame": 1991,
+      "start_fid": 190,
+      "end_fid": 1990,
+      "t_start_s": 6.333,
+      "t_end_s": 66.333,
+      "duration_s": 60.0,
+      "n_sampled_frames": 361,
+      "exclusive": false,
+      "n_other_ids": 6,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 123.667,
+      "trimmed": true,
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_001-camera_4+camera_3-002900",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_001",
+      "cameras": [
+        "camera_4",
+        "camera_3"
+      ],
+      "gt_id": 19,
+      "start_frame": 2901,
+      "end_frame": 3901,
+      "start_fid": 2900,
+      "end_fid": 3900,
+      "t_start_s": 96.667,
+      "t_end_s": 130.0,
+      "duration_s": 33.333,
+      "n_sampled_frames": 201,
+      "exclusive": false,
+      "n_other_ids": 8,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        1.667
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_4",
+          "to": "camera_3",
+          "dt_s": 1.667,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_002-camera_1+camera_3-000000",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_002",
+      "cameras": [
+        "camera_1",
+        "camera_3"
+      ],
+      "gt_id": 9,
+      "start_frame": 1,
+      "end_frame": 1466,
+      "start_fid": 0,
+      "end_fid": 1465,
+      "t_start_s": 0.0,
+      "t_end_s": 48.833,
+      "duration_s": 48.833,
+      "n_sampled_frames": 294,
+      "exclusive": false,
+      "n_other_ids": 7,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 48.833,
+      "trimmed": false,
+      "pair_classes": [
+        "other"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_002-camera_1+camera_3-001585",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_002",
+      "cameras": [
+        "camera_1",
+        "camera_3"
+      ],
+      "gt_id": 9,
+      "start_frame": 1586,
+      "end_frame": 3351,
+      "start_fid": 1585,
+      "end_fid": 3350,
+      "t_start_s": 52.833,
+      "t_end_s": 111.667,
+      "duration_s": 58.833,
+      "n_sampled_frames": 354,
+      "exclusive": false,
+      "n_other_ids": 7,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 58.833,
+      "trimmed": false,
+      "pair_classes": [
+        "other"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_002-camera_1+camera_3-001410",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_002",
+      "cameras": [
+        "camera_1",
+        "camera_3"
+      ],
+      "gt_id": 18,
+      "start_frame": 1411,
+      "end_frame": 1636,
+      "start_fid": 1410,
+      "end_fid": 1635,
+      "t_start_s": 47.0,
+      "t_end_s": 54.5,
+      "duration_s": 7.5,
+      "n_sampled_frames": 46,
+      "exclusive": false,
+      "n_other_ids": 6,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 7.5,
+      "trimmed": false,
+      "pair_classes": [
+        "other"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_002-camera_3+camera_4-000000",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_002",
+      "cameras": [
+        "camera_3",
+        "camera_4"
+      ],
+      "gt_id": 18,
+      "start_frame": 1,
+      "end_frame": 196,
+      "start_fid": 0,
+      "end_fid": 195,
+      "t_start_s": 0.0,
+      "t_end_s": 6.5,
+      "duration_s": 6.5,
+      "n_sampled_frames": 40,
+      "exclusive": false,
+      "n_other_ids": 7,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 6.5,
+      "trimmed": false,
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_002-camera_3+camera_4-001000",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_002",
+      "cameras": [
+        "camera_3",
+        "camera_4"
+      ],
+      "gt_id": 18,
+      "start_frame": 1001,
+      "end_frame": 1271,
+      "start_fid": 1000,
+      "end_fid": 1270,
+      "t_start_s": 33.333,
+      "t_end_s": 42.333,
+      "duration_s": 9.0,
+      "n_sampled_frames": 55,
+      "exclusive": false,
+      "n_other_ids": 8,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 9.0,
+      "trimmed": false,
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_002-camera_2+camera_4-001605",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_002",
+      "cameras": [
+        "camera_2",
+        "camera_4"
+      ],
+      "gt_id": 18,
+      "start_frame": 1606,
+      "end_frame": 1746,
+      "start_fid": 1605,
+      "end_fid": 1745,
+      "t_start_s": 53.5,
+      "t_end_s": 58.167,
+      "duration_s": 4.667,
+      "n_sampled_frames": 29,
+      "exclusive": false,
+      "n_other_ids": 4,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        0.167
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_2",
+          "to": "camera_4",
+          "dt_s": 0.167,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_002-camera_4+camera_3-001675",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_002",
+      "cameras": [
+        "camera_4",
+        "camera_3"
+      ],
+      "gt_id": 18,
+      "start_frame": 1676,
+      "end_frame": 2676,
+      "start_fid": 1675,
+      "end_fid": 2675,
+      "t_start_s": 55.833,
+      "t_end_s": 89.167,
+      "duration_s": 33.333,
+      "n_sampled_frames": 201,
+      "exclusive": false,
+      "n_other_ids": 8,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        0.833
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_4",
+          "to": "camera_3",
+          "dt_s": 0.833,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_002-camera_2+camera_3-001830",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_002",
+      "cameras": [
+        "camera_2",
+        "camera_3"
+      ],
+      "gt_id": 19,
+      "start_frame": 1831,
+      "end_frame": 2121,
+      "start_fid": 1830,
+      "end_fid": 2120,
+      "t_start_s": 61.0,
+      "t_end_s": 70.667,
+      "duration_s": 9.667,
+      "n_sampled_frames": 59,
+      "exclusive": false,
+      "n_other_ids": 7,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 9.667,
+      "trimmed": false,
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_002-camera_1+camera_4-002075",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_002",
+      "cameras": [
+        "camera_1",
+        "camera_4"
+      ],
+      "gt_id": 19,
+      "start_frame": 2076,
+      "end_frame": 2386,
+      "start_fid": 2075,
+      "end_fid": 2385,
+      "t_start_s": 69.167,
+      "t_end_s": 79.5,
+      "duration_s": 10.333,
+      "n_sampled_frames": 63,
+      "exclusive": false,
+      "n_other_ids": 2,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        1.0
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_1",
+          "to": "camera_4",
+          "dt_s": 1.0,
+          "pair_class": "other"
+        }
+      ],
+      "pair_classes": [
+        "other"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_002-camera_3+camera_4-002385",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_002",
+      "cameras": [
+        "camera_3",
+        "camera_4"
+      ],
+      "gt_id": 19,
+      "start_frame": 2386,
+      "end_frame": 2596,
+      "start_fid": 2385,
+      "end_fid": 2595,
+      "t_start_s": 79.5,
+      "t_end_s": 86.5,
+      "duration_s": 7.0,
+      "n_sampled_frames": 43,
+      "exclusive": false,
+      "n_other_ids": 8,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        0.333
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_3",
+          "to": "camera_4",
+          "dt_s": 0.333,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_002-camera_3+camera_4-002500",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_002",
+      "cameras": [
+        "camera_3",
+        "camera_4"
+      ],
+      "gt_id": 19,
+      "start_frame": 2501,
+      "end_frame": 2706,
+      "start_fid": 2500,
+      "end_fid": 2705,
+      "t_start_s": 83.333,
+      "t_end_s": 90.167,
+      "duration_s": 6.833,
+      "n_sampled_frames": 42,
+      "exclusive": false,
+      "n_other_ids": 8,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        4.0
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_3",
+          "to": "camera_4",
+          "dt_s": 4.0,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_002-camera_4+camera_3-002685",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_002",
+      "cameras": [
+        "camera_4",
+        "camera_3"
+      ],
+      "gt_id": 19,
+      "start_frame": 2686,
+      "end_frame": 2761,
+      "start_fid": 2685,
+      "end_fid": 2760,
+      "t_start_s": 89.5,
+      "t_end_s": 92.0,
+      "duration_s": 2.5,
+      "n_sampled_frames": 16,
+      "exclusive": false,
+      "n_other_ids": 8,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        1.5
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_4",
+          "to": "camera_3",
+          "dt_s": 1.5,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_002-camera_3+camera_4-002850",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_002",
+      "cameras": [
+        "camera_3",
+        "camera_4"
+      ],
+      "gt_id": 19,
+      "start_frame": 2851,
+      "end_frame": 3051,
+      "start_fid": 2850,
+      "end_fid": 3050,
+      "t_start_s": 95.0,
+      "t_end_s": 101.667,
+      "duration_s": 6.667,
+      "n_sampled_frames": 41,
+      "exclusive": false,
+      "n_other_ids": 8,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        1.333
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_3",
+          "to": "camera_4",
+          "dt_s": 1.333,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3T-train-seq_002-camera_4+camera_3-002960",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "train",
+      "seq": "seq_002",
+      "cameras": [
+        "camera_4",
+        "camera_3"
+      ],
+      "gt_id": 19,
+      "start_frame": 2961,
+      "end_frame": 3361,
+      "start_fid": 2960,
+      "end_fid": 3360,
+      "t_start_s": 98.667,
+      "t_end_s": 112.0,
+      "duration_s": 13.333,
+      "n_sampled_frames": 81,
+      "exclusive": false,
+      "n_other_ids": 8,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        2.333
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_4",
+          "to": "camera_3",
+          "dt_s": 2.333,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_002-camera_2+camera_3-000000",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_002",
+      "cameras": [
+        "camera_2",
+        "camera_3"
+      ],
+      "gt_id": 5,
+      "start_frame": 1,
+      "end_frame": 1801,
+      "start_fid": 0,
+      "end_fid": 1800,
+      "t_start_s": 0.0,
+      "t_end_s": 60.0,
+      "duration_s": 60.0,
+      "n_sampled_frames": 361,
+      "exclusive": false,
+      "n_other_ids": 7,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 112.0,
+      "trimmed": true,
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_002-camera_2+camera_3-000860",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_002",
+      "cameras": [
+        "camera_2",
+        "camera_3"
+      ],
+      "gt_id": 1,
+      "start_frame": 861,
+      "end_frame": 1081,
+      "start_fid": 860,
+      "end_fid": 1080,
+      "t_start_s": 28.667,
+      "t_end_s": 36.0,
+      "duration_s": 7.333,
+      "n_sampled_frames": 45,
+      "exclusive": false,
+      "n_other_ids": 7,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 7.333,
+      "trimmed": false,
+      "pair_classes": [
+        "overlapping"
+      ]
+    },
+    {
+      "window_id": "L3S-train-seq_002-camera_2+camera_3-001865",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_002",
+      "cameras": [
+        "camera_2",
+        "camera_3"
+      ],
+      "gt_id": 1,
+      "start_frame": 1866,
+      "end_frame": 3361,
+      "start_fid": 1865,
+      "end_fid": 3360,
+      "t_start_s": 62.167,
+      "t_end_s": 112.0,
+      "duration_s": 49.833,
+      "n_sampled_frames": 300,
+      "exclusive": false,
+      "n_other_ids": 7,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 49.833,
+      "trimmed": false,
+      "pair_classes": [
+        "overlapping"
+      ]
+    }
+  ],
+  "filtered_from": "results/levels/level_manifest.json",
+  "filter_splits": [
+    "train"
+  ]
+}

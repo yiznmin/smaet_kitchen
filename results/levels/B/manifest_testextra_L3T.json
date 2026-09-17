@@ -1,0 +1,381 @@
+{
+  "definition": "B(CHIRLA 資料夾 CSV)",
+  "params": {
+    "stride": 5
+  },
+  "splits": {
+    "train": [
+      "seq_000",
+      "seq_001",
+      "seq_002"
+    ],
+    "test": [
+      "seq_004",
+      "seq_006",
+      "seq_007",
+      "seq_024",
+      "seq_025",
+      "seq_026"
+    ],
+    "extra": [
+      "seq_020"
+    ]
+  },
+  "topology": "D:\\yizhen\\smart_kitchen\\configs\\camera_topology.chirla.yaml",
+  "csv_dir": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA",
+  "review_sheet": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/manual_check/review_sheet.csv",
+  "git_sha": "1c6a113bac2500d06f5422e03b16d5553b15342e",
+  "argv": [
+    "--root",
+    "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA",
+    "--train-seqs",
+    "seq_000",
+    "seq_001",
+    "seq_002",
+    "--test-seqs",
+    "seq_004",
+    "seq_006",
+    "seq_007",
+    "seq_024",
+    "seq_025",
+    "seq_026",
+    "--extra-seqs",
+    "seq_020",
+    "--csv-dir",
+    "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA",
+    "--review-sheet",
+    "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/manual_check/review_sheet.csv",
+    "--out",
+    "results/levels/B/level_manifest.json"
+  ],
+  "counts": {
+    "L1|train": 54,
+    "L1|test": 99,
+    "L1|extra": 25,
+    "L2|train": 2,
+    "L2|test": 13,
+    "L2|extra": 1,
+    "L3S|train": 2,
+    "L3T|test": 4,
+    "L3S|test": 10,
+    "L3T|extra": 1
+  },
+  "n_rendered": 0,
+  "skipped": [],
+  "selfcheck_failures": [
+    "L2-train-seq_000-camera_1-003910:L2 必須剛好兩段一隔"
+  ],
+  "windows": [
+    {
+      "window_id": "L3T-test-seq_004-camera_6+camera_7-004590",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "test",
+      "seq": "seq_004",
+      "cameras": [
+        "camera_6",
+        "camera_7"
+      ],
+      "gt_id": 7,
+      "start_frame": 4591,
+      "end_frame": 4886,
+      "start_fid": 4590,
+      "end_fid": 4885,
+      "t_start_s": 153.0,
+      "t_end_s": 162.833,
+      "duration_s": 9.833,
+      "n_sampled_frames": 60,
+      "exclusive": true,
+      "n_other_ids": 0,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        3.333
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_6",
+          "to": "camera_7",
+          "dt_s": 3.333,
+          "pair_class": "other"
+        }
+      ],
+      "pair_classes": [
+        "other"
+      ],
+      "source": "csv",
+      "csv_row": {
+        "level": "L3",
+        "index": 2,
+        "seq": "seq_004",
+        "person_id": "7",
+        "start_frame": "4590",
+        "end_frame": "4889",
+        "start_time": "02:32.97",
+        "end_time": "02:42.93",
+        "duration_s": "10.0",
+        "n_cameras": "2",
+        "camera_order": "c6>c7",
+        "handoff_type": "sequential",
+        "brief_cams": "",
+        "others_elsewhere": "6",
+        "segments": "c6[4590-4672]; c7[4772-4889]"
+      },
+      "manual_sample_id": "L3_03",
+      "manual_verdict": null
+    },
+    {
+      "window_id": "L3T-extra-seq_020-camera_5+camera_6-000385",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "extra",
+      "seq": "seq_020",
+      "cameras": [
+        "camera_5",
+        "camera_6"
+      ],
+      "gt_id": 10,
+      "start_frame": 386,
+      "end_frame": 596,
+      "start_fid": 385,
+      "end_fid": 595,
+      "t_start_s": 12.833,
+      "t_end_s": 19.833,
+      "duration_s": 7.0,
+      "n_sampled_frames": 43,
+      "exclusive": true,
+      "n_other_ids": 0,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        1.1
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_5",
+          "to": "camera_6",
+          "dt_s": 1.1,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ],
+      "source": "csv",
+      "csv_row": {
+        "level": "L3",
+        "index": 5,
+        "seq": "seq_020",
+        "person_id": "10",
+        "start_frame": "386",
+        "end_frame": "600",
+        "start_time": "00:12.83",
+        "end_time": "00:19.97",
+        "duration_s": "7.17",
+        "n_cameras": "2",
+        "camera_order": "c5>c6",
+        "handoff_type": "sequential",
+        "brief_cams": "c2 c7",
+        "others_elsewhere": "10",
+        "segments": "c5[386-453]; c6[486-600]"
+      },
+      "manual_sample_id": null,
+      "manual_verdict": null
+    },
+    {
+      "window_id": "L3T-test-seq_024-camera_5+camera_6-014825",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "test",
+      "seq": "seq_024",
+      "cameras": [
+        "camera_5",
+        "camera_6"
+      ],
+      "gt_id": 2,
+      "start_frame": 14826,
+      "end_frame": 14961,
+      "start_fid": 14825,
+      "end_fid": 14960,
+      "t_start_s": 494.167,
+      "t_end_s": 498.667,
+      "duration_s": 4.5,
+      "n_sampled_frames": 28,
+      "exclusive": true,
+      "n_other_ids": 0,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        0.833
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_6",
+          "to": "camera_5",
+          "dt_s": 0.833,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ],
+      "source": "csv",
+      "csv_row": {
+        "level": "L3",
+        "index": 6,
+        "seq": "seq_024",
+        "person_id": "2",
+        "start_frame": "14823",
+        "end_frame": "14963",
+        "start_time": "08:14.07",
+        "end_time": "08:18.73",
+        "duration_s": "4.7",
+        "n_cameras": "2",
+        "camera_order": "c6>c5",
+        "handoff_type": "sequential",
+        "brief_cams": "c1 c2 c7",
+        "others_elsewhere": "4",
+        "segments": "c6[14823-14889]; c5[14914-14963]"
+      },
+      "manual_sample_id": null,
+      "manual_verdict": null
+    },
+    {
+      "window_id": "L3T-test-seq_024-camera_5+camera_6-013975",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "test",
+      "seq": "seq_024",
+      "cameras": [
+        "camera_5",
+        "camera_6"
+      ],
+      "gt_id": 6,
+      "start_frame": 13976,
+      "end_frame": 14116,
+      "start_fid": 13975,
+      "end_fid": 14115,
+      "t_start_s": 465.833,
+      "t_end_s": 470.5,
+      "duration_s": 4.667,
+      "n_sampled_frames": 29,
+      "exclusive": true,
+      "n_other_ids": 0,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        0.933
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_5",
+          "to": "camera_6",
+          "dt_s": 0.933,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ],
+      "source": "csv",
+      "csv_row": {
+        "level": "L3",
+        "index": 7,
+        "seq": "seq_024",
+        "person_id": "6",
+        "start_frame": "13976",
+        "end_frame": "14120",
+        "start_time": "07:45.83",
+        "end_time": "07:50.63",
+        "duration_s": "4.83",
+        "n_cameras": "2",
+        "camera_order": "c5>c6",
+        "handoff_type": "sequential",
+        "brief_cams": "c1 c2 c7",
+        "others_elsewhere": "4",
+        "segments": "c5[13976-14025]; c6[14053-14120]"
+      },
+      "manual_sample_id": "L3_01",
+      "manual_verdict": null
+    },
+    {
+      "window_id": "L3T-test-seq_024-camera_5+camera_6-000625",
+      "level": "L3",
+      "selection_rule": "L3T",
+      "split": "test",
+      "seq": "seq_024",
+      "cameras": [
+        "camera_5",
+        "camera_6"
+      ],
+      "gt_id": 10,
+      "start_frame": 626,
+      "end_frame": 771,
+      "start_fid": 625,
+      "end_fid": 770,
+      "t_start_s": 20.833,
+      "t_end_s": 25.667,
+      "duration_s": 4.833,
+      "n_sampled_frames": 30,
+      "exclusive": true,
+      "n_other_ids": 0,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [
+        0.833
+      ],
+      "gap_band": null,
+      "overlap_s": null,
+      "trimmed": false,
+      "transitions": [
+        {
+          "from": "camera_6",
+          "to": "camera_5",
+          "dt_s": 0.833,
+          "pair_class": "overlapping"
+        }
+      ],
+      "pair_classes": [
+        "overlapping"
+      ],
+      "source": "csv",
+      "csv_row": {
+        "level": "L3",
+        "index": 10,
+        "seq": "seq_024",
+        "person_id": "10",
+        "start_frame": "626",
+        "end_frame": "774",
+        "start_time": "00:20.83",
+        "end_time": "00:25.77",
+        "duration_s": "4.97",
+        "n_cameras": "2",
+        "camera_order": "c6>c5",
+        "handoff_type": "sequential",
+        "brief_cams": "c1 c2 c7",
+        "others_elsewhere": "7",
+        "segments": "c6[626-694]; c5[719-774]"
+      },
+      "manual_sample_id": null,
+      "manual_verdict": null
+    }
+  ],
+  "filtered_from": "results/levels/B/level_manifest.json",
+  "filter_splits": [
+    "extra",
+    "test"
+  ],
+  "filter_rule": "L3T"
+}

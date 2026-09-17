@@ -1,0 +1,74 @@
+{
+  "definition": "B(CHIRLA 資料夾 CSV)",
+  "params": {
+    "stride": 5
+  },
+  "splits": {
+    "train": [
+      "seq_000",
+      "seq_001",
+      "seq_002"
+    ],
+    "test": [
+      "seq_004",
+      "seq_006",
+      "seq_007",
+      "seq_024",
+      "seq_025",
+      "seq_026"
+    ],
+    "extra": [
+      "seq_020"
+    ]
+  },
+  "topology": "D:\\yizhen\\smart_kitchen\\configs\\camera_topology.chirla.yaml",
+  "csv_dir": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA",
+  "review_sheet": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/manual_check/review_sheet.csv",
+  "git_sha": "1c6a113bac2500d06f5422e03b16d5553b15342e",
+  "argv": [
+    "--root",
+    "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA",
+    "--train-seqs",
+    "seq_000",
+    "seq_001",
+    "seq_002",
+    "--test-seqs",
+    "seq_004",
+    "seq_006",
+    "seq_007",
+    "seq_024",
+    "seq_025",
+    "seq_026",
+    "--extra-seqs",
+    "seq_020",
+    "--csv-dir",
+    "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA",
+    "--review-sheet",
+    "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/manual_check/review_sheet.csv",
+    "--out",
+    "results/levels/B/level_manifest.json"
+  ],
+  "counts": {
+    "L1|train": 54,
+    "L1|test": 99,
+    "L1|extra": 25,
+    "L2|train": 2,
+    "L2|test": 13,
+    "L2|extra": 1,
+    "L3S|train": 2,
+    "L3T|test": 4,
+    "L3S|test": 10,
+    "L3T|extra": 1
+  },
+  "n_rendered": 0,
+  "skipped": [],
+  "selfcheck_failures": [
+    "L2-train-seq_000-camera_1-003910:L2 必須剛好兩段一隔"
+  ],
+  "windows": [],
+  "filtered_from": "results/levels/B/level_manifest.json",
+  "filter_splits": [
+    "train"
+  ],
+  "filter_rule": "L3T"
+}

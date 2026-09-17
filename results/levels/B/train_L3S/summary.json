@@ -1,0 +1,132 @@
+{
+  "label": "B_train_L3S",
+  "manifest": "results/levels/B/manifest_train_L3S.json",
+  "run_root": "results/levels/runs/m5_cbiou_train",
+  "aggregate": {
+    "L3|train": {
+      "n_windows": 2,
+      "n_bindings": 3,
+      "idf1": 0.6667,
+      "n_transitions": 1,
+      "p_break": 1.0,
+      "p_false_merge": null,
+      "p_correct": 0.0,
+      "fm_unmeasurable_reason": "沒有任何窗本身量得到誤併(窗內只有 1 個身份)",
+      "id_switches": 1,
+      "fragmentation": {
+        "mean": 1.5,
+        "max": 2,
+        "hist": {
+          "2": 1,
+          "1": 1
+        }
+      },
+      "measurable": {
+        "p_break": true,
+        "p_false_merge": false,
+        "idf1": true,
+        "fragmentation": true,
+        "headcount": true
+      },
+      "n_unique_bindings": 3,
+      "p_false_merge_pooled_all": 0.0,
+      "n_windows_fm_measurable": 0,
+      "paths": {
+        "overlap": null,
+        "transit": {
+          "idf1": 1.0,
+          "idtp": 1,
+          "n": 1,
+          "n_gt": 1,
+          "n_pred": 1,
+          "n_transitions": 1,
+          "p_break": 1.0,
+          "p_false_merge": null,
+          "p_correct": 0.0,
+          "fm_unmeasurable_reason": "ground-truth 只有一個身份 → 誤併分支是死碼,任何數字都不是誤併率",
+          "id_switches": 0,
+          "fragmentation": {
+            "mean": 1.0,
+            "max": 1,
+            "hist": {
+              "1": 1
+            }
+          },
+          "measurable": {
+            "p_break": true,
+            "p_false_merge": false,
+            "idf1": false,
+            "fragmentation": true,
+            "headcount": true
+          },
+          "p_false_merge_pooled_all": null
+        }
+      }
+    }
+  },
+  "windows": [
+    {
+      "window_id": "L3S-train-seq_000-camera_6+camera_7-001710",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_6",
+        "camera_7"
+      ],
+      "gt_id": 10,
+      "duration_s": 11.833,
+      "n_sampled_frames": 72,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": true,
+      "n_other_ids": 0,
+      "n_bindings": 3,
+      "n_ghost_bindings": 1,
+      "n_transitions": 1,
+      "p_break": 1.0,
+      "p_false_merge": null,
+      "p_correct": 0.0,
+      "fragmentation": 2.0,
+      "measurable": {
+        "p_break": true,
+        "p_false_merge": false,
+        "idf1": false,
+        "fragmentation": true,
+        "headcount": true
+      }
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_6+camera_7-004450",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_6",
+        "camera_7"
+      ],
+      "gt_id": 9,
+      "duration_s": 5.667,
+      "n_sampled_frames": 35,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": true,
+      "n_other_ids": 0,
+      "n_bindings": 1,
+      "n_ghost_bindings": 0,
+      "n_transitions": 0,
+      "p_break": null,
+      "p_false_merge": null,
+      "p_correct": null,
+      "fragmentation": 1.0,
+      "measurable": {
+        "p_break": false,
+        "p_false_merge": false,
+        "idf1": false,
+        "fragmentation": true,
+        "headcount": true
+      }
+    }
+  ],
+  "failures": []
+}

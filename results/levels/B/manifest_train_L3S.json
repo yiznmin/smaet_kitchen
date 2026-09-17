@@ -1,0 +1,179 @@
+{
+  "definition": "B(CHIRLA 資料夾 CSV)",
+  "params": {
+    "stride": 5
+  },
+  "splits": {
+    "train": [
+      "seq_000",
+      "seq_001",
+      "seq_002"
+    ],
+    "test": [
+      "seq_004",
+      "seq_006",
+      "seq_007",
+      "seq_024",
+      "seq_025",
+      "seq_026"
+    ],
+    "extra": [
+      "seq_020"
+    ]
+  },
+  "topology": "D:\\yizhen\\smart_kitchen\\configs\\camera_topology.chirla.yaml",
+  "csv_dir": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA",
+  "review_sheet": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/manual_check/review_sheet.csv",
+  "git_sha": "1c6a113bac2500d06f5422e03b16d5553b15342e",
+  "argv": [
+    "--root",
+    "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA",
+    "--train-seqs",
+    "seq_000",
+    "seq_001",
+    "seq_002",
+    "--test-seqs",
+    "seq_004",
+    "seq_006",
+    "seq_007",
+    "seq_024",
+    "seq_025",
+    "seq_026",
+    "--extra-seqs",
+    "seq_020",
+    "--csv-dir",
+    "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA",
+    "--review-sheet",
+    "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/manual_check/review_sheet.csv",
+    "--out",
+    "results/levels/B/level_manifest.json"
+  ],
+  "counts": {
+    "L1|train": 54,
+    "L1|test": 99,
+    "L1|extra": 25,
+    "L2|train": 2,
+    "L2|test": 13,
+    "L2|extra": 1,
+    "L3S|train": 2,
+    "L3T|test": 4,
+    "L3S|test": 10,
+    "L3T|extra": 1
+  },
+  "n_rendered": 0,
+  "skipped": [],
+  "selfcheck_failures": [
+    "L2-train-seq_000-camera_1-003910:L2 必須剛好兩段一隔"
+  ],
+  "windows": [
+    {
+      "window_id": "L3S-train-seq_000-camera_6+camera_7-004450",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_6",
+        "camera_7"
+      ],
+      "gt_id": 9,
+      "start_frame": 4451,
+      "end_frame": 4621,
+      "start_fid": 4450,
+      "end_fid": 4620,
+      "t_start_s": 148.333,
+      "t_end_s": 154.0,
+      "duration_s": 5.667,
+      "n_sampled_frames": 35,
+      "exclusive": true,
+      "n_other_ids": 0,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 1.633,
+      "trimmed": false,
+      "pair_classes": [
+        "other"
+      ],
+      "source": "csv",
+      "csv_row": {
+        "level": "L3",
+        "index": 0,
+        "seq": "seq_000",
+        "person_id": "9",
+        "start_frame": "4449",
+        "end_frame": "4622",
+        "start_time": "02:28.27",
+        "end_time": "02:34.03",
+        "duration_s": "5.8",
+        "n_cameras": "2",
+        "camera_order": "c6>c7",
+        "handoff_type": "overlapping",
+        "brief_cams": "",
+        "others_elsewhere": "6",
+        "segments": "c7[4449-4498]; c6[4449-4622]"
+      },
+      "manual_sample_id": "L3_02",
+      "manual_verdict": null
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_6+camera_7-001710",
+      "level": "L3",
+      "selection_rule": "L3S",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_6",
+        "camera_7"
+      ],
+      "gt_id": 10,
+      "start_frame": 1711,
+      "end_frame": 2066,
+      "start_fid": 1710,
+      "end_fid": 2065,
+      "t_start_s": 57.0,
+      "t_end_s": 68.833,
+      "duration_s": 11.833,
+      "n_sampled_frames": 72,
+      "exclusive": true,
+      "n_other_ids": 0,
+      "rendered": false,
+      "segments_s": [],
+      "gaps_s": [],
+      "gap_band": null,
+      "transitions": [],
+      "overlap_s": 2.5,
+      "trimmed": false,
+      "pair_classes": [
+        "other"
+      ],
+      "source": "csv",
+      "csv_row": {
+        "level": "L3",
+        "index": 1,
+        "seq": "seq_000",
+        "person_id": "10",
+        "start_frame": "1708",
+        "end_frame": "2068",
+        "start_time": "00:56.90",
+        "end_time": "01:08.90",
+        "duration_s": "12.03",
+        "n_cameras": "2",
+        "camera_order": "c6>c7",
+        "handoff_type": "overlapping",
+        "brief_cams": "",
+        "others_elsewhere": "6",
+        "segments": "c7[1708-1783]; c6[1708-2068]; c7[1909-1946]"
+      },
+      "manual_sample_id": null,
+      "manual_verdict": null
+    }
+  ],
+  "filtered_from": "results/levels/B/level_manifest.json",
+  "filter_splits": [
+    "train"
+  ],
+  "filter_rule": "L3S"
+}

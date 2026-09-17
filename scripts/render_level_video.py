@@ -206,7 +206,13 @@ def render(win, run_root, out_dir, args):
             raise SystemExit(f"開不了影片 {p}")
         caps[c] = [cap, 0]                       # [cap, 下一個要讀的 fid]
 
-    loops = sorted(per_loop)
+    # ⚠ 2026-09-17 修正:迭代窗內**每個取樣幀**,不是只迭代 tracks.csv 有列的迴圈。
+    #   人離開畫面時選定鏡頭上沒有 track → 舊版整段跳過,影片從離開前直接跳到回來後,
+    #   正好剪掉 L2 的消失期間與 L3T 的轉場(V3 幀數檢查抓到 8/17 段)。
+    #   已驗證 10 個序列的 tracks.csv 全部 video_fid == loop_i × stride。
+    loops = list(range(lo // stride, hi // stride + 1))
+    if lo % stride:
+        raise SystemExit(f"{win['window_id']}:start_fid={lo} 不在 stride={stride} 的格點上")
     enc, n_box, n_chef, size = None, 0, 0, None
     strip = None
     for loop in loops:
@@ -225,7 +231,7 @@ def render(win, run_root, out_dir, args):
                                  int(meta["videos"][c]["width"]), 3), 20, np.uint8)
                 cv2.putText(frame, f"{c} no signal", (30, 60),
                             cv2.FONT_HERSHEY_SIMPLEX, 1.2, (60, 60, 200), 3)
-            trks = per_loop[loop].get(c, [])
+            trks = per_loop.get(loop, {}).get(c, [])
             n_box += sum(t.bbox is not None for t in trks)
             n_chef += sum((c, t.track_id) in chefs for t in trks)
             panels.append(draw_panel(frame, trks, c, chefs, fid / fps_src, width=args.width))

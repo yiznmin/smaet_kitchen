@@ -112,6 +112,12 @@ def main():
     single_cam_agg = defaultdict(lambda: ([], []))     # (level, split) -> (identity, clear)
     rec_pool = defaultdict(list)                       # (level, split) -> records
     path_pool = defaultdict(lambda: {"overlap": [], "transit": []})
+    # ⚠ 2026-09-17 修正(補充登記 §8):誤併率只能從「窗本身量得到誤併」的窗彙集。
+    #   把不同窗的不同人串在一起,summarize 的「身份數 ≥ 2」就會成立,
+    #   於是每個窗都量不到的組也印出 0.00% / 12.50% —— 那是跨窗湊出來的數字。
+    fm_pool = defaultdict(list)
+    fm_path_pool = defaultdict(lambda: {"overlap": [], "transit": []})
+    event_keys = defaultdict(set)                      # (level, split) -> 不重複的綁定事件
 
     for w in sorted(wins, key=lambda x: (x["level"], x["split"], x["seq"], x["start_frame"])):
         key = (w["split"], w["seq"])
@@ -148,7 +154,15 @@ def main():
         else:
             for k in path_pool[(w["level"], w["split"])]:
                 path_pool[(w["level"], w["split"])][k] += path[k]
+                if s.get("p_false_merge") is not None:
+                    fm_path_pool[(w["level"], w["split"])][k] += path[k]
         rec_pool[(w["level"], w["split"])] += recs
+        if w["level"] == "L3" and s.get("p_false_merge") is not None:
+            fm_pool[(w["level"], w["split"])] += recs
+        event_keys[(w["level"], w["split"])] |= {
+            (w["seq"], e["video_fid"], e["camera_id"], e["track_id"]) for e in c.events
+            if w["start_fid"] <= e["video_fid"] <= w["end_fid"] and e["camera_id"] in w["cameras"]
+            and c.track_gt.get((e["camera_id"], e["track_id"])) is not None}   # 與 build_records 同口徑:不含誤偵綁定
         rows.append(row)
 
     # ── 彙總:記錄直接彙集後算一次(與逐窗平均不同,分母才正確)──
@@ -160,6 +174,20 @@ def main():
                   if k in ("n_transitions", "p_break", "p_false_merge", "p_correct",
                            "idf1", "id_switches", "fragmentation", "measurable",
                            "fm_unmeasurable_reason")})
+        # ⚠ 誤併率的彙總修正(見上方 fm_pool 註解);原始串接值留著備查
+        a["n_unique_bindings"] = len(event_keys[(level, split)])
+        a["p_false_merge_pooled_all"] = a.get("p_false_merge")
+        fm_recs = fm_pool[(level, split)]
+        fm_s = metrics.summarize(fm_recs) if fm_recs else {}
+        a["n_windows_fm_measurable"] = sum(
+            1 for r in rows if r["level"] == level and r["split"] == split
+            and r["p_false_merge"] is not None)
+        a["p_false_merge"] = fm_s.get("p_false_merge") if level == "L3" else None
+        a.setdefault("measurable", {})["p_false_merge"] = a["p_false_merge"] is not None
+        if a["p_false_merge"] is None:
+            a["fm_unmeasurable_reason"] = "沒有任何窗本身量得到誤併(窗內只有 1 個身份)"
+        if level in ("L1", "L2") and a["p_false_merge"] is not None:
+            fails.append(f"{level}|{split}:彙總層竟然算得出誤併率")
         if (level, split) in single_cam_agg and single_cam_agg[(level, split)][0]:
             from trackers.eval.clear import aggregate_clear_metrics
             from trackers.eval.identity import aggregate_identity_metrics
@@ -170,6 +198,12 @@ def main():
         if level == "L3":
             a["paths"] = {k: (metrics.summarize(v) if v else None)
                           for k, v in path_pool[(level, split)].items()}
+            for k, pv in a["paths"].items():
+                if pv:
+                    fv = fm_path_pool[(level, split)][k]
+                    pv["p_false_merge_pooled_all"] = pv.get("p_false_merge")
+                    pv["p_false_merge"] = metrics.summarize(fv).get("p_false_merge") if fv else None
+                    pv["measurable"]["p_false_merge"] = pv["p_false_merge"] is not None
         agg[f"{level}|{split}"] = a
 
     # ── 報表 ──
@@ -179,8 +213,16 @@ def main():
          "這些數字不代表「只裝 2~3 台」的部署。", ""]
     for k, a in agg.items():
         level, split = k.split("|")
-        L.append(f"## {level} · {split}(窗 {a['n_windows']} 個,綁定 {a['n_bindings']} 次)")
+        L.append(f"## {level} · {split}(窗 {a['n_windows']} 個,綁定 {a['n_bindings']} 次,"
+                 f"不重複 {a['n_unique_bindings']} 次)")
         meas = a.get("measurable", {})
+        if a["n_bindings"] > a["n_unique_bindings"]:
+            L.append("")
+            L.append(f"⚠ 窗在時間上互相重疊:同一次綁定平均被計入 "
+                     f"{a['n_bindings'] / max(a['n_unique_bindings'], 1):.2f} 次,彙總是窗加權。")
+        L.append("")
+        L.append(f"誤併率只由本身量得到誤併的窗彙集({a['n_windows_fm_measurable']} / {a['n_windows']} 窗);"
+                 f"正確率與碎裂率為全部窗彙集,三者相加不必為 100%。")
         L.append("")
         L.append("| 指標 | 值 |")
         L.append("|---|---|")

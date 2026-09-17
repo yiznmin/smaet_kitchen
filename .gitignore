@@ -94,6 +94,10 @@ results/m4_dump_*/
 # ⚠ EPFL 是 CC-BY-NC:排練影片只能內部看,不得交付、不得入庫。
 #   而且那份「真值」是從系統自己的輸出造的,拿它算出的數字不是效能評估。
 results/levels/epfl_rehearsal/
+# 2026-09-17 難度分級交付:訓練側補跑的逐幀 track 與 M4 匯出(可重新產生)、驗收比對的暫存
+results/levels/runs/**/tracks.csv
+results/levels/runs/**/m4dump/
+results/levels/tmp/
 # 2026-09-15 步驟 3:每格的逐幀 track 與 M4 匯出 —— 由偵測快取與設定檔可重新產生
 results/m5_step3/**/tracks.csv
 results/m5_step3/**/m4dump/

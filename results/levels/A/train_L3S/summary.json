@@ -1,0 +1,1384 @@
+{
+  "label": "A_train_L3S",
+  "manifest": "results/levels/A/manifest_train_L3S.json",
+  "run_root": "results/levels/runs/m5_cbiou_train",
+  "aggregate": {
+    "L3|train": {
+      "n_windows": 42,
+      "n_bindings": 176,
+      "idf1": 0.2727,
+      "n_transitions": 65,
+      "p_break": 0.1231,
+      "p_false_merge": 0.6349,
+      "p_correct": 0.2769,
+      "fm_unmeasurable_reason": null,
+      "id_switches": 43,
+      "fragmentation": {
+        "mean": 2.087,
+        "max": 6,
+        "hist": {
+          "3": 2,
+          "1": 9,
+          "6": 1,
+          "2": 9,
+          "5": 1,
+          "4": 1
+        }
+      },
+      "measurable": {
+        "p_break": true,
+        "p_false_merge": true,
+        "idf1": true,
+        "fragmentation": true,
+        "headcount": true
+      },
+      "n_unique_bindings": 111,
+      "p_false_merge_pooled_all": 0.6,
+      "n_windows_fm_measurable": 18,
+      "paths": {
+        "overlap": {
+          "idf1": 0.375,
+          "idtp": 6,
+          "n": 16,
+          "n_gt": 11,
+          "n_pred": 4,
+          "n_transitions": 16,
+          "p_break": 0.0,
+          "p_false_merge": 0.8667,
+          "p_correct": 0.125,
+          "fm_unmeasurable_reason": null,
+          "id_switches": 1,
+          "fragmentation": {
+            "mean": 1.091,
+            "max": 2,
+            "hist": {
+              "1": 10,
+              "2": 1
+            }
+          },
+          "measurable": {
+            "p_break": true,
+            "p_false_merge": true,
+            "idf1": true,
+            "fragmentation": true,
+            "headcount": true
+          },
+          "p_false_merge_pooled_all": 0.875
+        },
+        "transit": {
+          "idf1": 0.6,
+          "idtp": 6,
+          "n": 10,
+          "n_gt": 5,
+          "n_pred": 7,
+          "n_transitions": 10,
+          "p_break": 0.5,
+          "p_false_merge": 0.4444,
+          "p_correct": 0.0,
+          "fm_unmeasurable_reason": null,
+          "id_switches": 4,
+          "fragmentation": {
+            "mean": 1.8,
+            "max": 3,
+            "hist": {
+              "2": 2,
+              "3": 1,
+              "1": 2
+            }
+          },
+          "measurable": {
+            "p_break": true,
+            "p_false_merge": true,
+            "idf1": true,
+            "fragmentation": true,
+            "headcount": true
+          },
+          "p_false_merge_pooled_all": 0.5
+        }
+      }
+    }
+  },
+  "windows": [
+    {
+      "window_id": "L3S-train-seq_000-camera_1+camera_2-000175",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_1",
+        "camera_2"
+      ],
+      "gt_id": 3,
+      "duration_s": 5.333,
+      "n_sampled_frames": 33,
+      "gap_band": null,
+      "rendered": true,
+      "exclusive": false,
+      "n_other_ids": 1,
+      "n_bindings": 1,
+      "n_ghost_bindings": 0,
+      "n_transitions": 0,
+      "p_break": null,
+      "p_false_merge": null,
+      "p_correct": null,
+      "fragmentation": 1.0,
+      "measurable": {
+        "p_break": false,
+        "p_false_merge": false,
+        "idf1": false,
+        "fragmentation": true,
+        "headcount": true
+      }
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_1+camera_3-000385",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_1",
+        "camera_3"
+      ],
+      "gt_id": 5,
+      "duration_s": 5.0,
+      "n_sampled_frames": 31,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 1,
+      "n_bindings": 1,
+      "n_ghost_bindings": 0,
+      "n_transitions": 0,
+      "p_break": null,
+      "p_false_merge": null,
+      "p_correct": null,
+      "fragmentation": 1.0,
+      "measurable": {
+        "p_break": false,
+        "p_false_merge": false,
+        "idf1": false,
+        "fragmentation": true,
+        "headcount": true
+      }
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_1+camera_3-000850",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_1",
+        "camera_3"
+      ],
+      "gt_id": 5,
+      "duration_s": 5.167,
+      "n_sampled_frames": 32,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 2,
+      "n_bindings": 2,
+      "n_ghost_bindings": 1,
+      "n_transitions": 0,
+      "p_break": null,
+      "p_false_merge": null,
+      "p_correct": null,
+      "fragmentation": 1.0,
+      "measurable": {
+        "p_break": false,
+        "p_false_merge": false,
+        "idf1": false,
+        "fragmentation": true,
+        "headcount": true
+      }
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_1+camera_2-001255",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_1",
+        "camera_2"
+      ],
+      "gt_id": 1,
+      "duration_s": 6.5,
+      "n_sampled_frames": 40,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 2,
+      "n_bindings": 4,
+      "n_ghost_bindings": 1,
+      "n_transitions": 0,
+      "p_break": null,
+      "p_false_merge": null,
+      "p_correct": null,
+      "fragmentation": 1.0,
+      "measurable": {
+        "p_break": false,
+        "p_false_merge": false,
+        "idf1": true,
+        "fragmentation": true,
+        "headcount": true
+      }
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_1+camera_3-001835",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_1",
+        "camera_3"
+      ],
+      "gt_id": 6,
+      "duration_s": 5.833,
+      "n_sampled_frames": 36,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 1,
+      "n_bindings": 2,
+      "n_ghost_bindings": 0,
+      "n_transitions": 1,
+      "p_break": 0.0,
+      "p_false_merge": null,
+      "p_correct": 0.0,
+      "fragmentation": 2.0,
+      "measurable": {
+        "p_break": true,
+        "p_false_merge": false,
+        "idf1": false,
+        "fragmentation": true,
+        "headcount": true
+      }
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_1+camera_2-003015",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_1",
+        "camera_2"
+      ],
+      "gt_id": 9,
+      "duration_s": 16.833,
+      "n_sampled_frames": 102,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 3,
+      "n_bindings": 9,
+      "n_ghost_bindings": 3,
+      "n_transitions": 2,
+      "p_break": 0.5,
+      "p_false_merge": 0.0,
+      "p_correct": 0.5,
+      "fragmentation": 1.25,
+      "measurable": {
+        "p_break": true,
+        "p_false_merge": true,
+        "idf1": true,
+        "fragmentation": true,
+        "headcount": true
+      }
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_1+camera_2+camera_3-003030",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_1",
+        "camera_2",
+        "camera_3"
+      ],
+      "gt_id": 9,
+      "duration_s": 14.167,
+      "n_sampled_frames": 86,
+      "gap_band": null,
+      "rendered": true,
+      "exclusive": false,
+      "n_other_ids": 4,
+      "n_bindings": 13,
+      "n_ghost_bindings": 3,
+      "n_transitions": 5,
+      "p_break": 0.2,
+      "p_false_merge": 0.4,
+      "p_correct": 0.4,
+      "fragmentation": 1.2,
+      "measurable": {
+        "p_break": true,
+        "p_false_merge": true,
+        "idf1": true,
+        "fragmentation": true,
+        "headcount": true
+      }
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_1+camera_2-003085",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_1",
+        "camera_2"
+      ],
+      "gt_id": 1,
+      "duration_s": 5.167,
+      "n_sampled_frames": 32,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 3,
+      "n_bindings": 2,
+      "n_ghost_bindings": 0,
+      "n_transitions": 0,
+      "p_break": null,
+      "p_false_merge": null,
+      "p_correct": null,
+      "fragmentation": 1.0,
+      "measurable": {
+        "p_break": false,
+        "p_false_merge": false,
+        "idf1": true,
+        "fragmentation": true,
+        "headcount": true
+      }
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_2+camera_3-003225",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_3"
+      ],
+      "gt_id": 5,
+      "duration_s": 5.333,
+      "n_sampled_frames": 33,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 4,
+      "n_bindings": 2,
+      "n_ghost_bindings": 0,
+      "n_transitions": 0,
+      "p_break": null,
+      "p_false_merge": null,
+      "p_correct": null,
+      "fragmentation": 1.0,
+      "measurable": {
+        "p_break": false,
+        "p_false_merge": false,
+        "idf1": true,
+        "fragmentation": true,
+        "headcount": true
+      }
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_2+camera_3-003415",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_3"
+      ],
+      "gt_id": 5,
+      "duration_s": 60.0,
+      "n_sampled_frames": 361,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 7,
+      "n_bindings": 12,
+      "n_ghost_bindings": 1,
+      "n_transitions": 7,
+      "p_break": 0.0,
+      "p_false_merge": 0.4286,
+      "p_correct": 0.5714,
+      "fragmentation": 1.0,
+      "measurable": {
+        "p_break": true,
+        "p_false_merge": true,
+        "idf1": true,
+        "fragmentation": true,
+        "headcount": true
+      }
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_1+camera_2-004030",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_1",
+        "camera_2"
+      ],
+      "gt_id": 3,
+      "duration_s": 7.333,
+      "n_sampled_frames": 45,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 2,
+      "n_bindings": 1,
+      "n_ghost_bindings": 0,
+      "n_transitions": 0,
+      "p_break": null,
+      "p_false_merge": null,
+      "p_correct": null,
+      "fragmentation": 1.0,
+      "measurable": {
+        "p_break": false,
+        "p_false_merge": false,
+        "idf1": false,
+        "fragmentation": true,
+        "headcount": true
+      }
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_1+camera_2+camera_3-004045",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_1",
+        "camera_2",
+        "camera_3"
+      ],
+      "gt_id": 3,
+      "duration_s": 6.833,
+      "n_sampled_frames": 42,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 5,
+      "n_bindings": 3,
+      "n_ghost_bindings": 1,
+      "n_transitions": 0,
+      "p_break": null,
+      "p_false_merge": null,
+      "p_correct": null,
+      "fragmentation": 1.0,
+      "measurable": {
+        "p_break": false,
+        "p_false_merge": false,
+        "idf1": true,
+        "fragmentation": true,
+        "headcount": true
+      }
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_2+camera_3-004045",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_3"
+      ],
+      "gt_id": 3,
+      "duration_s": 12.667,
+      "n_sampled_frames": 77,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 5,
+      "n_bindings": 3,
+      "n_ghost_bindings": 1,
+      "n_transitions": 0,
+      "p_break": null,
+      "p_false_merge": null,
+      "p_correct": null,
+      "fragmentation": 1.0,
+      "measurable": {
+        "p_break": false,
+        "p_false_merge": false,
+        "idf1": true,
+        "fragmentation": true,
+        "headcount": true
+      }
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_2+camera_5-004795",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_5"
+      ],
+      "gt_id": 3,
+      "duration_s": 14.5,
+      "n_sampled_frames": 88,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 5,
+      "n_bindings": 13,
+      "n_ghost_bindings": 7,
+      "n_transitions": 2,
+      "p_break": 0.0,
+      "p_false_merge": 0.5,
+      "p_correct": 0.5,
+      "fragmentation": 1.0,
+      "measurable": {
+        "p_break": true,
+        "p_false_merge": true,
+        "idf1": true,
+        "fragmentation": true,
+        "headcount": true
+      }
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_6+camera_7-006100",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_6",
+        "camera_7"
+      ],
+      "gt_id": 1,
+      "duration_s": 7.5,
+      "n_sampled_frames": 46,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 3,
+      "n_bindings": 5,
+      "n_ghost_bindings": 1,
+      "n_transitions": 2,
+      "p_break": 1.0,
+      "p_false_merge": 0.0,
+      "p_correct": 0.0,
+      "fragmentation": 2.0,
+      "measurable": {
+        "p_break": true,
+        "p_false_merge": true,
+        "idf1": true,
+        "fragmentation": true,
+        "headcount": true
+      }
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_6+camera_7-006345",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_6",
+        "camera_7"
+      ],
+      "gt_id": 1,
+      "duration_s": 12.5,
+      "n_sampled_frames": 76,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 2,
+      "n_bindings": 5,
+      "n_ghost_bindings": 2,
+      "n_transitions": 1,
+      "p_break": 1.0,
+      "p_false_merge": 0.0,
+      "p_correct": 0.0,
+      "fragmentation": 1.5,
+      "measurable": {
+        "p_break": true,
+        "p_false_merge": true,
+        "idf1": true,
+        "fragmentation": true,
+        "headcount": true
+      }
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_1+camera_2-006385",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_1",
+        "camera_2"
+      ],
+      "gt_id": 10,
+      "duration_s": 5.5,
+      "n_sampled_frames": 34,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 1,
+      "n_bindings": 0,
+      "n_ghost_bindings": 0,
+      "n_transitions": 0,
+      "p_break": null,
+      "p_false_merge": null,
+      "p_correct": null,
+      "fragmentation": null,
+      "measurable": {}
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_1+camera_3-006405",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_1",
+        "camera_3"
+      ],
+      "gt_id": 10,
+      "duration_s": 10.167,
+      "n_sampled_frames": 62,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 3,
+      "n_bindings": 1,
+      "n_ghost_bindings": 1,
+      "n_transitions": 0,
+      "p_break": null,
+      "p_false_merge": null,
+      "p_correct": null,
+      "fragmentation": null,
+      "measurable": {}
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_1+camera_2-006600",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_1",
+        "camera_2"
+      ],
+      "gt_id": 10,
+      "duration_s": 5.5,
+      "n_sampled_frames": 34,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 1,
+      "n_bindings": 1,
+      "n_ghost_bindings": 1,
+      "n_transitions": 0,
+      "p_break": null,
+      "p_false_merge": null,
+      "p_correct": null,
+      "fragmentation": null,
+      "measurable": {}
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_6+camera_7-006740",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_6",
+        "camera_7"
+      ],
+      "gt_id": 1,
+      "duration_s": 7.5,
+      "n_sampled_frames": 46,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 2,
+      "n_bindings": 1,
+      "n_ghost_bindings": 1,
+      "n_transitions": 0,
+      "p_break": null,
+      "p_false_merge": null,
+      "p_correct": null,
+      "fragmentation": null,
+      "measurable": {}
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_2+camera_5-006760",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_5"
+      ],
+      "gt_id": 10,
+      "duration_s": 5.833,
+      "n_sampled_frames": 36,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 3,
+      "n_bindings": 3,
+      "n_ghost_bindings": 1,
+      "n_transitions": 0,
+      "p_break": null,
+      "p_false_merge": null,
+      "p_correct": null,
+      "fragmentation": 1.0,
+      "measurable": {
+        "p_break": false,
+        "p_false_merge": false,
+        "idf1": true,
+        "fragmentation": true,
+        "headcount": true
+      }
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_2+camera_5-006985",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_5"
+      ],
+      "gt_id": 3,
+      "duration_s": 5.0,
+      "n_sampled_frames": 31,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 3,
+      "n_bindings": 2,
+      "n_ghost_bindings": 0,
+      "n_transitions": 0,
+      "p_break": null,
+      "p_false_merge": null,
+      "p_correct": null,
+      "fragmentation": 1.0,
+      "measurable": {
+        "p_break": false,
+        "p_false_merge": false,
+        "idf1": true,
+        "fragmentation": true,
+        "headcount": true
+      }
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_2+camera_5-007345",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_5"
+      ],
+      "gt_id": 3,
+      "duration_s": 8.5,
+      "n_sampled_frames": 52,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 5,
+      "n_bindings": 8,
+      "n_ghost_bindings": 3,
+      "n_transitions": 2,
+      "p_break": 0.0,
+      "p_false_merge": 0.0,
+      "p_correct": 1.0,
+      "fragmentation": 1.0,
+      "measurable": {
+        "p_break": true,
+        "p_false_merge": true,
+        "idf1": true,
+        "fragmentation": true,
+        "headcount": true
+      }
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_2+camera_5-007740",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_5"
+      ],
+      "gt_id": 3,
+      "duration_s": 10.167,
+      "n_sampled_frames": 62,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 4,
+      "n_bindings": 4,
+      "n_ghost_bindings": 0,
+      "n_transitions": 1,
+      "p_break": 0.0,
+      "p_false_merge": 0.0,
+      "p_correct": 1.0,
+      "fragmentation": 1.0,
+      "measurable": {
+        "p_break": true,
+        "p_false_merge": true,
+        "idf1": true,
+        "fragmentation": true,
+        "headcount": true
+      }
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_1+camera_3-007805",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_1",
+        "camera_3"
+      ],
+      "gt_id": 1,
+      "duration_s": 5.0,
+      "n_sampled_frames": 31,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 2,
+      "n_bindings": 1,
+      "n_ghost_bindings": 0,
+      "n_transitions": 0,
+      "p_break": null,
+      "p_false_merge": null,
+      "p_correct": null,
+      "fragmentation": 1.0,
+      "measurable": {
+        "p_break": false,
+        "p_false_merge": false,
+        "idf1": false,
+        "fragmentation": true,
+        "headcount": true
+      }
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_1+camera_2-008030",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_1",
+        "camera_2"
+      ],
+      "gt_id": 6,
+      "duration_s": 5.0,
+      "n_sampled_frames": 31,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 3,
+      "n_bindings": 2,
+      "n_ghost_bindings": 1,
+      "n_transitions": 0,
+      "p_break": null,
+      "p_false_merge": null,
+      "p_correct": null,
+      "fragmentation": 1.0,
+      "measurable": {
+        "p_break": false,
+        "p_false_merge": false,
+        "idf1": false,
+        "fragmentation": true,
+        "headcount": true
+      }
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_2+camera_3-008040",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_3"
+      ],
+      "gt_id": 6,
+      "duration_s": 5.333,
+      "n_sampled_frames": 33,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 3,
+      "n_bindings": 2,
+      "n_ghost_bindings": 0,
+      "n_transitions": 0,
+      "p_break": null,
+      "p_false_merge": null,
+      "p_correct": null,
+      "fragmentation": 1.0,
+      "measurable": {
+        "p_break": false,
+        "p_false_merge": false,
+        "idf1": true,
+        "fragmentation": true,
+        "headcount": true
+      }
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_2+camera_3-008325",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_3"
+      ],
+      "gt_id": 10,
+      "duration_s": 19.667,
+      "n_sampled_frames": 119,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 6,
+      "n_bindings": 11,
+      "n_ghost_bindings": 4,
+      "n_transitions": 3,
+      "p_break": 0.0,
+      "p_false_merge": 0.6667,
+      "p_correct": 0.3333,
+      "fragmentation": 1.0,
+      "measurable": {
+        "p_break": true,
+        "p_false_merge": true,
+        "idf1": true,
+        "fragmentation": true,
+        "headcount": true
+      }
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_2+camera_3-008430",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_3"
+      ],
+      "gt_id": 3,
+      "duration_s": 14.0,
+      "n_sampled_frames": 85,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 6,
+      "n_bindings": 7,
+      "n_ghost_bindings": 1,
+      "n_transitions": 2,
+      "p_break": 0.0,
+      "p_false_merge": 0.5,
+      "p_correct": 0.5,
+      "fragmentation": 1.0,
+      "measurable": {
+        "p_break": true,
+        "p_false_merge": true,
+        "idf1": true,
+        "fragmentation": true,
+        "headcount": true
+      }
+    },
+    {
+      "window_id": "L3S-train-seq_000-camera_2+camera_3-008765",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_2",
+        "camera_3"
+      ],
+      "gt_id": 1,
+      "duration_s": 5.0,
+      "n_sampled_frames": 31,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 6,
+      "n_bindings": 5,
+      "n_ghost_bindings": 2,
+      "n_transitions": 1,
+      "p_break": 0.0,
+      "p_false_merge": 0.0,
+      "p_correct": 1.0,
+      "fragmentation": 1.0,
+      "measurable": {
+        "p_break": true,
+        "p_false_merge": true,
+        "idf1": true,
+        "fragmentation": true,
+        "headcount": true
+      }
+    },
+    {
+      "window_id": "L3S-train-seq_001-camera_1+camera_3-000000",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_001",
+      "cameras": [
+        "camera_1",
+        "camera_3"
+      ],
+      "gt_id": 9,
+      "duration_s": 60.0,
+      "n_sampled_frames": 361,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 6,
+      "n_bindings": 13,
+      "n_ghost_bindings": 5,
+      "n_transitions": 1,
+      "p_break": 0.0,
+      "p_false_merge": 1.0,
+      "p_correct": 0.0,
+      "fragmentation": 1.143,
+      "measurable": {
+        "p_break": true,
+        "p_false_merge": true,
+        "idf1": true,
+        "fragmentation": true,
+        "headcount": true
+      }
+    },
+    {
+      "window_id": "L3S-train-seq_001-camera_2+camera_3-000000",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_001",
+      "cameras": [
+        "camera_2",
+        "camera_3"
+      ],
+      "gt_id": 5,
+      "duration_s": 60.0,
+      "n_sampled_frames": 361,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 6,
+      "n_bindings": 14,
+      "n_ghost_bindings": 4,
+      "n_transitions": 3,
+      "p_break": 0.0,
+      "p_false_merge": 0.6667,
+      "p_correct": 0.3333,
+      "fragmentation": 1.286,
+      "measurable": {
+        "p_break": true,
+        "p_false_merge": true,
+        "idf1": true,
+        "fragmentation": true,
+        "headcount": true
+      }
+    },
+    {
+      "window_id": "L3S-train-seq_001-camera_2+camera_3-000190",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_001",
+      "cameras": [
+        "camera_2",
+        "camera_3"
+      ],
+      "gt_id": 1,
+      "duration_s": 60.0,
+      "n_sampled_frames": 361,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 6,
+      "n_bindings": 7,
+      "n_ghost_bindings": 6,
+      "n_transitions": 0,
+      "p_break": null,
+      "p_false_merge": null,
+      "p_correct": null,
+      "fragmentation": 1.0,
+      "measurable": {
+        "p_break": false,
+        "p_false_merge": false,
+        "idf1": false,
+        "fragmentation": true,
+        "headcount": true
+      }
+    },
+    {
+      "window_id": "L3S-train-seq_002-camera_1+camera_3-000000",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_002",
+      "cameras": [
+        "camera_1",
+        "camera_3"
+      ],
+      "gt_id": 9,
+      "duration_s": 48.833,
+      "n_sampled_frames": 294,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 7,
+      "n_bindings": 20,
+      "n_ghost_bindings": 9,
+      "n_transitions": 5,
+      "p_break": 0.2,
+      "p_false_merge": 0.4,
+      "p_correct": 0.4,
+      "fragmentation": 1.5,
+      "measurable": {
+        "p_break": true,
+        "p_false_merge": true,
+        "idf1": true,
+        "fragmentation": true,
+        "headcount": true
+      }
+    },
+    {
+      "window_id": "L3S-train-seq_002-camera_3+camera_4-000000",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_002",
+      "cameras": [
+        "camera_3",
+        "camera_4"
+      ],
+      "gt_id": 18,
+      "duration_s": 6.5,
+      "n_sampled_frames": 40,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 7,
+      "n_bindings": 10,
+      "n_ghost_bindings": 3,
+      "n_transitions": 0,
+      "p_break": null,
+      "p_false_merge": null,
+      "p_correct": null,
+      "fragmentation": 1.0,
+      "measurable": {
+        "p_break": false,
+        "p_false_merge": false,
+        "idf1": true,
+        "fragmentation": true,
+        "headcount": true
+      }
+    },
+    {
+      "window_id": "L3S-train-seq_002-camera_2+camera_3-000000",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_002",
+      "cameras": [
+        "camera_2",
+        "camera_3"
+      ],
+      "gt_id": 5,
+      "duration_s": 60.0,
+      "n_sampled_frames": 361,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 7,
+      "n_bindings": 29,
+      "n_ghost_bindings": 13,
+      "n_transitions": 8,
+      "p_break": 0.0,
+      "p_false_merge": 0.625,
+      "p_correct": 0.375,
+      "fragmentation": 1.625,
+      "measurable": {
+        "p_break": true,
+        "p_false_merge": true,
+        "idf1": true,
+        "fragmentation": true,
+        "headcount": true
+      }
+    },
+    {
+      "window_id": "L3S-train-seq_002-camera_2+camera_3-000860",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_002",
+      "cameras": [
+        "camera_2",
+        "camera_3"
+      ],
+      "gt_id": 1,
+      "duration_s": 7.333,
+      "n_sampled_frames": 45,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 7,
+      "n_bindings": 3,
+      "n_ghost_bindings": 2,
+      "n_transitions": 0,
+      "p_break": null,
+      "p_false_merge": null,
+      "p_correct": null,
+      "fragmentation": 1.0,
+      "measurable": {
+        "p_break": false,
+        "p_false_merge": false,
+        "idf1": false,
+        "fragmentation": true,
+        "headcount": true
+      }
+    },
+    {
+      "window_id": "L3S-train-seq_002-camera_3+camera_4-001000",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_002",
+      "cameras": [
+        "camera_3",
+        "camera_4"
+      ],
+      "gt_id": 18,
+      "duration_s": 9.0,
+      "n_sampled_frames": 55,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 8,
+      "n_bindings": 4,
+      "n_ghost_bindings": 2,
+      "n_transitions": 1,
+      "p_break": 0.0,
+      "p_false_merge": null,
+      "p_correct": 0.0,
+      "fragmentation": 2.0,
+      "measurable": {
+        "p_break": true,
+        "p_false_merge": false,
+        "idf1": false,
+        "fragmentation": true,
+        "headcount": true
+      }
+    },
+    {
+      "window_id": "L3S-train-seq_002-camera_1+camera_3-001410",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_002",
+      "cameras": [
+        "camera_1",
+        "camera_3"
+      ],
+      "gt_id": 18,
+      "duration_s": 7.5,
+      "n_sampled_frames": 46,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 6,
+      "n_bindings": 2,
+      "n_ghost_bindings": 1,
+      "n_transitions": 0,
+      "p_break": null,
+      "p_false_merge": null,
+      "p_correct": null,
+      "fragmentation": 1.0,
+      "measurable": {
+        "p_break": false,
+        "p_false_merge": false,
+        "idf1": false,
+        "fragmentation": true,
+        "headcount": true
+      }
+    },
+    {
+      "window_id": "L3S-train-seq_002-camera_1+camera_3-001585",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_002",
+      "cameras": [
+        "camera_1",
+        "camera_3"
+      ],
+      "gt_id": 9,
+      "duration_s": 58.833,
+      "n_sampled_frames": 354,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 7,
+      "n_bindings": 19,
+      "n_ghost_bindings": 4,
+      "n_transitions": 10,
+      "p_break": 0.2,
+      "p_false_merge": 0.5,
+      "p_correct": 0.3,
+      "fragmentation": 1.6,
+      "measurable": {
+        "p_break": true,
+        "p_false_merge": true,
+        "idf1": true,
+        "fragmentation": true,
+        "headcount": true
+      }
+    },
+    {
+      "window_id": "L3S-train-seq_002-camera_2+camera_3-001830",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_002",
+      "cameras": [
+        "camera_2",
+        "camera_3"
+      ],
+      "gt_id": 19,
+      "duration_s": 9.667,
+      "n_sampled_frames": 59,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 7,
+      "n_bindings": 3,
+      "n_ghost_bindings": 0,
+      "n_transitions": 1,
+      "p_break": 0.0,
+      "p_false_merge": 0.0,
+      "p_correct": 1.0,
+      "fragmentation": 1.0,
+      "measurable": {
+        "p_break": true,
+        "p_false_merge": true,
+        "idf1": true,
+        "fragmentation": true,
+        "headcount": true
+      }
+    },
+    {
+      "window_id": "L3S-train-seq_002-camera_2+camera_3-001865",
+      "level": "L3",
+      "split": "train",
+      "seq": "seq_002",
+      "cameras": [
+        "camera_2",
+        "camera_3"
+      ],
+      "gt_id": 1,
+      "duration_s": 49.833,
+      "n_sampled_frames": 300,
+      "gap_band": null,
+      "rendered": false,
+      "exclusive": false,
+      "n_other_ids": 7,
+      "n_bindings": 13,
+      "n_ghost_bindings": 2,
+      "n_transitions": 7,
+      "p_break": 0.0,
+      "p_false_merge": 0.4286,
+      "p_correct": 0.5714,
+      "fragmentation": 1.0,
+      "measurable": {
+        "p_break": true,
+        "p_false_merge": true,
+        "idf1": true,
+        "fragmentation": true,
+        "headcount": true
+      }
+    }
+  ],
+  "failures": []
+}

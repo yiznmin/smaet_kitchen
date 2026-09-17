@@ -1,0 +1,156 @@
+[
+  {
+    "window_id": "L2-test-seq_004-camera_7-002390",
+    "frames": 130,
+    "fps": 6.0,
+    "size": [
+      640,
+      460
+    ],
+    "boxes": 96,
+    "with_chef": 96,
+    "bytes": 667535,
+    "codec": "h264",
+    "path": "results\\levels\\videos\\A\\L2-test-seq_004-camera_7-002390.mp4"
+  },
+  {
+    "window_id": "L3S-test-seq_004-camera_1+camera_3-002645",
+    "frames": 38,
+    "fps": 6.0,
+    "size": [
+      1280,
+      460
+    ],
+    "boxes": 85,
+    "with_chef": 85,
+    "bytes": 573429,
+    "codec": "h264",
+    "path": "results\\levels\\videos\\A\\L3S-test-seq_004-camera_1+camera_3-002645.mp4"
+  },
+  {
+    "window_id": "L3T-test-seq_004-camera_6+camera_7-004590",
+    "frames": 60,
+    "fps": 6.0,
+    "size": [
+      1280,
+      460
+    ],
+    "boxes": 41,
+    "with_chef": 41,
+    "bytes": 554803,
+    "codec": "h264",
+    "path": "results\\levels\\videos\\A\\L3T-test-seq_004-camera_6+camera_7-004590.mp4"
+  },
+  {
+    "window_id": "L3T-test-seq_004-camera_7+camera_6-004775",
+    "frames": 62,
+    "fps": 6.0,
+    "size": [
+      1280,
+      460
+    ],
+    "boxes": 66,
+    "with_chef": 66,
+    "bytes": 594654,
+    "codec": "h264",
+    "path": "results\\levels\\videos\\A\\L3T-test-seq_004-camera_7+camera_6-004775.mp4"
+  },
+  {
+    "window_id": "L3S-test-seq_004-camera_6+camera_7-008325",
+    "frames": 37,
+    "fps": 6.0,
+    "size": [
+      1280,
+      460
+    ],
+    "boxes": 80,
+    "with_chef": 80,
+    "bytes": 476616,
+    "codec": "h264",
+    "path": "results\\levels\\videos\\A\\L3S-test-seq_004-camera_6+camera_7-008325.mp4"
+  },
+  {
+    "window_id": "L1-test-seq_007-camera_2-000000",
+    "frames": 361,
+    "fps": 6.0,
+    "size": [
+      640,
+      460
+    ],
+    "boxes": 361,
+    "with_chef": 361,
+    "bytes": 1587924,
+    "codec": "h264",
+    "path": "results\\levels\\videos\\A\\L1-test-seq_007-camera_2-000000.mp4"
+  },
+  {
+    "window_id": "L2-test-seq_026-camera_7-002105",
+    "frames": 152,
+    "fps": 6.0,
+    "size": [
+      640,
+      460
+    ],
+    "boxes": 110,
+    "with_chef": 110,
+    "bytes": 885007,
+    "codec": "h264",
+    "path": "results\\levels\\videos\\A\\L2-test-seq_026-camera_7-002105.mp4"
+  },
+  {
+    "window_id": "L3S-extra-seq_020-camera_1+camera_2+camera_3-001730",
+    "frames": 78,
+    "fps": 6.0,
+    "size": [
+      1920,
+      460
+    ],
+    "boxes": 1158,
+    "with_chef": 1158,
+    "bytes": 1825028,
+    "codec": "h264",
+    "path": "results\\levels\\videos\\A\\L3S-extra-seq_020-camera_1+camera_2+camera_3-001730.mp4"
+  },
+  {
+    "window_id": "L3S-extra-seq_020-camera_1+camera_2-002815",
+    "frames": 35,
+    "fps": 6.0,
+    "size": [
+      1280,
+      460
+    ],
+    "boxes": 124,
+    "with_chef": 124,
+    "bytes": 502871,
+    "codec": "h264",
+    "path": "results\\levels\\videos\\A\\L3S-extra-seq_020-camera_1+camera_2-002815.mp4"
+  },
+  {
+    "window_id": "L3T-extra-seq_020-camera_1+camera_2-010790",
+    "frames": 52,
+    "fps": 6.0,
+    "size": [
+      1280,
+      460
+    ],
+    "boxes": 55,
+    "with_chef": 55,
+    "bytes": 550000,
+    "codec": "h264",
+    "path": "results\\levels\\videos\\A\\L3T-extra-seq_020-camera_1+camera_2-010790.mp4"
+  },
+  {
+    "window_id": "L3T-extra-seq_020-camera_5+camera_6-000385",
+    "frames": 43,
+    "fps": 6.0,
+    "size": [
+      1280,
+      460
+    ],
+    "boxes": 37,
+    "with_chef": 37,
+    "bytes": 528227,
+    "codec": "h264",
+    "path": "results\\levels\\videos\\A\\L3T-extra-seq_020-camera_5+camera_6-000385.mp4"
+  }
+]
