@@ -90,7 +90,24 @@ _DEFAULT_FUSION = {
     #   現行 identity_st.py 收集重疊候選時只排除 `c != camera_id`,沒有檢查該 chef
     #   是否**已經**在本鏡頭上綁著另一條 track。track_ids 會在 removed 時剪除,
     #   所以它確實代表「目前還看得到的」,這個檢查是安全的。
-    "same_camera_exclusive": {"enabled": False},
+    # F2 的 IoU 豁免(2026-09-18)。同鏡頭互斥會誤傷「偵測器把一個人切成兩塊」
+    #   (遮擋、反光、半身框 + 全身框)的情況 —— 那兩條 track 其實是同一個人,
+    #   擋掉第二條就是把靜默的誤併換成看得見的碎裂。
+    #   兩個框若高度重疊,它們幾乎不可能是兩個並排站著的人 → 放行。
+    # ⚠ iou_exempt = None 時**完全不做這個檢查**,與 2026-09-05 的 F2 逐位相同 ——
+    #   已經發給遠端的 f2.yaml 沒有這個鍵,它的行為不得因為本次新增而改變。
+    # ⚠ 門檻只能從**推導集**估(預先登記 20260903 §4.3),不得回頭用評估集校準。
+    "same_camera_exclusive": {"enabled": False, "iou_exempt": None},
+    # F6 跨鏡頭互斥(2026-09-18)。pairs 列出**在真值裡從未同時看到同一個人**的
+    #   鏡頭對;一個編號同時出現在這樣的一對上,物理上不可能 → 直接排除該候選。
+    # ⚠ 這與 overlapping 是兩回事,混用會出大錯:overlapping 的判準是
+    #   「兩邊的框都 ≥50×120」(適不適合做幾何比對),不是「看不看得到」。
+    #   CHIRLA 的 camera_1 不在任何 overlapping 對裡,卻與 camera_3 共現
+    #   116,224 次(透過縫隙望進去)—— 把它當互斥對會製造大量碎裂。
+    #   2026-09-18 我就是這樣誤判的,見 docs/CHIRLA_鏡頭佈局實測_20260903.md。
+    # ⚠ pairs 必須寫在拓撲 yaml,**不得寫死在程式碼** —— 它是某個場地的機位事實,
+    #   換一個場地就完全不同。
+    "cross_camera_exclusive": {"enabled": False, "pairs": []},
     # F4 跨鏡頭腳點一致性(CrossViewLR)。**取代**重疊路徑的 overlap_llr 常數。
     #   pairs 由 scripts/chirla_build_crossview.py 從**推導集**估出後寫進拓撲 yaml:
     #     {"cam_a|cam_b": {"H": [[...]], "sigma_px": .., "area_px2": ..}}
@@ -277,8 +294,23 @@ class CameraTopology:
             # 差距小於它,表示區分兩個假設的證據還不足以承擔誤併的成本。
             m = mg.get("min_nats")
             self.margin_nats = (self.llr_threshold if m is None else float(m))
-        self.same_cam_exclusive = bool((f.get("same_camera_exclusive") or {})
-                                       .get("enabled", False))
+        sce = f.get("same_camera_exclusive") or {}
+        self.same_cam_exclusive = bool(sce.get("enabled", False))
+        # None → 不做豁免檢查(與 2026-09-05 的 F2 逐位相同),不是 0.0。
+        # 0.0 會讓「完全沒有交集的兩個框」也被豁免,等於把 F2 整條關掉。
+        _iou_x = sce.get("iou_exempt")
+        self.same_cam_iou_exempt = None if _iou_x is None else float(_iou_x)
+        # F6:與 self.overlapping 用同一種表示法(frozenset),查詢方式也一致。
+        cce = f.get("cross_camera_exclusive") or {}
+        self.cross_cam_exclusive = bool(cce.get("enabled", False))
+        self.exclusive_pairs = {frozenset(p) for p in (cce.get("pairs") or [])}
+        # 一對鏡頭不可能既「重疊」又「從未共現」—— 設定寫錯時要當場炸,
+        # 不要安靜地讓其中一條規則贏。這類「開了但語意互斥」的組合本專案踩過多次。
+        _both = self.exclusive_pairs & self.overlapping
+        if _both:
+            raise ValueError(
+                "同一對鏡頭同時列在 overlapping 與 cross_camera_exclusive.pairs:"
+                + ", ".join("+".join(sorted(p)) for p in sorted(map(sorted, _both))))
 
         # P1 累積投票。關閉時 revote 為 None,identity_st 據此完全跳過該路徑。
         rv = f.get("revote") or {}
@@ -406,6 +438,14 @@ class CameraTopology:
 
     def is_overlapping(self, a, b):
         return frozenset((a, b)) in self.overlapping
+
+    def is_mutually_exclusive(self, a, b):
+        """這兩台在真值裡從未同時看到同一個人 → 同一瞬間不可能是同一個人。
+
+        ⚠ 不是 `not is_overlapping(a, b)`。「不重疊」只表示不適合做幾何比對,
+          兩台仍可能隔著門口互看得到(CHIRLA 的 camera_1+camera_3 共現 116,224 次)。
+        """
+        return frozenset((a, b)) in self.exclusive_pairs
 
     def transition_gate(self, cam_from, t_exit, cam_to, t_enter):
         """v2 加權和用的硬門。回傳 (是否通過, st_prob)。

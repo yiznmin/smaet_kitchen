@@ -176,6 +176,123 @@ ex.on_new_track(3, camera_id="cam2", frame_id=2, t_sec=0.2,
 chk(ex._n_same_cam_conflicts == 0, "開啟後衝突歸零",
     f"same_cam_conflicts = {ex._n_same_cam_conflicts}")
 
+# ── 4b. F2 的 IoU 豁免(2026-09-18)────────────────────────────────
+#
+# 病灶:同鏡頭互斥會誤傷「偵測器把一個人切成兩塊」的情況 —— 那兩條 track 其實是
+#   同一個人,擋掉第二條只是把靜默的誤併換成看得見的碎裂。
+#   兩個框若高度重疊,它們幾乎不可能是兩個並排站著的人。
+print("\n【4b】F2 的 IoU 豁免")
+
+# 先確認**沒給門檻時完全不改變行為** —— f2.yaml 已經發給遠端,不得因本次新增而變。
+none_x = SpatioTemporalIdentityManager(
+    topo(same_camera_exclusive={"enabled": True, "iou_exempt": None}), fps=30.0)
+for tid, cam, t, box in ((1, "cam1", 0.0, (0, 0, 50, 120)),
+                         (2, "cam2", 0.1, (0, 0, 50, 120)),
+                         (3, "cam2", 0.2, (0, 0, 50, 120))):   # 完全重疊的第二條
+    none_x.on_new_track(tid, camera_id=cam, frame_id=int(t * 30), t_sec=t,
+                        embedding=emb(0), bbox=box)
+chk(none_x._n_same_cam_conflicts == 0,
+    "iou_exempt=None 時行為與 2026-09-05 的 F2 相同(連完全重疊的框也擋)",
+    f"same_cam_conflicts = {none_x._n_same_cam_conflicts}"
+    "（不是 0 就表示已交付的 f2.yaml 行為被改到了）")
+
+# 高度重疊 → 應該豁免,綁到同一位 chef
+ex_hi = SpatioTemporalIdentityManager(
+    topo(same_camera_exclusive={"enabled": True, "iou_exempt": 0.5}), fps=30.0)
+for tid, cam, t, box in ((1, "cam1", 0.0, (0, 0, 50, 120)),
+                         (2, "cam2", 0.1, (0, 0, 50, 120)),
+                         (3, "cam2", 0.2, (5, 5, 55, 125))):    # IoU ≈ 0.85
+    ex_hi.on_new_track(tid, camera_id=cam, frame_id=int(t * 30), t_sec=t,
+                       embedding=emb(0), bbox=box)
+chk(ex_hi.chef_of(3, camera_id="cam2") == ex_hi.chef_of(2, camera_id="cam2"),
+    "框高度重疊 → 豁免,兩條 track 綁到同一位 chef（不製造碎裂）",
+    f"track2→{ex_hi.chef_of(2, camera_id='cam2')}, "
+    f"track3→{ex_hi.chef_of(3, camera_id='cam2')}")
+
+# 框離很遠 → 是兩個並排站著的人,不可豁免
+ex_lo = SpatioTemporalIdentityManager(
+    topo(same_camera_exclusive={"enabled": True, "iou_exempt": 0.5}), fps=30.0)
+for tid, cam, t, box in ((1, "cam1", 0.0, (0, 0, 50, 120)),
+                         (2, "cam2", 0.1, (0, 0, 50, 120)),
+                         (3, "cam2", 0.2, (400, 0, 450, 120))):  # IoU = 0
+    ex_lo.on_new_track(tid, camera_id=cam, frame_id=int(t * 30), t_sec=t,
+                       embedding=emb(0), bbox=box)
+chk(ex_lo.chef_of(3, camera_id="cam2") != ex_lo.chef_of(2, camera_id="cam2"),
+    "框完全不重疊 → 不豁免,仍然擋下（F2 的本意保留）",
+    f"track2→{ex_lo.chef_of(2, camera_id='cam2')}, "
+    f"track3→{ex_lo.chef_of(3, camera_id='cam2')}")
+
+
+# ── 4c. F6 跨鏡頭互斥(2026-09-18)──────────────────────────────────
+#
+# ⚠ 判準是「在真值裡從未同時看到同一個人」,**不是** not is_overlapping。
+#   後者只表示不適合做幾何比對,兩台仍可能隔著門口互看得到
+#   (CHIRLA 的 camera_1+camera_3 共現 116,224 次)。
+# ⚠ 這條檢查掛在候選迴圈的 (b) 分支,而該分支要求候選正被一台**與本鏡頭重疊**的
+#   相機看著。所以拓撲必須讓 cam1 與 cam2 重疊(候選才成立),
+#   同時 cam2 與 cam3 互斥(規則才有東西可擋)。
+print("\n【4c】F6 跨鏡頭互斥")
+
+
+def topo_f6(**fusion):
+    base = {
+        "mode": "llr", "background_arrival_hz": 1.0 / 600.0,
+        "cost_false_merge_over_break": 5.0, "overlap_llr": 5.0,
+        "appearance_profile": "dinov2", "position": {"enabled": False},
+        "same_camera": {"enabled": False}, "unknown_path": {"enabled": False},
+    }
+    base.update(fusion)
+    # cam4 只為了「沒列進 pairs 的對不受影響」那條反例而存在 —— 這份拓撲的
+    # 非重疊對只有 cam2+cam3,而它正是正面測試在用的那一對,沒有第四台就無法反證。
+    return CameraTopology.from_config({
+        "links": [], "overlapping": [["cam1", "cam2"], ["cam1", "cam3"]],
+        "cameras": {c: {} for c in ("cam1", "cam2", "cam3", "cam4")}, "fusion": base})
+
+
+def _run_f6(mgr):
+    mgr.on_new_track(1, camera_id="cam1", frame_id=0, t_sec=0.0,
+                     embedding=emb(0), bbox=(0, 0, 50, 120))
+    mgr.on_new_track(2, camera_id="cam3", frame_id=1, t_sec=0.1,
+                     embedding=emb(0), bbox=(0, 0, 50, 120))
+    mgr.on_new_track(3, camera_id="cam2", frame_id=2, t_sec=0.2,
+                     embedding=emb(0), bbox=(0, 0, 50, 120))
+    return mgr
+
+
+off6 = _run_f6(SpatioTemporalIdentityManager(topo_f6(), fps=30.0))
+chk(off6.chef_of(3, camera_id="cam2") == off6.chef_of(1, camera_id="cam1"),
+    "關閉時:照舊綁到同一位 chef（這就是要量的基線問題）",
+    f"cam1→{off6.chef_of(1, camera_id='cam1')}, "
+    f"cam3→{off6.chef_of(2, camera_id='cam3')}, "
+    f"cam2→{off6.chef_of(3, camera_id='cam2')}")
+
+on6 = _run_f6(SpatioTemporalIdentityManager(
+    topo_f6(cross_camera_exclusive={"enabled": True,
+                                    "pairs": [["cam2", "cam3"]]}), fps=30.0))
+chk(on6.chef_of(3, camera_id="cam2") != on6.chef_of(1, camera_id="cam1"),
+    "開啟時:該 chef 正在互斥的 cam3 上 → 不可能同時是 cam2 這條 → 開新身份",
+    f"cam1→{on6.chef_of(1, camera_id='cam1')}, "
+    f"cam2→{on6.chef_of(3, camera_id='cam2')}")
+
+# 沒列進 pairs 的鏡頭對不可受影響 —— 否則等於偷偷把所有非重疊對都擋掉。
+# ⚠ 這裡用 cam2+cam4:該 chef 根本不在 cam4 上,所以規則有列但擋不到他。
+#   不可改用 cam1+cam3 —— 那一對在本拓撲裡是 overlapping,會(正確地)拋設定衝突。
+on6b = _run_f6(SpatioTemporalIdentityManager(
+    topo_f6(cross_camera_exclusive={"enabled": True,
+                                    "pairs": [["cam2", "cam4"]]}), fps=30.0))
+chk(on6b.chef_of(3, camera_id="cam2") == on6b.chef_of(1, camera_id="cam1"),
+    "只擋列進 pairs 的那幾對,其餘不受影響",
+    f"cam2→{on6b.chef_of(3, camera_id='cam2')}")
+
+# 設定寫錯要當場炸,不要安靜地讓其中一條規則贏
+try:
+    topo_f6(cross_camera_exclusive={"enabled": True, "pairs": [["cam1", "cam2"]]})
+    _raised = False
+except ValueError:
+    _raised = True
+chk(_raised, "同一對既列 overlapping 又列互斥 → 直接拋錯（不得安靜吞掉）")
+
+
 # ── 5. 診斷量要出現在 resident_stats(記憶體驗收會讀它)──────────────
 print("\n【5】診斷量的可觀測性")
 s = on_m5.resident_stats()

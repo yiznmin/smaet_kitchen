@@ -1,0 +1,93 @@
+# F6 跨鏡頭互斥（2026-09-18）= base.yaml + cross_camera_exclusive
+#
+# pairs = 在 CHIRLA 真值裡**從未同時看到同一個人**的五對鏡頭。
+# 依據 docs/CHIRLA_鏡頭佈局實測_20260903.md 的共現表（21 對中量到 16 對，其餘 5 對為 0 次）。
+#
+# ⚠ 這不是 overlapping 的補集。overlapping 的判準是「兩邊的框都 >=50x120」
+#   （適不適合做幾何比對），camera_1 不在任何 overlapping 對裡卻與 camera_3
+#   共現 116,224 次。把「不重疊」當成「看不到」會製造大量碎裂。
+#
+# ⚠ **資訊洩漏，照實揭露**：共現表來自全部 10 個序列（含評估集），與 overlapping
+#   清單同一個來源、同一個處置 —— 相機固定、10 個序列間機位沒動過，視為物理事實。
+#   報告必須寫明「互斥拓撲有洩漏，時間參數沒有」。
+camera_topology:
+  fusion:
+    mode: llr
+    background_arrival_hz: 0.0482
+    cost_false_merge_over_break: 5.0
+    transit_model: loiter
+    p_loiter: 0.1798
+    tau_loiter_s: 8.51
+    appearance_profile: dinov2
+    appearance_clip: null
+    overlap_llr: 5.0
+    overlap_window_s: 0.5
+    same_camera:
+      enabled: true
+      tau_break_s: 2.0
+      max_gap_s: 15.0
+    unknown_path:
+      enabled: true
+      median_multiplier: 2.0
+      log_sigma: 0.8
+      logprior: -2.0
+    direction:
+      enabled: false
+    cross_camera_exclusive:
+      enabled: true
+      pairs:
+      - - camera_1
+        - camera_6
+      - - camera_1
+        - camera_7
+      - - camera_2
+        - camera_6
+      - - camera_3
+        - camera_6
+      - - camera_4
+        - camera_7
+  links:
+  - from: camera_2
+    to: camera_6
+    mean_s: 3.261
+    std_s: 1.845
+  - from: camera_6
+    to: camera_7
+    mean_s: 0.617
+    std_s: 0.481
+  - from: camera_7
+    to: camera_5
+    mean_s: 10.542
+    std_s: 4.278
+  overlapping:
+  - - camera_2
+    - camera_3
+  - - camera_2
+    - camera_4
+  - - camera_2
+    - camera_5
+  - - camera_3
+    - camera_4
+  - - camera_3
+    - camera_5
+  - - camera_4
+    - camera_5
+  - - camera_5
+    - camera_6
+  clock:
+    max_skew_s: 0.2
+  cameras:
+    camera_1:
+      clock_offset_s: 0.0
+    camera_2:
+      clock_offset_s: 0.0
+    camera_3:
+      clock_offset_s: 0.0
+    camera_4:
+      clock_offset_s: 0.0
+    camera_5:
+      clock_offset_s: 0.0
+    camera_6:
+      clock_offset_s: 0.0
+    camera_7:
+      clock_offset_s: 0.0

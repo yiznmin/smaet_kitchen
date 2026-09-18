@@ -110,6 +110,39 @@ class SpatioTemporalIdentityManager(IdentityManager):
         return self.topo.corrected(camera_id, raw) if camera_id is not None else raw
 
 
+    @staticmethod
+    def _iou_xyxy(a, b):
+        """兩個 [x1,y1,x2,y2] 的交並比。
+
+        ⚠ 刻意**不** import `m3.eval.iou` —— 那會讓 M5 身份模組相依於 M3 偵測套件。
+          八行純算術,就地寫比建立跨模組相依乾淨(repo 內 `eval_m4m5_chirla.py`
+          與 `diag_chef_label_check.py` 也各有一份,是同樣的取捨)。
+        """
+        ix1, iy1 = max(a[0], b[0]), max(a[1], b[1])
+        ix2, iy2 = min(a[2], b[2]), min(a[3], b[3])
+        iw, ih = max(0.0, ix2 - ix1), max(0.0, iy2 - iy1)
+        inter = iw * ih
+        if inter <= 0:
+            return 0.0
+        ua = ((a[2] - a[0]) * (a[3] - a[1])
+              + (b[2] - b[0]) * (b[3] - b[1]) - inter)
+        return inter / ua if ua > 0 else 0.0
+
+    def _same_cam_iou_exempt(self, chef_id, camera_id, bbox):
+        """F2 豁免(2026-09-18):本鏡頭上該 chef 的框與新框高度重疊 → 很可能是
+        偵測器把同一個人切成兩塊,擋掉只會換來碎裂。
+
+        ⚠ 門檻 None 時回 False,**整條檢查不執行** → 與 2026-09-05 的 F2 逐位相同。
+        ⚠ 沒有框記錄時回 False(不豁免)—— 保守:寧可擋錯也不要無依據地放行。
+        """
+        tau = getattr(self.topo, "same_cam_iou_exempt", None)
+        if tau is None or bbox is None:
+            return False
+        rec = self._bbox.get((chef_id, camera_id))
+        if rec is None:
+            return False
+        return self._iou_xyxy(rec[0], tuple(bbox[:4])) >= tau
+
     def _score_candidates(self, camera_id, t, emb, bbox, zone, world_xy, world_v,
                           exclude_key=None, cue_token=None):
         """算出所有通過物理可能性檢查的候選 [(score, chef_id, app_cos)]。
@@ -192,7 +225,16 @@ class SpatioTemporalIdentityManager(IdentityManager):
             #   「目前還看得到的」,不是歷史累積 —— 這個檢查才安全。
             own = [k for k in chef.track_ids if k != exclude_key]
             if (getattr(self.topo, "same_cam_exclusive", False)
-                    and any(c == camera_id for c, _t in own)):
+                    and any(c == camera_id for c, _t in own)
+                    and not self._same_cam_iou_exempt(cid, camera_id, bbox)):
+                continue
+            # F6 跨鏡頭互斥(2026-09-18):這位 chef 此刻正被一台「與本鏡頭在真值裡
+            # 從未同時看到過同一個人」的相機綁著 → 他不可能同時也是這條 track。
+            # ⚠ 判準是 is_mutually_exclusive(從未共現),**不是** not is_overlapping。
+            #   後者只表示不適合做幾何比對,兩台仍可能隔著門口互看得到。
+            if (getattr(self.topo, "cross_cam_exclusive", False)
+                    and any(c != camera_id and self.topo.is_mutually_exclusive(c, camera_id)
+                            for c, _t in own)):
                 continue
             cams = {c for c, _t in own
                     if c != camera_id and self.topo.is_overlapping(c, camera_id)}
