@@ -1,0 +1,175 @@
+{
+  "label": "f4",
+  "run_root": "results/levels/runs/m5_cbiou_f4",
+  "seqs": [
+    "seq_004",
+    "seq_006",
+    "seq_007",
+    "seq_020",
+    "seq_024",
+    "seq_025",
+    "seq_026"
+  ],
+  "topology": "configs/fix_grid/base.yaml",
+  "n_decisions": 3273,
+  "n_attributable": 2101,
+  "layers": {
+    "L0_first": 59,
+    "L4_below_threshold": 59,
+    "L1_ghost": 1113,
+    "L2_not_in_candidates": 976,
+    "L3_not_top1": 815,
+    "OK": 251
+  },
+  "layer_share_attributable": {
+    "L2_not_in_candidates": 0.4645406949071871,
+    "L3_not_top1": 0.38791051880057115,
+    "L4_below_threshold": 0.028081865778200855,
+    "OK": 0.11946692051404094
+  },
+  "cross": {
+    "L2_not_in_candidates|正確": 0,
+    "L2_not_in_candidates|誤併": 304,
+    "L2_not_in_candidates|碎裂": 672,
+    "L3_not_top1|正確": 0,
+    "L3_not_top1|誤併": 627,
+    "L3_not_top1|碎裂": 188,
+    "L4_below_threshold|正確": 0,
+    "L4_below_threshold|誤併": 0,
+    "L4_below_threshold|碎裂": 59,
+    "OK|正確": 105,
+    "OK|誤併": 146,
+    "OK|碎裂": 0
+  },
+  "outcomes": {
+    "碎裂": 919,
+    "誤併": 1077,
+    "正確": 105
+  },
+  "l2_causes": {
+    "在不重疊的別台鏡頭": 546,
+    "就在本鏡頭": 127,
+    "不在任何畫面": 303
+  },
+  "metrics": {
+    "idf1": 0.0921,
+    "p_correct": 0.05,
+    "p_false_merge": 0.5126,
+    "p_break": 0.4374,
+    "n_transitions": 2101
+  },
+  "per_seq": {
+    "seq_004": {
+      "n_decisions": 529,
+      "layers": {
+        "L0_first": 8,
+        "L4_below_threshold": 12,
+        "L1_ghost": 187,
+        "L2_not_in_candidates": 132,
+        "L3_not_top1": 141,
+        "OK": 49
+      },
+      "l2_causes": {
+        "在不重疊的別台鏡頭": 82,
+        "就在本鏡頭": 12,
+        "不在任何畫面": 38
+      }
+    },
+    "seq_006": {
+      "n_decisions": 117,
+      "layers": {
+        "L0_first": 7,
+        "L1_ghost": 61,
+        "L2_not_in_candidates": 30,
+        "L3_not_top1": 13,
+        "OK": 2,
+        "L4_below_threshold": 4
+      },
+      "l2_causes": {
+        "不在任何畫面": 6,
+        "在不重疊的別台鏡頭": 13,
+        "就在本鏡頭": 11
+      }
+    },
+    "seq_007": {
+      "n_decisions": 72,
+      "layers": {
+        "L0_first": 6,
+        "OK": 1,
+        "L2_not_in_candidates": 27,
+        "L1_ghost": 32,
+        "L3_not_top1": 5,
+        "L4_below_threshold": 1
+      },
+      "l2_causes": {
+        "不在任何畫面": 13,
+        "就在本鏡頭": 11,
+        "在不重疊的別台鏡頭": 3
+      }
+    },
+    "seq_020": {
+      "n_decisions": 975,
+      "layers": {
+        "L0_first": 13,
+        "L1_ghost": 332,
+        "L2_not_in_candidates": 258,
+        "L3_not_top1": 279,
+        "L4_below_threshold": 21,
+        "OK": 72
+      },
+      "l2_causes": {
+        "不在任何畫面": 80,
+        "就在本鏡頭": 38,
+        "在不重疊的別台鏡頭": 140
+      }
+    },
+    "seq_024": {
+      "n_decisions": 582,
+      "layers": {
+        "L0_first": 8,
+        "L2_not_in_candidates": 210,
+        "L3_not_top1": 119,
+        "L4_below_threshold": 7,
+        "L1_ghost": 202,
+        "OK": 36
+      },
+      "l2_causes": {
+        "不在任何畫面": 77,
+        "就在本鏡頭": 24,
+        "在不重疊的別台鏡頭": 109
+      }
+    },
+    "seq_025": {
+      "n_decisions": 555,
+      "layers": {
+        "L0_first": 7,
+        "L1_ghost": 156,
+        "L4_below_threshold": 8,
+        "L3_not_top1": 151,
+        "L2_not_in_candidates": 188,
+        "OK": 45
+      },
+      "l2_causes": {
+        "就在本鏡頭": 17,
+        "在不重疊的別台鏡頭": 119,
+        "不在任何畫面": 52
+      }
+    },
+    "seq_026": {
+      "n_decisions": 443,
+      "layers": {
+        "L0_first": 10,
+        "L1_ghost": 143,
+        "L3_not_top1": 107,
+        "L2_not_in_candidates": 131,
+        "L4_below_threshold": 6,
+        "OK": 46
+      },
+      "l2_causes": {
+        "就在本鏡頭": 14,
+        "在不重疊的別台鏡頭": 80,
+        "不在任何畫面": 37
+      }
+    }
+  }
+}

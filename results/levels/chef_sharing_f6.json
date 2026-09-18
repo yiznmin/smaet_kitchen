@@ -1,0 +1,193 @@
+{
+  "label": "f6",
+  "run_root": "results/levels/runs/m5_cbiou_f6",
+  "seqs": [
+    "seq_004",
+    "seq_006",
+    "seq_007",
+    "seq_020",
+    "seq_024",
+    "seq_025",
+    "seq_026"
+  ],
+  "n_chefs": 1075,
+  "n_bindings": 3273,
+  "n_chefs_multi_person": 65,
+  "share_chefs_multi_person": 0.0605,
+  "bindings_in_multi_person_chefs": 2234,
+  "share_bindings_in_multi_person_chefs": 0.6826,
+  "max_people_per_chef": 13,
+  "histogram": {
+    "0": 324,
+    "1": 686,
+    "2": 16,
+    "3": 12,
+    "4": 10,
+    "5": 2,
+    "6": 6,
+    "7": 5,
+    "8": 5,
+    "9": 4,
+    "10": 1,
+    "11": 1,
+    "13": 3
+  },
+  "worst": [
+    {
+      "seq": "seq_020",
+      "chef_id": 91,
+      "n_people": 13,
+      "n_bindings": 210,
+      "n_ghost_bindings": 64,
+      "people": [
+        1,
+        2,
+        3,
+        4,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        13,
+        15,
+        16
+      ]
+    },
+    {
+      "seq": "seq_020",
+      "chef_id": 7,
+      "n_people": 13,
+      "n_bindings": 147,
+      "n_ghost_bindings": 53,
+      "people": [
+        1,
+        2,
+        3,
+        4,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        13,
+        15,
+        16
+      ]
+    },
+    {
+      "seq": "seq_020",
+      "chef_id": 72,
+      "n_people": 13,
+      "n_bindings": 72,
+      "n_ghost_bindings": 18,
+      "people": [
+        1,
+        2,
+        3,
+        4,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        13,
+        15,
+        16
+      ]
+    },
+    {
+      "seq": "seq_020",
+      "chef_id": 240,
+      "n_people": 11,
+      "n_bindings": 38,
+      "n_ghost_bindings": 14,
+      "people": [
+        1,
+        2,
+        3,
+        4,
+        6,
+        7,
+        10,
+        11,
+        12,
+        15,
+        16
+      ]
+    },
+    {
+      "seq": "seq_020",
+      "chef_id": 271,
+      "n_people": 10,
+      "n_bindings": 36,
+      "n_ghost_bindings": 11,
+      "people": [
+        1,
+        2,
+        3,
+        4,
+        6,
+        7,
+        10,
+        12,
+        15,
+        16
+      ]
+    }
+  ],
+  "per_seq": {
+    "seq_004": {
+      "n_bindings": 529,
+      "n_ghost_bindings": 187,
+      "n_chefs": 130,
+      "n_chefs_multi_person": 6,
+      "max_people_per_chef": 8
+    },
+    "seq_006": {
+      "n_bindings": 117,
+      "n_ghost_bindings": 61,
+      "n_chefs": 83,
+      "n_chefs_multi_person": 4,
+      "max_people_per_chef": 4
+    },
+    "seq_007": {
+      "n_bindings": 72,
+      "n_ghost_bindings": 32,
+      "n_chefs": 46,
+      "n_chefs_multi_person": 1,
+      "max_people_per_chef": 4
+    },
+    "seq_020": {
+      "n_bindings": 975,
+      "n_ghost_bindings": 332,
+      "n_chefs": 294,
+      "n_chefs_multi_person": 17,
+      "max_people_per_chef": 13
+    },
+    "seq_024": {
+      "n_bindings": 582,
+      "n_ghost_bindings": 202,
+      "n_chefs": 251,
+      "n_chefs_multi_person": 19,
+      "max_people_per_chef": 6
+    },
+    "seq_025": {
+      "n_bindings": 555,
+      "n_ghost_bindings": 156,
+      "n_chefs": 161,
+      "n_chefs_multi_person": 10,
+      "max_people_per_chef": 7
+    },
+    "seq_026": {
+      "n_bindings": 443,
+      "n_ghost_bindings": 143,
+      "n_chefs": 110,
+      "n_chefs_multi_person": 8,
+      "max_people_per_chef": 9
+    }
+  }
+}
