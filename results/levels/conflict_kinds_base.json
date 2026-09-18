@@ -1,85 +1,185 @@
 {
-  "label": "base",
-  "run_root": "results/m5_step3/m5_cbiou",
-  "topology": "configs/fix_grid/base.yaml",
-  "reconstruction_ok": true,
-  "per_seq": {
-    "seq_004": {
-      "recorded": 374,
-      "replayed": 374,
-      "match": true
-    },
-    "seq_006": {
-      "recorded": 29,
-      "replayed": 29,
-      "match": true
-    },
-    "seq_007": {
-      "recorded": 25,
-      "replayed": 25,
-      "match": true
-    },
-    "seq_020": {
-      "recorded": 648,
-      "replayed": 648,
-      "match": true
-    },
-    "seq_024": {
-      "recorded": 301,
-      "replayed": 301,
-      "match": true
-    },
-    "seq_025": {
-      "recorded": 362,
-      "replayed": 362,
-      "match": true
-    },
-    "seq_026": {
-      "recorded": 317,
-      "replayed": 317,
-      "match": true
-    }
-  },
-  "same_camera": {
-    "same_person": 97,
-    "different_person": 905,
-    "ghost": 1054
-  },
-  "same_camera_total": 2056,
   "cross_camera": {
-    "overlapping|different_person": 8557,
-    "overlapping|ghost": 9685,
-    "overlapping|same_person": 1583,
-    "non_overlapping|same_person": 106,
-    "non_overlapping|different_person": 1168,
-    "non_overlapping|ghost": 1384
+    "doorway|different_person": 274,
+    "doorway|ghost": 241,
+    "doorway|same_person": 20,
+    "never|different_person": 894,
+    "never|ghost": 1143,
+    "never|same_person": 86,
+    "same_space|different_person": 8557,
+    "same_space|ghost": 9685,
+    "same_space|same_person": 1583
+  },
+  "cross_camera_by_tier": {
+    "doorway": 535,
+    "never": 2123,
+    "same_space": 19825
   },
   "cross_camera_total": 22483,
+  "label": "base",
+  "pairs": [
+    {
+      "gt_cooccurrence": 14937,
+      "n": 4242,
+      "pair": [
+        "camera_2",
+        "camera_5"
+      ],
+      "tier": "same_space"
+    },
+    {
+      "gt_cooccurrence": 3253,
+      "n": 3912,
+      "pair": [
+        "camera_3",
+        "camera_5"
+      ],
+      "tier": "same_space"
+    },
+    {
+      "gt_cooccurrence": 148250,
+      "n": 3171,
+      "pair": [
+        "camera_2",
+        "camera_3"
+      ],
+      "tier": "same_space"
+    },
+    {
+      "gt_cooccurrence": 10742,
+      "n": 3037,
+      "pair": [
+        "camera_4",
+        "camera_5"
+      ],
+      "tier": "same_space"
+    },
+    {
+      "gt_cooccurrence": 6375,
+      "n": 1950,
+      "pair": [
+        "camera_3",
+        "camera_4"
+      ],
+      "tier": "same_space"
+    },
+    {
+      "gt_cooccurrence": 738,
+      "n": 1787,
+      "pair": [
+        "camera_5",
+        "camera_6"
+      ],
+      "tier": "same_space"
+    },
+    {
+      "gt_cooccurrence": 1336,
+      "n": 1726,
+      "pair": [
+        "camera_2",
+        "camera_4"
+      ],
+      "tier": "same_space"
+    },
+    {
+      "gt_cooccurrence": 0,
+      "n": 1076,
+      "pair": [
+        "camera_3",
+        "camera_6"
+      ],
+      "tier": "never"
+    },
+    {
+      "gt_cooccurrence": 0,
+      "n": 1047,
+      "pair": [
+        "camera_2",
+        "camera_6"
+      ],
+      "tier": "never"
+    },
+    {
+      "gt_cooccurrence": 44,
+      "n": 535,
+      "pair": [
+        "camera_4",
+        "camera_6"
+      ],
+      "tier": "doorway"
+    }
+  ],
+  "per_seq": {
+    "seq_004": {
+      "match": true,
+      "recorded": 374,
+      "replayed": 374
+    },
+    "seq_006": {
+      "match": true,
+      "recorded": 29,
+      "replayed": 29
+    },
+    "seq_007": {
+      "match": true,
+      "recorded": 25,
+      "replayed": 25
+    },
+    "seq_020": {
+      "match": true,
+      "recorded": 648,
+      "replayed": 648
+    },
+    "seq_024": {
+      "match": true,
+      "recorded": 301,
+      "replayed": 301
+    },
+    "seq_025": {
+      "match": true,
+      "recorded": 362,
+      "replayed": 362
+    },
+    "seq_026": {
+      "match": true,
+      "recorded": 317,
+      "replayed": 317
+    }
+  },
+  "reconstruction_ok": true,
+  "run_root": "results/m5_step3/m5_cbiou",
+  "same_camera": {
+    "different_person": 940,
+    "ghost": 801,
+    "same_person": 315
+  },
+  "same_camera_total": 2056,
+  "topology": "configs/fix_grid/base.yaml",
   "worst": [
     {
-      "seq": "seq_025",
       "chef_id": 4,
-      "n_conflicts": 312
+      "n_conflicts": 312,
+      "seq": "seq_025"
     },
     {
-      "seq": "seq_004",
       "chef_id": 4,
-      "n_conflicts": 222
+      "n_conflicts": 222,
+      "seq": "seq_004"
     },
     {
-      "seq": "seq_026",
       "chef_id": 21,
-      "n_conflicts": 206
+      "n_conflicts": 206,
+      "seq": "seq_026"
     },
     {
-      "seq": "seq_020",
       "chef_id": 84,
-      "n_conflicts": 191
+      "n_conflicts": 191,
+      "seq": "seq_020"
     },
     {
-      "seq": "seq_020",
       "chef_id": 7,
-      "n_conflicts": 165
+      "n_conflicts": 165,
+      "seq": "seq_020"
     }
   ]
 }
