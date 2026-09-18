@@ -1,0 +1,85 @@
+{
+  "label": "base",
+  "run_root": "results/m5_step3/m5_cbiou",
+  "topology": "configs/fix_grid/base.yaml",
+  "reconstruction_ok": true,
+  "per_seq": {
+    "seq_004": {
+      "recorded": 374,
+      "replayed": 374,
+      "match": true
+    },
+    "seq_006": {
+      "recorded": 29,
+      "replayed": 29,
+      "match": true
+    },
+    "seq_007": {
+      "recorded": 25,
+      "replayed": 25,
+      "match": true
+    },
+    "seq_020": {
+      "recorded": 648,
+      "replayed": 648,
+      "match": true
+    },
+    "seq_024": {
+      "recorded": 301,
+      "replayed": 301,
+      "match": true
+    },
+    "seq_025": {
+      "recorded": 362,
+      "replayed": 362,
+      "match": true
+    },
+    "seq_026": {
+      "recorded": 317,
+      "replayed": 317,
+      "match": true
+    }
+  },
+  "same_camera": {
+    "same_person": 97,
+    "different_person": 905,
+    "ghost": 1054
+  },
+  "same_camera_total": 2056,
+  "cross_camera": {
+    "overlapping|different_person": 8557,
+    "overlapping|ghost": 9685,
+    "overlapping|same_person": 1583,
+    "non_overlapping|same_person": 106,
+    "non_overlapping|different_person": 1168,
+    "non_overlapping|ghost": 1384
+  },
+  "cross_camera_total": 22483,
+  "worst": [
+    {
+      "seq": "seq_025",
+      "chef_id": 4,
+      "n_conflicts": 312
+    },
+    {
+      "seq": "seq_004",
+      "chef_id": 4,
+      "n_conflicts": 222
+    },
+    {
+      "seq": "seq_026",
+      "chef_id": 21,
+      "n_conflicts": 206
+    },
+    {
+      "seq": "seq_020",
+      "chef_id": 84,
+      "n_conflicts": 191
+    },
+    {
+      "seq": "seq_020",
+      "chef_id": 7,
+      "n_conflicts": 165
+    }
+  ]
+}
