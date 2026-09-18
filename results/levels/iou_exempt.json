@@ -1,0 +1,546 @@
+{
+  "fallback_to_default": false,
+  "histogram_diff": {
+    "0.0": 28829,
+    "0.1": 2709,
+    "0.2": 202,
+    "0.3": 97,
+    "0.4": 69,
+    "0.5": 32,
+    "0.6": 25,
+    "0.7": 6,
+    "0.8": 3,
+    "0.9": 2,
+    "1.0": 0
+  },
+  "histogram_same": {
+    "0.0": 173,
+    "0.1": 34,
+    "0.2": 12,
+    "0.3": 20,
+    "0.4": 35,
+    "0.5": 37,
+    "0.6": 25,
+    "0.7": 8,
+    "0.8": 4,
+    "0.9": 0,
+    "1.0": 0
+  },
+  "n_different_person": 31974,
+  "n_ghost_pairs": 12982,
+  "n_same_person": 348,
+  "run_root": "results/levels/runs/m5_cbiou_train",
+  "seqs": [
+    "seq_000",
+    "seq_001",
+    "seq_002"
+  ],
+  "sweep": [
+    {
+      "different_person_exempted": 1.0,
+      "same_person_blocked": 0.0,
+      "tau": 0.0
+    },
+    {
+      "different_person_exempted": 0.1742,
+      "same_person_blocked": 0.3621,
+      "tau": 0.01
+    },
+    {
+      "different_person_exempted": 0.1636,
+      "same_person_blocked": 0.3793,
+      "tau": 0.02
+    },
+    {
+      "different_person_exempted": 0.1551,
+      "same_person_blocked": 0.3908,
+      "tau": 0.03
+    },
+    {
+      "different_person_exempted": 0.1458,
+      "same_person_blocked": 0.4138,
+      "tau": 0.04
+    },
+    {
+      "different_person_exempted": 0.1402,
+      "same_person_blocked": 0.4224,
+      "tau": 0.05
+    },
+    {
+      "different_person_exempted": 0.1353,
+      "same_person_blocked": 0.431,
+      "tau": 0.06
+    },
+    {
+      "different_person_exempted": 0.1303,
+      "same_person_blocked": 0.4598,
+      "tau": 0.07
+    },
+    {
+      "different_person_exempted": 0.1071,
+      "same_person_blocked": 0.4655,
+      "tau": 0.08
+    },
+    {
+      "different_person_exempted": 0.1021,
+      "same_person_blocked": 0.477,
+      "tau": 0.09
+    },
+    {
+      "different_person_exempted": 0.0984,
+      "same_person_blocked": 0.4971,
+      "tau": 0.1
+    },
+    {
+      "different_person_exempted": 0.0929,
+      "same_person_blocked": 0.5086,
+      "tau": 0.11
+    },
+    {
+      "different_person_exempted": 0.084,
+      "same_person_blocked": 0.5201,
+      "tau": 0.12
+    },
+    {
+      "different_person_exempted": 0.0725,
+      "same_person_blocked": 0.5287,
+      "tau": 0.13
+    },
+    {
+      "different_person_exempted": 0.0487,
+      "same_person_blocked": 0.5374,
+      "tau": 0.14
+    },
+    {
+      "different_person_exempted": 0.0433,
+      "same_person_blocked": 0.5603,
+      "tau": 0.15
+    },
+    {
+      "different_person_exempted": 0.0351,
+      "same_person_blocked": 0.5718,
+      "tau": 0.16
+    },
+    {
+      "different_person_exempted": 0.0225,
+      "same_person_blocked": 0.5747,
+      "tau": 0.17
+    },
+    {
+      "different_person_exempted": 0.0176,
+      "same_person_blocked": 0.5776,
+      "tau": 0.18
+    },
+    {
+      "different_person_exempted": 0.0154,
+      "same_person_blocked": 0.592,
+      "tau": 0.19
+    },
+    {
+      "different_person_exempted": 0.0136,
+      "same_person_blocked": 0.5948,
+      "tau": 0.2
+    },
+    {
+      "different_person_exempted": 0.0124,
+      "same_person_blocked": 0.6006,
+      "tau": 0.21
+    },
+    {
+      "different_person_exempted": 0.0116,
+      "same_person_blocked": 0.6006,
+      "tau": 0.22
+    },
+    {
+      "different_person_exempted": 0.011,
+      "same_person_blocked": 0.6121,
+      "tau": 0.23
+    },
+    {
+      "different_person_exempted": 0.0103,
+      "same_person_blocked": 0.6149,
+      "tau": 0.24
+    },
+    {
+      "different_person_exempted": 0.0094,
+      "same_person_blocked": 0.6149,
+      "tau": 0.25
+    },
+    {
+      "different_person_exempted": 0.0089,
+      "same_person_blocked": 0.6178,
+      "tau": 0.26
+    },
+    {
+      "different_person_exempted": 0.0085,
+      "same_person_blocked": 0.6207,
+      "tau": 0.27
+    },
+    {
+      "different_person_exempted": 0.008,
+      "same_person_blocked": 0.6236,
+      "tau": 0.28
+    },
+    {
+      "different_person_exempted": 0.0076,
+      "same_person_blocked": 0.6293,
+      "tau": 0.29
+    },
+    {
+      "different_person_exempted": 0.0073,
+      "same_person_blocked": 0.6293,
+      "tau": 0.3
+    },
+    {
+      "different_person_exempted": 0.0068,
+      "same_person_blocked": 0.6379,
+      "tau": 0.31
+    },
+    {
+      "different_person_exempted": 0.0064,
+      "same_person_blocked": 0.6437,
+      "tau": 0.32
+    },
+    {
+      "different_person_exempted": 0.006,
+      "same_person_blocked": 0.6466,
+      "tau": 0.33
+    },
+    {
+      "different_person_exempted": 0.0057,
+      "same_person_blocked": 0.6494,
+      "tau": 0.34
+    },
+    {
+      "different_person_exempted": 0.0053,
+      "same_person_blocked": 0.658,
+      "tau": 0.35
+    },
+    {
+      "different_person_exempted": 0.005,
+      "same_person_blocked": 0.658,
+      "tau": 0.36
+    },
+    {
+      "different_person_exempted": 0.0048,
+      "same_person_blocked": 0.6638,
+      "tau": 0.37
+    },
+    {
+      "different_person_exempted": 0.0044,
+      "same_person_blocked": 0.6695,
+      "tau": 0.38
+    },
+    {
+      "different_person_exempted": 0.0044,
+      "same_person_blocked": 0.6782,
+      "tau": 0.39
+    },
+    {
+      "different_person_exempted": 0.0043,
+      "same_person_blocked": 0.6868,
+      "tau": 0.4
+    },
+    {
+      "different_person_exempted": 0.004,
+      "same_person_blocked": 0.7011,
+      "tau": 0.41
+    },
+    {
+      "different_person_exempted": 0.0038,
+      "same_person_blocked": 0.7011,
+      "tau": 0.42
+    },
+    {
+      "different_person_exempted": 0.0036,
+      "same_person_blocked": 0.727,
+      "tau": 0.43
+    },
+    {
+      "different_person_exempted": 0.0033,
+      "same_person_blocked": 0.7414,
+      "tau": 0.44
+    },
+    {
+      "different_person_exempted": 0.0032,
+      "same_person_blocked": 0.7443,
+      "tau": 0.45
+    },
+    {
+      "different_person_exempted": 0.0028,
+      "same_person_blocked": 0.7557,
+      "tau": 0.46
+    },
+    {
+      "different_person_exempted": 0.0025,
+      "same_person_blocked": 0.7615,
+      "tau": 0.47
+    },
+    {
+      "different_person_exempted": 0.0025,
+      "same_person_blocked": 0.7759,
+      "tau": 0.48
+    },
+    {
+      "different_person_exempted": 0.0023,
+      "same_person_blocked": 0.7787,
+      "tau": 0.49
+    },
+    {
+      "different_person_exempted": 0.0021,
+      "same_person_blocked": 0.7874,
+      "tau": 0.5
+    },
+    {
+      "different_person_exempted": 0.0019,
+      "same_person_blocked": 0.8017,
+      "tau": 0.51
+    },
+    {
+      "different_person_exempted": 0.0018,
+      "same_person_blocked": 0.8103,
+      "tau": 0.52
+    },
+    {
+      "different_person_exempted": 0.0018,
+      "same_person_blocked": 0.8161,
+      "tau": 0.53
+    },
+    {
+      "different_person_exempted": 0.0016,
+      "same_person_blocked": 0.8247,
+      "tau": 0.54
+    },
+    {
+      "different_person_exempted": 0.0014,
+      "same_person_blocked": 0.8391,
+      "tau": 0.55
+    },
+    {
+      "different_person_exempted": 0.0014,
+      "same_person_blocked": 0.8506,
+      "tau": 0.56
+    },
+    {
+      "different_person_exempted": 0.0012,
+      "same_person_blocked": 0.8592,
+      "tau": 0.57
+    },
+    {
+      "different_person_exempted": 0.0012,
+      "same_person_blocked": 0.8736,
+      "tau": 0.58
+    },
+    {
+      "different_person_exempted": 0.0012,
+      "same_person_blocked": 0.8822,
+      "tau": 0.59
+    },
+    {
+      "different_person_exempted": 0.0011,
+      "same_person_blocked": 0.8937,
+      "tau": 0.6
+    },
+    {
+      "different_person_exempted": 0.001,
+      "same_person_blocked": 0.9109,
+      "tau": 0.61
+    },
+    {
+      "different_person_exempted": 0.001,
+      "same_person_blocked": 0.9224,
+      "tau": 0.62
+    },
+    {
+      "different_person_exempted": 0.0008,
+      "same_person_blocked": 0.9224,
+      "tau": 0.63
+    },
+    {
+      "different_person_exempted": 0.0008,
+      "same_person_blocked": 0.9368,
+      "tau": 0.64
+    },
+    {
+      "different_person_exempted": 0.0006,
+      "same_person_blocked": 0.9454,
+      "tau": 0.65
+    },
+    {
+      "different_person_exempted": 0.0006,
+      "same_person_blocked": 0.9483,
+      "tau": 0.66
+    },
+    {
+      "different_person_exempted": 0.0004,
+      "same_person_blocked": 0.9511,
+      "tau": 0.67
+    },
+    {
+      "different_person_exempted": 0.0004,
+      "same_person_blocked": 0.9598,
+      "tau": 0.68
+    },
+    {
+      "different_person_exempted": 0.0004,
+      "same_person_blocked": 0.9598,
+      "tau": 0.69
+    },
+    {
+      "different_person_exempted": 0.0003,
+      "same_person_blocked": 0.9655,
+      "tau": 0.7
+    },
+    {
+      "different_person_exempted": 0.0003,
+      "same_person_blocked": 0.9684,
+      "tau": 0.71
+    },
+    {
+      "different_person_exempted": 0.0003,
+      "same_person_blocked": 0.9741,
+      "tau": 0.72
+    },
+    {
+      "different_person_exempted": 0.0003,
+      "same_person_blocked": 0.9799,
+      "tau": 0.73
+    },
+    {
+      "different_person_exempted": 0.0003,
+      "same_person_blocked": 0.9828,
+      "tau": 0.74
+    },
+    {
+      "different_person_exempted": 0.0003,
+      "same_person_blocked": 0.9856,
+      "tau": 0.75
+    },
+    {
+      "different_person_exempted": 0.0003,
+      "same_person_blocked": 0.9856,
+      "tau": 0.76
+    },
+    {
+      "different_person_exempted": 0.0002,
+      "same_person_blocked": 0.9885,
+      "tau": 0.77
+    },
+    {
+      "different_person_exempted": 0.0002,
+      "same_person_blocked": 0.9885,
+      "tau": 0.78
+    },
+    {
+      "different_person_exempted": 0.0002,
+      "same_person_blocked": 0.9885,
+      "tau": 0.79
+    },
+    {
+      "different_person_exempted": 0.0002,
+      "same_person_blocked": 0.9885,
+      "tau": 0.8
+    },
+    {
+      "different_person_exempted": 0.0002,
+      "same_person_blocked": 0.9914,
+      "tau": 0.81
+    },
+    {
+      "different_person_exempted": 0.0001,
+      "same_person_blocked": 0.9943,
+      "tau": 0.82
+    },
+    {
+      "different_person_exempted": 0.0001,
+      "same_person_blocked": 0.9943,
+      "tau": 0.83
+    },
+    {
+      "different_person_exempted": 0.0001,
+      "same_person_blocked": 0.9943,
+      "tau": 0.84
+    },
+    {
+      "different_person_exempted": 0.0001,
+      "same_person_blocked": 0.9971,
+      "tau": 0.85
+    },
+    {
+      "different_person_exempted": 0.0001,
+      "same_person_blocked": 0.9971,
+      "tau": 0.86
+    },
+    {
+      "different_person_exempted": 0.0001,
+      "same_person_blocked": 0.9971,
+      "tau": 0.87
+    },
+    {
+      "different_person_exempted": 0.0001,
+      "same_person_blocked": 1.0,
+      "tau": 0.88
+    },
+    {
+      "different_person_exempted": 0.0001,
+      "same_person_blocked": 1.0,
+      "tau": 0.89
+    },
+    {
+      "different_person_exempted": 0.0001,
+      "same_person_blocked": 1.0,
+      "tau": 0.9
+    },
+    {
+      "different_person_exempted": 0.0001,
+      "same_person_blocked": 1.0,
+      "tau": 0.91
+    },
+    {
+      "different_person_exempted": 0.0001,
+      "same_person_blocked": 1.0,
+      "tau": 0.92
+    },
+    {
+      "different_person_exempted": 0.0001,
+      "same_person_blocked": 1.0,
+      "tau": 0.93
+    },
+    {
+      "different_person_exempted": 0.0,
+      "same_person_blocked": 1.0,
+      "tau": 0.94
+    },
+    {
+      "different_person_exempted": 0.0,
+      "same_person_blocked": 1.0,
+      "tau": 0.95
+    },
+    {
+      "different_person_exempted": 0.0,
+      "same_person_blocked": 1.0,
+      "tau": 0.96
+    },
+    {
+      "different_person_exempted": 0.0,
+      "same_person_blocked": 1.0,
+      "tau": 0.97
+    },
+    {
+      "different_person_exempted": 0.0,
+      "same_person_blocked": 1.0,
+      "tau": 0.98
+    },
+    {
+      "different_person_exempted": 0.0,
+      "same_person_blocked": 1.0,
+      "tau": 0.99
+    },
+    {
+      "different_person_exempted": 0.0,
+      "same_person_blocked": 1.0,
+      "tau": 1.0
+    }
+  ],
+  "tau": 0.01
+}
