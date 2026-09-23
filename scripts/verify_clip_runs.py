@@ -237,8 +237,11 @@ def v10_determinism(man, run_root, clip_ids, stride=5):
         cmd = [str(ROOT / ".venv/Scripts/python.exe"), "scripts/run_clip_grid.py",
                "--clips", cid, "--strides", str(stride), "--out-root", str(tmp),
                "--index", str(tmp / "idx.csv")]
-        subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True)
-        for f in ("tracks.csv", "chef_events.jsonl", "track_events.csv", "resident.csv"):
+        subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True,
+                       encoding="utf-8", errors="replace")
+        # ⚠ 不比 resident.csv:它逐列記 rss_mb(行程記憶體),每次執行本來就不同;
+        #   決定性要看的是決策輸出。V0 也是同一個處置。
+        for f in ("tracks.csv", "chef_events.jsonl", "track_events.csv"):
             a, b = src / f, tmp / cid / f"s{stride}" / f
             if not b.exists():
                 bad.append(f"{cid}:重跑缺 {f}")

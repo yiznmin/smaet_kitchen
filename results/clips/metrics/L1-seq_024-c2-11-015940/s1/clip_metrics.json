@@ -1,0 +1,118 @@
+{
+  "clip_id": "L1-seq_024-c2-11-015940",
+  "rule": "L1",
+  "level": "L1",
+  "seq": "seq_024",
+  "cameras": "camera_2",
+  "gt_id": 11,
+  "stride": 1,
+  "duration_s": 12.667,
+  "exclusive": true,
+  "n_other_ids": 0,
+  "n_sampled_cells": 381,
+  "visibility": 1.0,
+  "n_target_cells": 381,
+  "n_matched": 122,
+  "recall_target": 0.3202,
+  "recall_ci": [
+    0.2754,
+    0.3687
+  ],
+  "mean_iou": 0.2436,
+  "median_iou": 0.0,
+  "p10_iou": 0.0,
+  "p90_iou": 0.8104,
+  "frac_iou_ge_075": 0.1785,
+  "mean_iou_matched": 0.7608,
+  "n_B": 122,
+  "bound_rate": 0.3202,
+  "first_bound_fid": 15940,
+  "n_distinct_chef_ids": 5,
+  "c0": 1,
+  "c_star": 4,
+  "majority_tie": false,
+  "p_continuity": 0.2541,
+  "p_continuity_ci": [
+    0.1852,
+    0.338
+  ],
+  "p_majority": 0.3525,
+  "p_majority_ci": [
+    0.2734,
+    0.4406
+  ],
+  "p_exclusive": null,
+  "p_exclusive_ci": [
+    null,
+    null
+  ],
+  "chef_switches": 9,
+  "chef_switch_rate": 0.0744,
+  "chef_switch_detail": [
+    {
+      "at_fid": 16168,
+      "frm": 1,
+      "to": 4,
+      "gap_cells": 184
+    },
+    {
+      "at_fid": 16216,
+      "frm": 4,
+      "to": 5,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 16221,
+      "frm": 5,
+      "to": 4,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 16225,
+      "frm": 4,
+      "to": 5,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 16231,
+      "frm": 5,
+      "to": 4,
+      "gap_cells": 5
+    },
+    {
+      "at_fid": 16259,
+      "frm": 4,
+      "to": 5,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 16261,
+      "frm": 5,
+      "to": 4,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 16273,
+      "frm": 4,
+      "to": 7,
+      "gap_cells": 11
+    },
+    {
+      "at_fid": 16275,
+      "frm": 7,
+      "to": 6,
+      "gap_cells": 0
+    }
+  ],
+  "track_switches": 9,
+  "track_switch_rate": 0.0744,
+  "n_track_ids": 5,
+  "n_boxes": 369,
+  "n_ghost_boxes": 247,
+  "ghost_box_rate": 0.6694,
+  "n_tracks_in_window": 10,
+  "n_ghost_tracks": 7,
+  "ghost_track_rate": 0.7,
+  "p_chef_shared_with_other_box": 0.0,
+  "n_chefs_created_before_target_bound": 0
+}

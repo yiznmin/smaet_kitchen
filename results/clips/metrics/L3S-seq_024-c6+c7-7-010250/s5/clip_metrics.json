@@ -1,0 +1,99 @@
+{
+  "clip_id": "L3S-seq_024-c6+c7-7-010250",
+  "rule": "L3S",
+  "level": "L3",
+  "seq": "seq_024",
+  "cameras": "camera_6+camera_7",
+  "gt_id": 7,
+  "stride": 5,
+  "duration_s": 12.333,
+  "exclusive": true,
+  "n_other_ids": 0,
+  "n_sampled_cells": 150,
+  "visibility": 0.52,
+  "n_target_cells": 78,
+  "n_matched": 74,
+  "recall_target": 0.9487,
+  "recall_ci": [
+    0.8754,
+    0.9799
+  ],
+  "mean_iou": 0.9007,
+  "median_iou": 0.9701,
+  "p10_iou": 0.8417,
+  "p90_iou": 0.9854,
+  "frac_iou_ge_075": 0.9359,
+  "mean_iou_matched": 0.9494,
+  "n_B": 74,
+  "bound_rate": 0.9487,
+  "first_bound_fid": 10250,
+  "n_distinct_chef_ids": 3,
+  "c0": 1,
+  "c_star": 3,
+  "majority_tie": false,
+  "p_continuity": 0.1892,
+  "p_continuity_ci": [
+    0.1162,
+    0.2929
+  ],
+  "p_majority": 0.6216,
+  "p_majority_ci": [
+    0.5077,
+    0.7235
+  ],
+  "p_exclusive": null,
+  "p_exclusive_ci": [
+    null,
+    null
+  ],
+  "chef_switches": 2,
+  "chef_switch_rate": 0.0274,
+  "chef_switch_detail": [
+    {
+      "at_fid": 10320,
+      "frm": 1,
+      "to": 3,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 10555,
+      "frm": 3,
+      "to": 4,
+      "gap_cells": 1
+    }
+  ],
+  "track_switches": 1,
+  "track_switch_rate": 0.0139,
+  "n_track_ids": 2,
+  "n_boxes": 79,
+  "n_ghost_boxes": 5,
+  "ghost_box_rate": 0.0633,
+  "n_tracks_in_window": 5,
+  "n_ghost_tracks": 2,
+  "ghost_track_rate": 0.4,
+  "p_chef_shared_with_other_box": 0.0,
+  "n_chefs_created_before_target_bound": 0,
+  "l3_chef_per_camera": {
+    "camera_6": 1,
+    "camera_7": 3
+  },
+  "l3_n_camera_pairs": 1,
+  "l3_n_pairs_usable": 1,
+  "l3_n_pairs_dropped": 0,
+  "l3_p_handoff": 0.0,
+  "l3_p_handoff_ci": [
+    0.0,
+    0.7935
+  ],
+  "l3_n_simul_frames": 0,
+  "l3_p_simul_agree": null,
+  "l3_p_simul_agree_ci": [
+    null,
+    null
+  ],
+  "l3_n_chef_ids_per_camera": {
+    "camera_6": 2,
+    "camera_7": 1
+  },
+  "handoff_type": "overlapping"
+}

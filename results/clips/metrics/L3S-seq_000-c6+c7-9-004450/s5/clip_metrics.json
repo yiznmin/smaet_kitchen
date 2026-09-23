@@ -1,0 +1,207 @@
+{
+  "clip_id": "L3S-seq_000-c6+c7-9-004450",
+  "rule": "L3S",
+  "level": "L3",
+  "seq": "seq_000",
+  "cameras": "camera_6+camera_7",
+  "gt_id": 9,
+  "stride": 5,
+  "duration_s": 5.667,
+  "exclusive": true,
+  "n_other_ids": 0,
+  "n_sampled_cells": 70,
+  "visibility": 0.6429,
+  "n_target_cells": 45,
+  "n_matched": 45,
+  "recall_target": 1.0,
+  "recall_ci": [
+    0.9213,
+    1.0
+  ],
+  "mean_iou": 0.9222,
+  "median_iou": 0.9339,
+  "p10_iou": 0.8495,
+  "p90_iou": 0.9825,
+  "frac_iou_ge_075": 0.9556,
+  "mean_iou_matched": 0.9222,
+  "n_B": 45,
+  "bound_rate": 1.0,
+  "first_bound_fid": 4450,
+  "n_distinct_chef_ids": 2,
+  "c0": 1,
+  "c_star": 1,
+  "majority_tie": false,
+  "p_continuity": 0.7778,
+  "p_continuity_ci": [
+    0.6373,
+    0.8746
+  ],
+  "p_majority": 0.7778,
+  "p_majority_ci": [
+    0.6373,
+    0.8746
+  ],
+  "p_exclusive": null,
+  "p_exclusive_ci": [
+    null,
+    null
+  ],
+  "chef_switches": 20,
+  "chef_switch_rate": 0.4545,
+  "chef_switch_detail": [
+    {
+      "at_fid": 4450,
+      "frm": 1,
+      "to": 3,
+      "gap_cells": -1
+    },
+    {
+      "at_fid": 4455,
+      "frm": 3,
+      "to": 1,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 4455,
+      "frm": 1,
+      "to": 3,
+      "gap_cells": -1
+    },
+    {
+      "at_fid": 4460,
+      "frm": 3,
+      "to": 1,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 4460,
+      "frm": 1,
+      "to": 3,
+      "gap_cells": -1
+    },
+    {
+      "at_fid": 4465,
+      "frm": 3,
+      "to": 1,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 4465,
+      "frm": 1,
+      "to": 3,
+      "gap_cells": -1
+    },
+    {
+      "at_fid": 4470,
+      "frm": 3,
+      "to": 1,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 4470,
+      "frm": 1,
+      "to": 3,
+      "gap_cells": -1
+    },
+    {
+      "at_fid": 4475,
+      "frm": 3,
+      "to": 1,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 4475,
+      "frm": 1,
+      "to": 3,
+      "gap_cells": -1
+    },
+    {
+      "at_fid": 4480,
+      "frm": 3,
+      "to": 1,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 4480,
+      "frm": 1,
+      "to": 3,
+      "gap_cells": -1
+    },
+    {
+      "at_fid": 4485,
+      "frm": 3,
+      "to": 1,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 4485,
+      "frm": 1,
+      "to": 3,
+      "gap_cells": -1
+    },
+    {
+      "at_fid": 4490,
+      "frm": 3,
+      "to": 1,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 4490,
+      "frm": 1,
+      "to": 3,
+      "gap_cells": -1
+    },
+    {
+      "at_fid": 4495,
+      "frm": 3,
+      "to": 1,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 4495,
+      "frm": 1,
+      "to": 3,
+      "gap_cells": -1
+    },
+    {
+      "at_fid": 4500,
+      "frm": 3,
+      "to": 1,
+      "gap_cells": 0
+    }
+  ],
+  "track_switches": 0,
+  "track_switch_rate": 0.0,
+  "n_track_ids": 1,
+  "n_boxes": 62,
+  "n_ghost_boxes": 17,
+  "ghost_box_rate": 0.2742,
+  "n_tracks_in_window": 3,
+  "n_ghost_tracks": 1,
+  "ghost_track_rate": 0.3333,
+  "p_chef_shared_with_other_box": 0.0,
+  "n_chefs_created_before_target_bound": 0,
+  "l3_chef_per_camera": {
+    "camera_6": 1,
+    "camera_7": 3
+  },
+  "l3_n_camera_pairs": 1,
+  "l3_n_pairs_usable": 1,
+  "l3_n_pairs_dropped": 0,
+  "l3_p_handoff": 0.0,
+  "l3_p_handoff_ci": [
+    0.0,
+    0.7935
+  ],
+  "l3_n_simul_frames": 10,
+  "l3_p_simul_agree": 0.0,
+  "l3_p_simul_agree_ci": [
+    0.0,
+    0.2775
+  ],
+  "l3_n_chef_ids_per_camera": {
+    "camera_6": 1,
+    "camera_7": 1
+  },
+  "handoff_type": "overlapping"
+}

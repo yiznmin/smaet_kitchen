@@ -1,0 +1,120 @@
+{
+  "clip_id": "L2-seq_004-c7-7-004775",
+  "rule": "L2",
+  "level": "L2",
+  "seq": "seq_004",
+  "cameras": "camera_7",
+  "gt_id": 7,
+  "stride": 1,
+  "duration_s": 10.5,
+  "exclusive": true,
+  "n_other_ids": 0,
+  "n_sampled_cells": 316,
+  "visibility": 0.7278,
+  "n_target_cells": 230,
+  "n_matched": 221,
+  "recall_target": 0.9609,
+  "recall_ci": [
+    0.9273,
+    0.9793
+  ],
+  "mean_iou": 0.8402,
+  "median_iou": 0.9062,
+  "p10_iou": 0.6324,
+  "p90_iou": 0.9668,
+  "frac_iou_ge_075": 0.8304,
+  "mean_iou_matched": 0.8744,
+  "n_B": 221,
+  "bound_rate": 0.9609,
+  "first_bound_fid": 4775,
+  "n_distinct_chef_ids": 5,
+  "c0": 1,
+  "c_star": 5,
+  "majority_tie": false,
+  "p_continuity": 0.0588,
+  "p_continuity_ci": [
+    0.0347,
+    0.098
+  ],
+  "p_majority": 0.5158,
+  "p_majority_ci": [
+    0.4502,
+    0.5809
+  ],
+  "p_exclusive": null,
+  "p_exclusive_ci": [
+    null,
+    null
+  ],
+  "chef_switches": 4,
+  "chef_switch_rate": 0.0182,
+  "chef_switch_detail": [
+    {
+      "at_fid": 4788,
+      "frm": 1,
+      "to": 2,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 4844,
+      "frm": 2,
+      "to": 3,
+      "gap_cells": 1
+    },
+    {
+      "at_fid": 4864,
+      "frm": 3,
+      "to": 4,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 4976,
+      "frm": 4,
+      "to": 5,
+      "gap_cells": 88
+    }
+  ],
+  "track_switches": 4,
+  "track_switch_rate": 0.0182,
+  "n_track_ids": 5,
+  "n_boxes": 234,
+  "n_ghost_boxes": 13,
+  "ghost_box_rate": 0.0556,
+  "n_tracks_in_window": 5,
+  "n_ghost_tracks": 0,
+  "ghost_track_rate": 0.0,
+  "p_chef_shared_with_other_box": 0.0,
+  "n_chefs_created_before_target_bound": 0,
+  "l2_n_pairs_k5": 1,
+  "l2_n_pairs_dropped_k5": 0,
+  "l2_p_reacquire_k5": 0.0,
+  "l2_p_reacquire_ci_k5": [
+    0.0,
+    0.7935
+  ],
+  "l2_detail_k5": [
+    {
+      "before": 4,
+      "after": 5,
+      "same": false
+    }
+  ],
+  "l2_n_pairs_k1": 1,
+  "l2_n_pairs_dropped_k1": 0,
+  "l2_p_reacquire_k1": 0.0,
+  "l2_p_reacquire_ci_k1": [
+    0.0,
+    0.7935
+  ],
+  "l2_detail_k1": [
+    {
+      "before": 4,
+      "after": 5,
+      "same": false
+    }
+  ],
+  "gap_band": "within_buffer",
+  "gaps_s": [
+    2.9
+  ]
+}

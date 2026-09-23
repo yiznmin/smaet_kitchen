@@ -1,0 +1,5 @@
+﻿stride,gap_band,k,n_clips,n_pairs,n_pairs_dropped,p_reacquire,ci
+5,within_buffer,5,16,17,0,0.1176,"(0.0329, 0.3434)"
+5,within_buffer,1,16,17,0,0.1176,"(0.0329, 0.3434)"
+1,within_buffer,5,16,17,0,0.1765,"(0.0619, 0.4103)"
+1,within_buffer,1,16,17,0,0.1765,"(0.0619, 0.4103)"

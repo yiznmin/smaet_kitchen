@@ -1,0 +1,136 @@
+{
+  "clip_id": "L1-seq_024-c3-7-015855",
+  "rule": "L1",
+  "level": "L1",
+  "seq": "seq_024",
+  "cameras": "camera_3",
+  "gt_id": 7,
+  "stride": 1,
+  "duration_s": 19.0,
+  "exclusive": true,
+  "n_other_ids": 0,
+  "n_sampled_cells": 571,
+  "visibility": 1.0,
+  "n_target_cells": 571,
+  "n_matched": 561,
+  "recall_target": 0.9825,
+  "recall_ci": [
+    0.9681,
+    0.9905
+  ],
+  "mean_iou": 0.8343,
+  "median_iou": 0.8571,
+  "p10_iou": 0.7658,
+  "p90_iou": 0.9216,
+  "frac_iou_ge_075": 0.9282,
+  "mean_iou_matched": 0.8492,
+  "n_B": 561,
+  "bound_rate": 0.9825,
+  "first_bound_fid": 15855,
+  "n_distinct_chef_ids": 5,
+  "c0": 1,
+  "c_star": 1,
+  "majority_tie": false,
+  "p_continuity": 0.943,
+  "p_continuity_ci": [
+    0.9206,
+    0.9593
+  ],
+  "p_majority": 0.943,
+  "p_majority_ci": [
+    0.9206,
+    0.9593
+  ],
+  "p_exclusive": null,
+  "p_exclusive_ci": [
+    null,
+    null
+  ],
+  "chef_switches": 12,
+  "chef_switch_rate": 0.0214,
+  "chef_switch_detail": [
+    {
+      "at_fid": 15953,
+      "frm": 1,
+      "to": 3,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 15960,
+      "frm": 3,
+      "to": 1,
+      "gap_cells": 4
+    },
+    {
+      "at_fid": 16110,
+      "frm": 1,
+      "to": 4,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 16111,
+      "frm": 4,
+      "to": 1,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 16280,
+      "frm": 1,
+      "to": 7,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 16297,
+      "frm": 7,
+      "to": 1,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 16300,
+      "frm": 1,
+      "to": 7,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 16302,
+      "frm": 7,
+      "to": 1,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 16377,
+      "frm": 1,
+      "to": 9,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 16384,
+      "frm": 9,
+      "to": 1,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 16386,
+      "frm": 1,
+      "to": 9,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 16388,
+      "frm": 9,
+      "to": 1,
+      "gap_cells": 0
+    }
+  ],
+  "track_switches": 12,
+  "track_switch_rate": 0.0214,
+  "n_track_ids": 5,
+  "n_boxes": 1078,
+  "n_ghost_boxes": 517,
+  "ghost_box_rate": 0.4796,
+  "n_tracks_in_window": 10,
+  "n_ghost_tracks": 8,
+  "ghost_track_rate": 0.8,
+  "p_chef_shared_with_other_box": 0.0,
+  "n_chefs_created_before_target_bound": 0
+}

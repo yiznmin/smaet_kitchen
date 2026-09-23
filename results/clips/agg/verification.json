@@ -1,0 +1,36 @@
+{
+  "V1": {
+    "passed": true,
+    "n_failures": 0,
+    "failures": []
+  },
+  "V2V3": {
+    "passed": true,
+    "n_failures": 0,
+    "failures": []
+  },
+  "V4": {
+    "passed": true,
+    "n_failures": 0,
+    "failures": []
+  },
+  "V5": {
+    "passed": true,
+    "n_failures": 0,
+    "failures": []
+  },
+  "V9": {
+    "passed": true,
+    "n_failures": 0,
+    "failures": []
+  },
+  "V10": {
+    "passed": false,
+    "n_failures": 3,
+    "failures": [
+      "L1-seq_026-c1-1-001870:resident.csv 重跑不一致",
+      "L1-seq_000-c4-1-001520:resident.csv 重跑不一致",
+      "L1-seq_024-c1-2-015670:resident.csv 重跑不一致"
+    ]
+  }
+}

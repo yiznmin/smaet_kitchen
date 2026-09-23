@@ -1,0 +1,2149 @@
+{
+  "rows": [
+    {
+      "clip_id": "L1-seq_026-c1-1-001870",
+      "stride": 5,
+      "frames": 94,
+      "expected_frames": 94,
+      "n_correct_cells": 94,
+      "n_wrong_cells": 0,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 335424,
+      "path": "results\\clips\\videos\\L1-seq_026-c1-1-001870_s5.mp4"
+    },
+    {
+      "clip_id": "L1-seq_026-c1-1-001870",
+      "stride": 1,
+      "frames": 466,
+      "expected_frames": 466,
+      "n_correct_cells": 466,
+      "n_wrong_cells": 0,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 342426,
+      "path": "results\\clips\\videos\\L1-seq_026-c1-1-001870_s1.mp4"
+    },
+    {
+      "clip_id": "L1-seq_000-c4-1-001520",
+      "stride": 5,
+      "frames": 115,
+      "expected_frames": 115,
+      "n_correct_cells": 115,
+      "n_wrong_cells": 0,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 703348,
+      "path": "results\\clips\\videos\\L1-seq_000-c4-1-001520_s5.mp4"
+    },
+    {
+      "clip_id": "L1-seq_000-c4-1-001520",
+      "stride": 1,
+      "frames": 571,
+      "expected_frames": 571,
+      "n_correct_cells": 571,
+      "n_wrong_cells": 0,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 963717,
+      "path": "results\\clips\\videos\\L1-seq_000-c4-1-001520_s1.mp4"
+    },
+    {
+      "clip_id": "L1-seq_024-c1-2-015670",
+      "stride": 5,
+      "frames": 49,
+      "expected_frames": 49,
+      "n_correct_cells": 46,
+      "n_wrong_cells": 0,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 233597,
+      "path": "results\\clips\\videos\\L1-seq_024-c1-2-015670_s5.mp4"
+    },
+    {
+      "clip_id": "L1-seq_024-c1-2-015670",
+      "stride": 1,
+      "frames": 241,
+      "expected_frames": 241,
+      "n_correct_cells": 238,
+      "n_wrong_cells": 0,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 245693,
+      "path": "results\\clips\\videos\\L1-seq_024-c1-2-015670_s1.mp4"
+    },
+    {
+      "clip_id": "L1-seq_026-c5-2-007160",
+      "stride": 5,
+      "frames": 57,
+      "expected_frames": 57,
+      "n_correct_cells": 56,
+      "n_wrong_cells": 0,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 410239,
+      "path": "results\\clips\\videos\\L1-seq_026-c5-2-007160_s5.mp4"
+    },
+    {
+      "clip_id": "L1-seq_026-c5-2-007160",
+      "stride": 1,
+      "frames": 281,
+      "expected_frames": 281,
+      "n_correct_cells": 277,
+      "n_wrong_cells": 0,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 602498,
+      "path": "results\\clips\\videos\\L1-seq_026-c5-2-007160_s1.mp4"
+    },
+    {
+      "clip_id": "L1-seq_000-c1-3-004345",
+      "stride": 5,
+      "frames": 91,
+      "expected_frames": 91,
+      "n_correct_cells": 91,
+      "n_wrong_cells": 0,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 752625,
+      "path": "results\\clips\\videos\\L1-seq_000-c1-3-004345_s5.mp4"
+    },
+    {
+      "clip_id": "L1-seq_000-c1-3-004345",
+      "stride": 1,
+      "frames": 451,
+      "expected_frames": 451,
+      "n_correct_cells": 451,
+      "n_wrong_cells": 0,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 925077,
+      "path": "results\\clips\\videos\\L1-seq_000-c1-3-004345_s1.mp4"
+    },
+    {
+      "clip_id": "L1-seq_000-c7-3-002915",
+      "stride": 5,
+      "frames": 121,
+      "expected_frames": 121,
+      "n_correct_cells": 121,
+      "n_wrong_cells": 0,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 650212,
+      "path": "results\\clips\\videos\\L1-seq_000-c7-3-002915_s5.mp4"
+    },
+    {
+      "clip_id": "L1-seq_000-c7-3-002915",
+      "stride": 1,
+      "frames": 601,
+      "expected_frames": 601,
+      "n_correct_cells": 601,
+      "n_wrong_cells": 0,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 955496,
+      "path": "results\\clips\\videos\\L1-seq_000-c7-3-002915_s1.mp4"
+    },
+    {
+      "clip_id": "L1-seq_020-c1-4-007505",
+      "stride": 5,
+      "frames": 62,
+      "expected_frames": 62,
+      "n_correct_cells": 52,
+      "n_wrong_cells": 8,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 413945,
+      "path": "results\\clips\\videos\\L1-seq_020-c1-4-007505_s5.mp4"
+    },
+    {
+      "clip_id": "L1-seq_020-c1-4-007505",
+      "stride": 1,
+      "frames": 306,
+      "expected_frames": 306,
+      "n_correct_cells": 19,
+      "n_wrong_cells": 279,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 580548,
+      "path": "results\\clips\\videos\\L1-seq_020-c1-4-007505_s1.mp4"
+    },
+    {
+      "clip_id": "L1-seq_020-c3-4-007425",
+      "stride": 5,
+      "frames": 68,
+      "expected_frames": 68,
+      "n_correct_cells": 68,
+      "n_wrong_cells": 0,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 554478,
+      "path": "results\\clips\\videos\\L1-seq_020-c3-4-007425_s5.mp4"
+    },
+    {
+      "clip_id": "L1-seq_020-c3-4-007425",
+      "stride": 1,
+      "frames": 336,
+      "expected_frames": 336,
+      "n_correct_cells": 336,
+      "n_wrong_cells": 0,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 841454,
+      "path": "results\\clips\\videos\\L1-seq_020-c3-4-007425_s1.mp4"
+    },
+    {
+      "clip_id": "L1-seq_004-c3-5-007450",
+      "stride": 5,
+      "frames": 166,
+      "expected_frames": 166,
+      "n_correct_cells": 166,
+      "n_wrong_cells": 0,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 853944,
+      "path": "results\\clips\\videos\\L1-seq_004-c3-5-007450_s5.mp4"
+    },
+    {
+      "clip_id": "L1-seq_004-c3-5-007450",
+      "stride": 1,
+      "frames": 826,
+      "expected_frames": 826,
+      "n_correct_cells": 826,
+      "n_wrong_cells": 0,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 995244,
+      "path": "results\\clips\\videos\\L1-seq_004-c3-5-007450_s1.mp4"
+    },
+    {
+      "clip_id": "L1-seq_000-c1-5-000385",
+      "stride": 5,
+      "frames": 134,
+      "expected_frames": 134,
+      "n_correct_cells": 133,
+      "n_wrong_cells": 0,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 958877,
+      "path": "results\\clips\\videos\\L1-seq_000-c1-5-000385_s5.mp4"
+    },
+    {
+      "clip_id": "L1-seq_000-c1-5-000385",
+      "stride": 1,
+      "frames": 666,
+      "expected_frames": 666,
+      "n_correct_cells": 19,
+      "n_wrong_cells": 647,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 1285279,
+      "path": "results\\clips\\videos\\L1-seq_000-c1-5-000385_s1.mp4"
+    },
+    {
+      "clip_id": "L1-seq_024-c4-6-015905",
+      "stride": 5,
+      "frames": 82,
+      "expected_frames": 82,
+      "n_correct_cells": 82,
+      "n_wrong_cells": 0,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 569371,
+      "path": "results\\clips\\videos\\L1-seq_024-c4-6-015905_s5.mp4"
+    },
+    {
+      "clip_id": "L1-seq_024-c4-6-015905",
+      "stride": 1,
+      "frames": 406,
+      "expected_frames": 406,
+      "n_correct_cells": 406,
+      "n_wrong_cells": 0,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 871589,
+      "path": "results\\clips\\videos\\L1-seq_024-c4-6-015905_s1.mp4"
+    },
+    {
+      "clip_id": "L1-seq_000-c5-6-004035",
+      "stride": 5,
+      "frames": 71,
+      "expected_frames": 71,
+      "n_correct_cells": 71,
+      "n_wrong_cells": 0,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 423986,
+      "path": "results\\clips\\videos\\L1-seq_000-c5-6-004035_s5.mp4"
+    },
+    {
+      "clip_id": "L1-seq_000-c5-6-004035",
+      "stride": 1,
+      "frames": 351,
+      "expected_frames": 351,
+      "n_correct_cells": 351,
+      "n_wrong_cells": 0,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 632642,
+      "path": "results\\clips\\videos\\L1-seq_000-c5-6-004035_s1.mp4"
+    },
+    {
+      "clip_id": "L1-seq_024-c3-7-015855",
+      "stride": 5,
+      "frames": 115,
+      "expected_frames": 115,
+      "n_correct_cells": 113,
+      "n_wrong_cells": 0,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 718523,
+      "path": "results\\clips\\videos\\L1-seq_024-c3-7-015855_s5.mp4"
+    },
+    {
+      "clip_id": "L1-seq_024-c3-7-015855",
+      "stride": 1,
+      "frames": 571,
+      "expected_frames": 571,
+      "n_correct_cells": 529,
+      "n_wrong_cells": 32,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 1003926,
+      "path": "results\\clips\\videos\\L1-seq_024-c3-7-015855_s1.mp4"
+    },
+    {
+      "clip_id": "L1-seq_025-c3-7-002520",
+      "stride": 5,
+      "frames": 85,
+      "expected_frames": 85,
+      "n_correct_cells": 82,
+      "n_wrong_cells": 3,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 636109,
+      "path": "results\\clips\\videos\\L1-seq_025-c3-7-002520_s5.mp4"
+    },
+    {
+      "clip_id": "L1-seq_025-c3-7-002520",
+      "stride": 1,
+      "frames": 421,
+      "expected_frames": 421,
+      "n_correct_cells": 191,
+      "n_wrong_cells": 230,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 878029,
+      "path": "results\\clips\\videos\\L1-seq_025-c3-7-002520_s1.mp4"
+    },
+    {
+      "clip_id": "L1-seq_002-c4-8-001820",
+      "stride": 5,
+      "frames": 61,
+      "expected_frames": 61,
+      "n_correct_cells": 61,
+      "n_wrong_cells": 0,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 205899,
+      "path": "results\\clips\\videos\\L1-seq_002-c4-8-001820_s5.mp4"
+    },
+    {
+      "clip_id": "L1-seq_002-c4-8-001820",
+      "stride": 1,
+      "frames": 301,
+      "expected_frames": 301,
+      "n_correct_cells": 301,
+      "n_wrong_cells": 0,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 240431,
+      "path": "results\\clips\\videos\\L1-seq_002-c4-8-001820_s1.mp4"
+    },
+    {
+      "clip_id": "L1-seq_004-c7-8-008115",
+      "stride": 5,
+      "frames": 79,
+      "expected_frames": 79,
+      "n_correct_cells": 79,
+      "n_wrong_cells": 0,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 479940,
+      "path": "results\\clips\\videos\\L1-seq_004-c7-8-008115_s5.mp4"
+    },
+    {
+      "clip_id": "L1-seq_004-c7-8-008115",
+      "stride": 1,
+      "frames": 391,
+      "expected_frames": 391,
+      "n_correct_cells": 391,
+      "n_wrong_cells": 0,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 641919,
+      "path": "results\\clips\\videos\\L1-seq_004-c7-8-008115_s1.mp4"
+    },
+    {
+      "clip_id": "L1-seq_026-c7-9-002475",
+      "stride": 5,
+      "frames": 78,
+      "expected_frames": 78,
+      "n_correct_cells": 77,
+      "n_wrong_cells": 0,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 446941,
+      "path": "results\\clips\\videos\\L1-seq_026-c7-9-002475_s5.mp4"
+    },
+    {
+      "clip_id": "L1-seq_026-c7-9-002475",
+      "stride": 1,
+      "frames": 386,
+      "expected_frames": 386,
+      "n_correct_cells": 268,
+      "n_wrong_cells": 115,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 548838,
+      "path": "results\\clips\\videos\\L1-seq_026-c7-9-002475_s1.mp4"
+    },
+    {
+      "clip_id": "L1-seq_020-c7-9-013530",
+      "stride": 5,
+      "frames": 75,
+      "expected_frames": 75,
+      "n_correct_cells": 75,
+      "n_wrong_cells": 0,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 434945,
+      "path": "results\\clips\\videos\\L1-seq_020-c7-9-013530_s5.mp4"
+    },
+    {
+      "clip_id": "L1-seq_020-c7-9-013530",
+      "stride": 1,
+      "frames": 371,
+      "expected_frames": 371,
+      "n_correct_cells": 371,
+      "n_wrong_cells": 0,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 563191,
+      "path": "results\\clips\\videos\\L1-seq_020-c7-9-013530_s1.mp4"
+    },
+    {
+      "clip_id": "L1-seq_026-c4-10-004865",
+      "stride": 5,
+      "frames": 65,
+      "expected_frames": 65,
+      "n_correct_cells": 65,
+      "n_wrong_cells": 0,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 404031,
+      "path": "results\\clips\\videos\\L1-seq_026-c4-10-004865_s5.mp4"
+    },
+    {
+      "clip_id": "L1-seq_026-c4-10-004865",
+      "stride": 1,
+      "frames": 321,
+      "expected_frames": 321,
+      "n_correct_cells": 321,
+      "n_wrong_cells": 0,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 556114,
+      "path": "results\\clips\\videos\\L1-seq_026-c4-10-004865_s1.mp4"
+    },
+    {
+      "clip_id": "L1-seq_000-c6-10-001710",
+      "stride": 5,
+      "frames": 72,
+      "expected_frames": 72,
+      "n_correct_cells": 72,
+      "n_wrong_cells": 0,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 462129,
+      "path": "results\\clips\\videos\\L1-seq_000-c6-10-001710_s5.mp4"
+    },
+    {
+      "clip_id": "L1-seq_000-c6-10-001710",
+      "stride": 1,
+      "frames": 356,
+      "expected_frames": 356,
+      "n_correct_cells": 356,
+      "n_wrong_cells": 0,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 696750,
+      "path": "results\\clips\\videos\\L1-seq_000-c6-10-001710_s1.mp4"
+    },
+    {
+      "clip_id": "L1-seq_024-c2-11-015940",
+      "stride": 5,
+      "frames": 77,
+      "expected_frames": 77,
+      "n_correct_cells": 28,
+      "n_wrong_cells": 0,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 425905,
+      "path": "results\\clips\\videos\\L1-seq_024-c2-11-015940_s5.mp4"
+    },
+    {
+      "clip_id": "L1-seq_024-c2-11-015940",
+      "stride": 1,
+      "frames": 381,
+      "expected_frames": 381,
+      "n_correct_cells": 31,
+      "n_wrong_cells": 91,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 509085,
+      "path": "results\\clips\\videos\\L1-seq_024-c2-11-015940_s1.mp4"
+    },
+    {
+      "clip_id": "L1-seq_026-c7-11-004120",
+      "stride": 5,
+      "frames": 53,
+      "expected_frames": 53,
+      "n_correct_cells": 53,
+      "n_wrong_cells": 0,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 415395,
+      "path": "results\\clips\\videos\\L1-seq_026-c7-11-004120_s5.mp4"
+    },
+    {
+      "clip_id": "L1-seq_026-c7-11-004120",
+      "stride": 1,
+      "frames": 261,
+      "expected_frames": 261,
+      "n_correct_cells": 259,
+      "n_wrong_cells": 1,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 570603,
+      "path": "results\\clips\\videos\\L1-seq_026-c7-11-004120_s1.mp4"
+    },
+    {
+      "clip_id": "L1-seq_020-c1-12-003195",
+      "stride": 5,
+      "frames": 85,
+      "expected_frames": 85,
+      "n_correct_cells": 81,
+      "n_wrong_cells": 0,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 641008,
+      "path": "results\\clips\\videos\\L1-seq_020-c1-12-003195_s5.mp4"
+    },
+    {
+      "clip_id": "L1-seq_020-c1-12-003195",
+      "stride": 1,
+      "frames": 421,
+      "expected_frames": 421,
+      "n_correct_cells": 5,
+      "n_wrong_cells": 399,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 904022,
+      "path": "results\\clips\\videos\\L1-seq_020-c1-12-003195_s1.mp4"
+    },
+    {
+      "clip_id": "L1-seq_025-c4-12-000120",
+      "stride": 5,
+      "frames": 76,
+      "expected_frames": 76,
+      "n_correct_cells": 76,
+      "n_wrong_cells": 0,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 605812,
+      "path": "results\\clips\\videos\\L1-seq_025-c4-12-000120_s5.mp4"
+    },
+    {
+      "clip_id": "L1-seq_025-c4-12-000120",
+      "stride": 1,
+      "frames": 376,
+      "expected_frames": 376,
+      "n_correct_cells": 376,
+      "n_wrong_cells": 0,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 900401,
+      "path": "results\\clips\\videos\\L1-seq_025-c4-12-000120_s1.mp4"
+    },
+    {
+      "clip_id": "L1-seq_020-c4-13-005720",
+      "stride": 5,
+      "frames": 43,
+      "expected_frames": 43,
+      "n_correct_cells": 43,
+      "n_wrong_cells": 0,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 329314,
+      "path": "results\\clips\\videos\\L1-seq_020-c4-13-005720_s5.mp4"
+    },
+    {
+      "clip_id": "L1-seq_020-c4-13-005720",
+      "stride": 1,
+      "frames": 211,
+      "expected_frames": 211,
+      "n_correct_cells": 211,
+      "n_wrong_cells": 0,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 471029,
+      "path": "results\\clips\\videos\\L1-seq_020-c4-13-005720_s1.mp4"
+    },
+    {
+      "clip_id": "L1-seq_020-c5-13-006950",
+      "stride": 5,
+      "frames": 39,
+      "expected_frames": 39,
+      "n_correct_cells": 39,
+      "n_wrong_cells": 0,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 263709,
+      "path": "results\\clips\\videos\\L1-seq_020-c5-13-006950_s5.mp4"
+    },
+    {
+      "clip_id": "L1-seq_020-c5-13-006950",
+      "stride": 1,
+      "frames": 191,
+      "expected_frames": 191,
+      "n_correct_cells": 191,
+      "n_wrong_cells": 0,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 368160,
+      "path": "results\\clips\\videos\\L1-seq_020-c5-13-006950_s1.mp4"
+    },
+    {
+      "clip_id": "L1-seq_024-c7-14-015805",
+      "stride": 5,
+      "frames": 65,
+      "expected_frames": 65,
+      "n_correct_cells": 64,
+      "n_wrong_cells": 0,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 525518,
+      "path": "results\\clips\\videos\\L1-seq_024-c7-14-015805_s5.mp4"
+    },
+    {
+      "clip_id": "L1-seq_024-c7-14-015805",
+      "stride": 1,
+      "frames": 321,
+      "expected_frames": 321,
+      "n_correct_cells": 7,
+      "n_wrong_cells": 312,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 732845,
+      "path": "results\\clips\\videos\\L1-seq_024-c7-14-015805_s1.mp4"
+    },
+    {
+      "clip_id": "L1-seq_024-c7-14-012820",
+      "stride": 5,
+      "frames": 53,
+      "expected_frames": 53,
+      "n_correct_cells": 48,
+      "n_wrong_cells": 0,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 478981,
+      "path": "results\\clips\\videos\\L1-seq_024-c7-14-012820_s5.mp4"
+    },
+    {
+      "clip_id": "L1-seq_024-c7-14-012820",
+      "stride": 1,
+      "frames": 261,
+      "expected_frames": 261,
+      "n_correct_cells": 70,
+      "n_wrong_cells": 175,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 668872,
+      "path": "results\\clips\\videos\\L1-seq_024-c7-14-012820_s1.mp4"
+    },
+    {
+      "clip_id": "L1-seq_020-c4-15-002795",
+      "stride": 5,
+      "frames": 84,
+      "expected_frames": 84,
+      "n_correct_cells": 84,
+      "n_wrong_cells": 0,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 347989,
+      "path": "results\\clips\\videos\\L1-seq_020-c4-15-002795_s5.mp4"
+    },
+    {
+      "clip_id": "L1-seq_020-c4-15-002795",
+      "stride": 1,
+      "frames": 416,
+      "expected_frames": 416,
+      "n_correct_cells": 416,
+      "n_wrong_cells": 0,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 423473,
+      "path": "results\\clips\\videos\\L1-seq_020-c4-15-002795_s1.mp4"
+    },
+    {
+      "clip_id": "L1-seq_020-c4-15-003245",
+      "stride": 5,
+      "frames": 38,
+      "expected_frames": 38,
+      "n_correct_cells": 38,
+      "n_wrong_cells": 0,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 194762,
+      "path": "results\\clips\\videos\\L1-seq_020-c4-15-003245_s5.mp4"
+    },
+    {
+      "clip_id": "L1-seq_020-c4-15-003245",
+      "stride": 1,
+      "frames": 186,
+      "expected_frames": 186,
+      "n_correct_cells": 186,
+      "n_wrong_cells": 0,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 213636,
+      "path": "results\\clips\\videos\\L1-seq_020-c4-15-003245_s1.mp4"
+    },
+    {
+      "clip_id": "L1-seq_020-c3-16-002975",
+      "stride": 5,
+      "frames": 47,
+      "expected_frames": 47,
+      "n_correct_cells": 47,
+      "n_wrong_cells": 0,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 305600,
+      "path": "results\\clips\\videos\\L1-seq_020-c3-16-002975_s5.mp4"
+    },
+    {
+      "clip_id": "L1-seq_020-c3-16-002975",
+      "stride": 1,
+      "frames": 231,
+      "expected_frames": 231,
+      "n_correct_cells": 231,
+      "n_wrong_cells": 0,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 321146,
+      "path": "results\\clips\\videos\\L1-seq_020-c3-16-002975_s1.mp4"
+    },
+    {
+      "clip_id": "L1-seq_000-c3-18-000540",
+      "stride": 5,
+      "frames": 54,
+      "expected_frames": 54,
+      "n_correct_cells": 54,
+      "n_wrong_cells": 0,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 305700,
+      "path": "results\\clips\\videos\\L1-seq_000-c3-18-000540_s5.mp4"
+    },
+    {
+      "clip_id": "L1-seq_000-c3-18-000540",
+      "stride": 1,
+      "frames": 266,
+      "expected_frames": 266,
+      "n_correct_cells": 259,
+      "n_wrong_cells": 7,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 341094,
+      "path": "results\\clips\\videos\\L1-seq_000-c3-18-000540_s1.mp4"
+    },
+    {
+      "clip_id": "L1-seq_000-c3-18-001400",
+      "stride": 5,
+      "frames": 87,
+      "expected_frames": 87,
+      "n_correct_cells": 87,
+      "n_wrong_cells": 0,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 485011,
+      "path": "results\\clips\\videos\\L1-seq_000-c3-18-001400_s5.mp4"
+    },
+    {
+      "clip_id": "L1-seq_000-c3-18-001400",
+      "stride": 1,
+      "frames": 431,
+      "expected_frames": 431,
+      "n_correct_cells": 431,
+      "n_wrong_cells": 0,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 522361,
+      "path": "results\\clips\\videos\\L1-seq_000-c3-18-001400_s1.mp4"
+    },
+    {
+      "clip_id": "L1-seq_006-c2-24-002915",
+      "stride": 5,
+      "frames": 87,
+      "expected_frames": 87,
+      "n_correct_cells": 87,
+      "n_wrong_cells": 0,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 403674,
+      "path": "results\\clips\\videos\\L1-seq_006-c2-24-002915_s5.mp4"
+    },
+    {
+      "clip_id": "L1-seq_006-c2-24-002915",
+      "stride": 1,
+      "frames": 431,
+      "expected_frames": 431,
+      "n_correct_cells": 431,
+      "n_wrong_cells": 0,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 433710,
+      "path": "results\\clips\\videos\\L1-seq_006-c2-24-002915_s1.mp4"
+    },
+    {
+      "clip_id": "L2-seq_000-c1-3-003910",
+      "stride": 5,
+      "frames": 178,
+      "expected_frames": 178,
+      "n_correct_cells": 6,
+      "n_wrong_cells": 135,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 1264245,
+      "path": "results\\clips\\videos\\L2-seq_000-c1-3-003910_s5.mp4"
+    },
+    {
+      "clip_id": "L2-seq_000-c1-3-003910",
+      "stride": 1,
+      "frames": 886,
+      "expected_frames": 886,
+      "n_correct_cells": 255,
+      "n_wrong_cells": 453,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 1589415,
+      "path": "results\\clips\\videos\\L2-seq_000-c1-3-003910_s1.mp4"
+    },
+    {
+      "clip_id": "L2-seq_000-c7-10-001530",
+      "stride": 5,
+      "frames": 84,
+      "expected_frames": 84,
+      "n_correct_cells": 50,
+      "n_wrong_cells": 6,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 427907,
+      "path": "results\\clips\\videos\\L2-seq_000-c7-10-001530_s5.mp4"
+    },
+    {
+      "clip_id": "L2-seq_000-c7-10-001530",
+      "stride": 1,
+      "frames": 416,
+      "expected_frames": 416,
+      "n_correct_cells": 251,
+      "n_wrong_cells": 37,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 556333,
+      "path": "results\\clips\\videos\\L2-seq_000-c7-10-001530_s1.mp4"
+    },
+    {
+      "clip_id": "L2-seq_004-c4-6-004585",
+      "stride": 5,
+      "frames": 57,
+      "expected_frames": 57,
+      "n_correct_cells": 23,
+      "n_wrong_cells": 7,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 292835,
+      "path": "results\\clips\\videos\\L2-seq_004-c4-6-004585_s5.mp4"
+    },
+    {
+      "clip_id": "L2-seq_004-c4-6-004585",
+      "stride": 1,
+      "frames": 281,
+      "expected_frames": 281,
+      "n_correct_cells": 115,
+      "n_wrong_cells": 39,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 450805,
+      "path": "results\\clips\\videos\\L2-seq_004-c4-6-004585_s1.mp4"
+    },
+    {
+      "clip_id": "L2-seq_004-c6-6-007585",
+      "stride": 5,
+      "frames": 51,
+      "expected_frames": 51,
+      "n_correct_cells": 22,
+      "n_wrong_cells": 14,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 395848,
+      "path": "results\\clips\\videos\\L2-seq_004-c6-6-007585_s5.mp4"
+    },
+    {
+      "clip_id": "L2-seq_004-c6-6-007585",
+      "stride": 1,
+      "frames": 251,
+      "expected_frames": 251,
+      "n_correct_cells": 109,
+      "n_wrong_cells": 68,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 590855,
+      "path": "results\\clips\\videos\\L2-seq_004-c6-6-007585_s1.mp4"
+    },
+    {
+      "clip_id": "L2-seq_004-c7-7-004775",
+      "stride": 5,
+      "frames": 64,
+      "expected_frames": 64,
+      "n_correct_cells": 14,
+      "n_wrong_cells": 28,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 342522,
+      "path": "results\\clips\\videos\\L2-seq_004-c7-7-004775_s5.mp4"
+    },
+    {
+      "clip_id": "L2-seq_004-c7-7-004775",
+      "stride": 1,
+      "frames": 316,
+      "expected_frames": 316,
+      "n_correct_cells": 13,
+      "n_wrong_cells": 208,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 479594,
+      "path": "results\\clips\\videos\\L2-seq_004-c7-7-004775_s1.mp4"
+    },
+    {
+      "clip_id": "L2-seq_020-c1-12-007830",
+      "stride": 5,
+      "frames": 77,
+      "expected_frames": 77,
+      "n_correct_cells": 7,
+      "n_wrong_cells": 39,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 415057,
+      "path": "results\\clips\\videos\\L2-seq_020-c1-12-007830_s5.mp4"
+    },
+    {
+      "clip_id": "L2-seq_020-c1-12-007830",
+      "stride": 1,
+      "frames": 381,
+      "expected_frames": 381,
+      "n_correct_cells": 34,
+      "n_wrong_cells": 199,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 505158,
+      "path": "results\\clips\\videos\\L2-seq_020-c1-12-007830_s1.mp4"
+    },
+    {
+      "clip_id": "L2-seq_024-c1-7-014705",
+      "stride": 5,
+      "frames": 47,
+      "expected_frames": 47,
+      "n_correct_cells": 10,
+      "n_wrong_cells": 14,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 236375,
+      "path": "results\\clips\\videos\\L2-seq_024-c1-7-014705_s5.mp4"
+    },
+    {
+      "clip_id": "L2-seq_024-c1-7-014705",
+      "stride": 1,
+      "frames": 231,
+      "expected_frames": 231,
+      "n_correct_cells": 55,
+      "n_wrong_cells": 70,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 256885,
+      "path": "results\\clips\\videos\\L2-seq_024-c1-7-014705_s1.mp4"
+    },
+    {
+      "clip_id": "L2-seq_024-c3-7-011320",
+      "stride": 5,
+      "frames": 46,
+      "expected_frames": 46,
+      "n_correct_cells": 8,
+      "n_wrong_cells": 9,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 279643,
+      "path": "results\\clips\\videos\\L2-seq_024-c3-7-011320_s5.mp4"
+    },
+    {
+      "clip_id": "L2-seq_024-c3-7-011320",
+      "stride": 1,
+      "frames": 226,
+      "expected_frames": 226,
+      "n_correct_cells": 43,
+      "n_wrong_cells": 46,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 300135,
+      "path": "results\\clips\\videos\\L2-seq_024-c3-7-011320_s1.mp4"
+    },
+    {
+      "clip_id": "L2-seq_024-c4-7-012085",
+      "stride": 5,
+      "frames": 36,
+      "expected_frames": 36,
+      "n_correct_cells": 28,
+      "n_wrong_cells": 0,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 264693,
+      "path": "results\\clips\\videos\\L2-seq_024-c4-7-012085_s5.mp4"
+    },
+    {
+      "clip_id": "L2-seq_024-c4-7-012085",
+      "stride": 1,
+      "frames": 176,
+      "expected_frames": 176,
+      "n_correct_cells": 137,
+      "n_wrong_cells": 0,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 368938,
+      "path": "results\\clips\\videos\\L2-seq_024-c4-7-012085_s1.mp4"
+    },
+    {
+      "clip_id": "L2-seq_024-c4-10-014700",
+      "stride": 5,
+      "frames": 20,
+      "expected_frames": 20,
+      "n_correct_cells": 6,
+      "n_wrong_cells": 5,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 157047,
+      "path": "results\\clips\\videos\\L2-seq_024-c4-10-014700_s5.mp4"
+    },
+    {
+      "clip_id": "L2-seq_024-c4-10-014700",
+      "stride": 1,
+      "frames": 96,
+      "expected_frames": 96,
+      "n_correct_cells": 33,
+      "n_wrong_cells": 29,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 187652,
+      "path": "results\\clips\\videos\\L2-seq_024-c4-10-014700_s1.mp4"
+    },
+    {
+      "clip_id": "L2-seq_025-c2-7-005185",
+      "stride": 5,
+      "frames": 26,
+      "expected_frames": 26,
+      "n_correct_cells": 11,
+      "n_wrong_cells": 4,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 176657,
+      "path": "results\\clips\\videos\\L2-seq_025-c2-7-005185_s5.mp4"
+    },
+    {
+      "clip_id": "L2-seq_025-c2-7-005185",
+      "stride": 1,
+      "frames": 126,
+      "expected_frames": 126,
+      "n_correct_cells": 80,
+      "n_wrong_cells": 0,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 210965,
+      "path": "results\\clips\\videos\\L2-seq_025-c2-7-005185_s1.mp4"
+    },
+    {
+      "clip_id": "L2-seq_025-c3-7-007115",
+      "stride": 5,
+      "frames": 88,
+      "expected_frames": 88,
+      "n_correct_cells": 17,
+      "n_wrong_cells": 40,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 606709,
+      "path": "results\\clips\\videos\\L2-seq_025-c3-7-007115_s5.mp4"
+    },
+    {
+      "clip_id": "L2-seq_025-c3-7-007115",
+      "stride": 1,
+      "frames": 436,
+      "expected_frames": 436,
+      "n_correct_cells": 29,
+      "n_wrong_cells": 256,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 891074,
+      "path": "results\\clips\\videos\\L2-seq_025-c3-7-007115_s1.mp4"
+    },
+    {
+      "clip_id": "L2-seq_025-c5-6-002540",
+      "stride": 5,
+      "frames": 65,
+      "expected_frames": 65,
+      "n_correct_cells": 26,
+      "n_wrong_cells": 14,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 320081,
+      "path": "results\\clips\\videos\\L2-seq_025-c5-6-002540_s5.mp4"
+    },
+    {
+      "clip_id": "L2-seq_025-c5-6-002540",
+      "stride": 1,
+      "frames": 321,
+      "expected_frames": 321,
+      "n_correct_cells": 130,
+      "n_wrong_cells": 76,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 409273,
+      "path": "results\\clips\\videos\\L2-seq_025-c5-6-002540_s1.mp4"
+    },
+    {
+      "clip_id": "L2-seq_025-c6-2-006810",
+      "stride": 5,
+      "frames": 46,
+      "expected_frames": 46,
+      "n_correct_cells": 17,
+      "n_wrong_cells": 12,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 259098,
+      "path": "results\\clips\\videos\\L2-seq_025-c6-2-006810_s5.mp4"
+    },
+    {
+      "clip_id": "L2-seq_025-c6-2-006810",
+      "stride": 1,
+      "frames": 226,
+      "expected_frames": 226,
+      "n_correct_cells": 81,
+      "n_wrong_cells": 61,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 340487,
+      "path": "results\\clips\\videos\\L2-seq_025-c6-2-006810_s1.mp4"
+    },
+    {
+      "clip_id": "L2-seq_026-c4-11-002005",
+      "stride": 5,
+      "frames": 58,
+      "expected_frames": 58,
+      "n_correct_cells": 29,
+      "n_wrong_cells": 0,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 348035,
+      "path": "results\\clips\\videos\\L2-seq_026-c4-11-002005_s5.mp4"
+    },
+    {
+      "clip_id": "L2-seq_026-c4-11-002005",
+      "stride": 1,
+      "frames": 286,
+      "expected_frames": 286,
+      "n_correct_cells": 72,
+      "n_wrong_cells": 75,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 481057,
+      "path": "results\\clips\\videos\\L2-seq_026-c4-11-002005_s1.mp4"
+    },
+    {
+      "clip_id": "L2-seq_026-c4-10-005820",
+      "stride": 5,
+      "frames": 59,
+      "expected_frames": 59,
+      "n_correct_cells": 10,
+      "n_wrong_cells": 19,
+      "fps": 6.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 353114,
+      "path": "results\\clips\\videos\\L2-seq_026-c4-10-005820_s5.mp4"
+    },
+    {
+      "clip_id": "L2-seq_026-c4-10-005820",
+      "stride": 1,
+      "frames": 291,
+      "expected_frames": 291,
+      "n_correct_cells": 46,
+      "n_wrong_cells": 98,
+      "fps": 30.0,
+      "size": [
+        640,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 479073,
+      "path": "results\\clips\\videos\\L2-seq_026-c4-10-005820_s1.mp4"
+    },
+    {
+      "clip_id": "L3S-seq_000-c6+c7-9-004450",
+      "stride": 5,
+      "frames": 35,
+      "expected_frames": 35,
+      "n_correct_cells": 35,
+      "n_wrong_cells": 10,
+      "fps": 6.0,
+      "size": [
+        1280,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 423584,
+      "path": "results\\clips\\videos\\L3S-seq_000-c6+c7-9-004450_s5.mp4"
+    },
+    {
+      "clip_id": "L3S-seq_000-c6+c7-9-004450",
+      "stride": 1,
+      "frames": 171,
+      "expected_frames": 171,
+      "n_correct_cells": 171,
+      "n_wrong_cells": 48,
+      "fps": 30.0,
+      "size": [
+        1280,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 559572,
+      "path": "results\\clips\\videos\\L3S-seq_000-c6+c7-9-004450_s1.mp4"
+    },
+    {
+      "clip_id": "L3S-seq_000-c6+c7-10-001710",
+      "stride": 5,
+      "frames": 72,
+      "expected_frames": 72,
+      "n_correct_cells": 72,
+      "n_wrong_cells": 21,
+      "fps": 6.0,
+      "size": [
+        1280,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 758873,
+      "path": "results\\clips\\videos\\L3S-seq_000-c6+c7-10-001710_s5.mp4"
+    },
+    {
+      "clip_id": "L3S-seq_000-c6+c7-10-001710",
+      "stride": 1,
+      "frames": 356,
+      "expected_frames": 356,
+      "n_correct_cells": 356,
+      "n_wrong_cells": 110,
+      "fps": 30.0,
+      "size": [
+        1280,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 1044102,
+      "path": "results\\clips\\videos\\L3S-seq_000-c6+c7-10-001710_s1.mp4"
+    },
+    {
+      "clip_id": "L3T-seq_004-c6+c7-7-004590",
+      "stride": 5,
+      "frames": 60,
+      "expected_frames": 60,
+      "n_correct_cells": 17,
+      "n_wrong_cells": 19,
+      "fps": 6.0,
+      "size": [
+        1280,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 577837,
+      "path": "results\\clips\\videos\\L3T-seq_004-c6+c7-7-004590_s5.mp4"
+    },
+    {
+      "clip_id": "L3T-seq_004-c6+c7-7-004590",
+      "stride": 1,
+      "frames": 296,
+      "expected_frames": 296,
+      "n_correct_cells": 78,
+      "n_wrong_cells": 107,
+      "fps": 30.0,
+      "size": [
+        1280,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 761148,
+      "path": "results\\clips\\videos\\L3T-seq_004-c6+c7-7-004590_s1.mp4"
+    },
+    {
+      "clip_id": "L3S-seq_004-c4+c6-8-007880",
+      "stride": 5,
+      "frames": 18,
+      "expected_frames": 18,
+      "n_correct_cells": 7,
+      "n_wrong_cells": 18,
+      "fps": 6.0,
+      "size": [
+        1280,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 257305,
+      "path": "results\\clips\\videos\\L3S-seq_004-c4+c6-8-007880_s5.mp4"
+    },
+    {
+      "clip_id": "L3S-seq_004-c4+c6-8-007880",
+      "stride": 1,
+      "frames": 86,
+      "expected_frames": 86,
+      "n_correct_cells": 34,
+      "n_wrong_cells": 86,
+      "fps": 30.0,
+      "size": [
+        1280,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 340389,
+      "path": "results\\clips\\videos\\L3S-seq_004-c4+c6-8-007880_s1.mp4"
+    },
+    {
+      "clip_id": "L3S-seq_004-c6+c7-8-008115",
+      "stride": 5,
+      "frames": 86,
+      "expected_frames": 86,
+      "n_correct_cells": 79,
+      "n_wrong_cells": 43,
+      "fps": 6.0,
+      "size": [
+        1280,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 971067,
+      "path": "results\\clips\\videos\\L3S-seq_004-c6+c7-8-008115_s5.mp4"
+    },
+    {
+      "clip_id": "L3S-seq_004-c6+c7-8-008115",
+      "stride": 1,
+      "frames": 426,
+      "expected_frames": 426,
+      "n_correct_cells": 392,
+      "n_wrong_cells": 213,
+      "fps": 30.0,
+      "size": [
+        1280,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 1311616,
+      "path": "results\\clips\\videos\\L3S-seq_004-c6+c7-8-008115_s1.mp4"
+    },
+    {
+      "clip_id": "L3T-seq_020-c5+c6-10-000385",
+      "stride": 5,
+      "frames": 43,
+      "expected_frames": 43,
+      "n_correct_cells": 12,
+      "n_wrong_cells": 21,
+      "fps": 6.0,
+      "size": [
+        1280,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 562049,
+      "path": "results\\clips\\videos\\L3T-seq_020-c5+c6-10-000385_s5.mp4"
+    },
+    {
+      "clip_id": "L3T-seq_020-c5+c6-10-000385",
+      "stride": 1,
+      "frames": 211,
+      "expected_frames": 211,
+      "n_correct_cells": 66,
+      "n_wrong_cells": 110,
+      "fps": 30.0,
+      "size": [
+        1280,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 779927,
+      "path": "results\\clips\\videos\\L3T-seq_020-c5+c6-10-000385_s1.mp4"
+    },
+    {
+      "clip_id": "L3T-seq_024-c5+c6-2-014825",
+      "stride": 5,
+      "frames": 28,
+      "expected_frames": 28,
+      "n_correct_cells": 13,
+      "n_wrong_cells": 8,
+      "fps": 6.0,
+      "size": [
+        1280,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 357941,
+      "path": "results\\clips\\videos\\L3T-seq_024-c5+c6-2-014825_s5.mp4"
+    },
+    {
+      "clip_id": "L3T-seq_024-c5+c6-2-014825",
+      "stride": 1,
+      "frames": 136,
+      "expected_frames": 136,
+      "n_correct_cells": 110,
+      "n_wrong_cells": 0,
+      "fps": 30.0,
+      "size": [
+        1280,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 438542,
+      "path": "results\\clips\\videos\\L3T-seq_024-c5+c6-2-014825_s1.mp4"
+    },
+    {
+      "clip_id": "L3T-seq_024-c5+c6-6-013975",
+      "stride": 5,
+      "frames": 29,
+      "expected_frames": 29,
+      "n_correct_cells": 9,
+      "n_wrong_cells": 11,
+      "fps": 6.0,
+      "size": [
+        1280,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 396552,
+      "path": "results\\clips\\videos\\L3T-seq_024-c5+c6-6-013975_s5.mp4"
+    },
+    {
+      "clip_id": "L3T-seq_024-c5+c6-6-013975",
+      "stride": 1,
+      "frames": 141,
+      "expected_frames": 141,
+      "n_correct_cells": 114,
+      "n_wrong_cells": 0,
+      "fps": 30.0,
+      "size": [
+        1280,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 484981,
+      "path": "results\\clips\\videos\\L3T-seq_024-c5+c6-6-013975_s1.mp4"
+    },
+    {
+      "clip_id": "L3S-seq_024-c6+c7-6-016490",
+      "stride": 5,
+      "frames": 25,
+      "expected_frames": 25,
+      "n_correct_cells": 3,
+      "n_wrong_cells": 22,
+      "fps": 6.0,
+      "size": [
+        1280,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 480220,
+      "path": "results\\clips\\videos\\L3S-seq_024-c6+c7-6-016490_s5.mp4"
+    },
+    {
+      "clip_id": "L3S-seq_024-c6+c7-6-016490",
+      "stride": 1,
+      "frames": 121,
+      "expected_frames": 121,
+      "n_correct_cells": 79,
+      "n_wrong_cells": 59,
+      "fps": 30.0,
+      "size": [
+        1280,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 619333,
+      "path": "results\\clips\\videos\\L3S-seq_024-c6+c7-6-016490_s1.mp4"
+    },
+    {
+      "clip_id": "L3S-seq_024-c6+c7-7-010250",
+      "stride": 5,
+      "frames": 75,
+      "expected_frames": 75,
+      "n_correct_cells": 14,
+      "n_wrong_cells": 60,
+      "fps": 6.0,
+      "size": [
+        1280,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 860495,
+      "path": "results\\clips\\videos\\L3S-seq_024-c6+c7-7-010250_s5.mp4"
+    },
+    {
+      "clip_id": "L3S-seq_024-c6+c7-7-010250",
+      "stride": 1,
+      "frames": 371,
+      "expected_frames": 371,
+      "n_correct_cells": 66,
+      "n_wrong_cells": 310,
+      "fps": 30.0,
+      "size": [
+        1280,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 1178106,
+      "path": "results\\clips\\videos\\L3S-seq_024-c6+c7-7-010250_s1.mp4"
+    },
+    {
+      "clip_id": "L3T-seq_024-c5+c6-10-000625",
+      "stride": 5,
+      "frames": 30,
+      "expected_frames": 30,
+      "n_correct_cells": 14,
+      "n_wrong_cells": 10,
+      "fps": 6.0,
+      "size": [
+        1280,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 378186,
+      "path": "results\\clips\\videos\\L3T-seq_024-c5+c6-10-000625_s5.mp4"
+    },
+    {
+      "clip_id": "L3T-seq_024-c5+c6-10-000625",
+      "stride": 1,
+      "frames": 146,
+      "expected_frames": 146,
+      "n_correct_cells": 121,
+      "n_wrong_cells": 0,
+      "fps": 30.0,
+      "size": [
+        1280,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 487289,
+      "path": "results\\clips\\videos\\L3T-seq_024-c5+c6-10-000625_s1.mp4"
+    },
+    {
+      "clip_id": "L3S-seq_024-c6+c7-14-012745",
+      "stride": 5,
+      "frames": 84,
+      "expected_frames": 84,
+      "n_correct_cells": 17,
+      "n_wrong_cells": 65,
+      "fps": 6.0,
+      "size": [
+        1280,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 1217591,
+      "path": "results\\clips\\videos\\L3S-seq_024-c6+c7-14-012745_s5.mp4"
+    },
+    {
+      "clip_id": "L3S-seq_024-c6+c7-14-012745",
+      "stride": 1,
+      "frames": 416,
+      "expected_frames": 416,
+      "n_correct_cells": 84,
+      "n_wrong_cells": 341,
+      "fps": 30.0,
+      "size": [
+        1280,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 1712886,
+      "path": "results\\clips\\videos\\L3S-seq_024-c6+c7-14-012745_s1.mp4"
+    },
+    {
+      "clip_id": "L3S-seq_025-c2+c3+c4-6-004395",
+      "stride": 5,
+      "frames": 25,
+      "expected_frames": 25,
+      "n_correct_cells": 34,
+      "n_wrong_cells": 0,
+      "fps": 6.0,
+      "size": [
+        1920,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 482216,
+      "path": "results\\clips\\videos\\L3S-seq_025-c2+c3+c4-6-004395_s5.mp4"
+    },
+    {
+      "clip_id": "L3S-seq_025-c2+c3+c4-6-004395",
+      "stride": 1,
+      "frames": 121,
+      "expected_frames": 121,
+      "n_correct_cells": 172,
+      "n_wrong_cells": 0,
+      "fps": 30.0,
+      "size": [
+        1920,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 571614,
+      "path": "results\\clips\\videos\\L3S-seq_025-c2+c3+c4-6-004395_s1.mp4"
+    },
+    {
+      "clip_id": "L3S-seq_025-c1+c2+c3-7-001780",
+      "stride": 5,
+      "frames": 23,
+      "expected_frames": 23,
+      "n_correct_cells": 16,
+      "n_wrong_cells": 34,
+      "fps": 6.0,
+      "size": [
+        1920,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 453332,
+      "path": "results\\clips\\videos\\L3S-seq_025-c1+c2+c3-7-001780_s5.mp4"
+    },
+    {
+      "clip_id": "L3S-seq_025-c1+c2+c3-7-001780",
+      "stride": 1,
+      "frames": 111,
+      "expected_frames": 111,
+      "n_correct_cells": 78,
+      "n_wrong_cells": 169,
+      "fps": 30.0,
+      "size": [
+        1920,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 535569,
+      "path": "results\\clips\\videos\\L3S-seq_025-c1+c2+c3-7-001780_s1.mp4"
+    },
+    {
+      "clip_id": "L3S-seq_025-c1+c2+c3-7-002520",
+      "stride": 5,
+      "frames": 18,
+      "expected_frames": 18,
+      "n_correct_cells": 28,
+      "n_wrong_cells": 0,
+      "fps": 6.0,
+      "size": [
+        1920,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 395010,
+      "path": "results\\clips\\videos\\L3S-seq_025-c1+c2+c3-7-002520_s5.mp4"
+    },
+    {
+      "clip_id": "L3S-seq_025-c1+c2+c3-7-002520",
+      "stride": 1,
+      "frames": 86,
+      "expected_frames": 86,
+      "n_correct_cells": 139,
+      "n_wrong_cells": 24,
+      "fps": 30.0,
+      "size": [
+        1920,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 442712,
+      "path": "results\\clips\\videos\\L3S-seq_025-c1+c2+c3-7-002520_s1.mp4"
+    },
+    {
+      "clip_id": "L3S-seq_025-c6+c7-10-004360",
+      "stride": 5,
+      "frames": 76,
+      "expected_frames": 76,
+      "n_correct_cells": 18,
+      "n_wrong_cells": 60,
+      "fps": 6.0,
+      "size": [
+        1280,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 1116548,
+      "path": "results\\clips\\videos\\L3S-seq_025-c6+c7-10-004360_s5.mp4"
+    },
+    {
+      "clip_id": "L3S-seq_025-c6+c7-10-004360",
+      "stride": 1,
+      "frames": 376,
+      "expected_frames": 376,
+      "n_correct_cells": 89,
+      "n_wrong_cells": 305,
+      "fps": 30.0,
+      "size": [
+        1280,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 1528004,
+      "path": "results\\clips\\videos\\L3S-seq_025-c6+c7-10-004360_s1.mp4"
+    },
+    {
+      "clip_id": "L3S-seq_026-c6+c7-3-005890",
+      "stride": 5,
+      "frames": 60,
+      "expected_frames": 60,
+      "n_correct_cells": 60,
+      "n_wrong_cells": 14,
+      "fps": 6.0,
+      "size": [
+        1280,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 774282,
+      "path": "results\\clips\\videos\\L3S-seq_026-c6+c7-3-005890_s5.mp4"
+    },
+    {
+      "clip_id": "L3S-seq_026-c6+c7-3-005890",
+      "stride": 1,
+      "frames": 296,
+      "expected_frames": 296,
+      "n_correct_cells": 295,
+      "n_wrong_cells": 82,
+      "fps": 30.0,
+      "size": [
+        1280,
+        460
+      ],
+      "codec": "h264",
+      "bytes": 1051674,
+      "path": "results\\clips\\videos\\L3S-seq_026-c6+c7-3-005890_s1.mp4"
+    }
+  ],
+  "failures": []
+}

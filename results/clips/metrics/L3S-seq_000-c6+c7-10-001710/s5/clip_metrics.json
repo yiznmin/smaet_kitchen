@@ -1,0 +1,339 @@
+{
+  "clip_id": "L3S-seq_000-c6+c7-10-001710",
+  "rule": "L3S",
+  "level": "L3",
+  "seq": "seq_000",
+  "cameras": "camera_6+camera_7",
+  "gt_id": 10,
+  "stride": 5,
+  "duration_s": 11.833,
+  "exclusive": true,
+  "n_other_ids": 0,
+  "n_sampled_cells": 144,
+  "visibility": 0.6597,
+  "n_target_cells": 95,
+  "n_matched": 93,
+  "recall_target": 0.9789,
+  "recall_ci": [
+    0.9265,
+    0.9942
+  ],
+  "mean_iou": 0.9243,
+  "median_iou": 0.9542,
+  "p10_iou": 0.9021,
+  "p90_iou": 0.9805,
+  "frac_iou_ge_075": 0.9684,
+  "mean_iou_matched": 0.9441,
+  "n_B": 93,
+  "bound_rate": 0.9789,
+  "first_bound_fid": 1710,
+  "n_distinct_chef_ids": 3,
+  "c0": 1,
+  "c_star": 1,
+  "majority_tie": false,
+  "p_continuity": 0.7742,
+  "p_continuity_ci": [
+    0.6793,
+    0.8473
+  ],
+  "p_majority": 0.7742,
+  "p_majority_ci": [
+    0.6793,
+    0.8473
+  ],
+  "p_exclusive": null,
+  "p_exclusive_ci": [
+    null,
+    null
+  ],
+  "chef_switches": 42,
+  "chef_switch_rate": 0.4565,
+  "chef_switch_detail": [
+    {
+      "at_fid": 1710,
+      "frm": 1,
+      "to": 2,
+      "gap_cells": -1
+    },
+    {
+      "at_fid": 1715,
+      "frm": 2,
+      "to": 1,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 1715,
+      "frm": 1,
+      "to": 2,
+      "gap_cells": -1
+    },
+    {
+      "at_fid": 1720,
+      "frm": 2,
+      "to": 1,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 1720,
+      "frm": 1,
+      "to": 2,
+      "gap_cells": -1
+    },
+    {
+      "at_fid": 1725,
+      "frm": 2,
+      "to": 1,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 1725,
+      "frm": 1,
+      "to": 2,
+      "gap_cells": -1
+    },
+    {
+      "at_fid": 1730,
+      "frm": 2,
+      "to": 1,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 1730,
+      "frm": 1,
+      "to": 2,
+      "gap_cells": -1
+    },
+    {
+      "at_fid": 1735,
+      "frm": 2,
+      "to": 1,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 1735,
+      "frm": 1,
+      "to": 2,
+      "gap_cells": -1
+    },
+    {
+      "at_fid": 1740,
+      "frm": 2,
+      "to": 1,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 1740,
+      "frm": 1,
+      "to": 2,
+      "gap_cells": -1
+    },
+    {
+      "at_fid": 1745,
+      "frm": 2,
+      "to": 1,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 1745,
+      "frm": 1,
+      "to": 2,
+      "gap_cells": -1
+    },
+    {
+      "at_fid": 1750,
+      "frm": 2,
+      "to": 1,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 1750,
+      "frm": 1,
+      "to": 2,
+      "gap_cells": -1
+    },
+    {
+      "at_fid": 1755,
+      "frm": 2,
+      "to": 1,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 1755,
+      "frm": 1,
+      "to": 2,
+      "gap_cells": -1
+    },
+    {
+      "at_fid": 1760,
+      "frm": 2,
+      "to": 1,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 1760,
+      "frm": 1,
+      "to": 2,
+      "gap_cells": -1
+    },
+    {
+      "at_fid": 1765,
+      "frm": 2,
+      "to": 1,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 1765,
+      "frm": 1,
+      "to": 2,
+      "gap_cells": -1
+    },
+    {
+      "at_fid": 1770,
+      "frm": 2,
+      "to": 1,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 1770,
+      "frm": 1,
+      "to": 2,
+      "gap_cells": -1
+    },
+    {
+      "at_fid": 1775,
+      "frm": 2,
+      "to": 1,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 1775,
+      "frm": 1,
+      "to": 2,
+      "gap_cells": -1
+    },
+    {
+      "at_fid": 1780,
+      "frm": 2,
+      "to": 1,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 1780,
+      "frm": 1,
+      "to": 2,
+      "gap_cells": -1
+    },
+    {
+      "at_fid": 1785,
+      "frm": 2,
+      "to": 1,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 1915,
+      "frm": 1,
+      "to": 4,
+      "gap_cells": -1
+    },
+    {
+      "at_fid": 1920,
+      "frm": 4,
+      "to": 1,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 1920,
+      "frm": 1,
+      "to": 4,
+      "gap_cells": -1
+    },
+    {
+      "at_fid": 1925,
+      "frm": 4,
+      "to": 1,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 1925,
+      "frm": 1,
+      "to": 4,
+      "gap_cells": -1
+    },
+    {
+      "at_fid": 1930,
+      "frm": 4,
+      "to": 1,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 1930,
+      "frm": 1,
+      "to": 4,
+      "gap_cells": -1
+    },
+    {
+      "at_fid": 1935,
+      "frm": 4,
+      "to": 1,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 1935,
+      "frm": 1,
+      "to": 4,
+      "gap_cells": -1
+    },
+    {
+      "at_fid": 1940,
+      "frm": 4,
+      "to": 1,
+      "gap_cells": 0
+    },
+    {
+      "at_fid": 1940,
+      "frm": 1,
+      "to": 4,
+      "gap_cells": -1
+    },
+    {
+      "at_fid": 1945,
+      "frm": 4,
+      "to": 1,
+      "gap_cells": 0
+    }
+  ],
+  "track_switches": 1,
+  "track_switch_rate": 0.011,
+  "n_track_ids": 2,
+  "n_boxes": 127,
+  "n_ghost_boxes": 34,
+  "ghost_box_rate": 0.2677,
+  "n_tracks_in_window": 4,
+  "n_ghost_tracks": 1,
+  "ghost_track_rate": 0.25,
+  "p_chef_shared_with_other_box": 0.0,
+  "n_chefs_created_before_target_bound": 0,
+  "l3_chef_per_camera": {
+    "camera_6": 1,
+    "camera_7": 2
+  },
+  "l3_n_camera_pairs": 1,
+  "l3_n_pairs_usable": 1,
+  "l3_n_pairs_dropped": 0,
+  "l3_p_handoff": 0.0,
+  "l3_p_handoff_ci": [
+    0.0,
+    0.7935
+  ],
+  "l3_n_simul_frames": 21,
+  "l3_p_simul_agree": 0.0,
+  "l3_p_simul_agree_ci": [
+    0.0,
+    0.1546
+  ],
+  "l3_n_chef_ids_per_camera": {
+    "camera_6": 1,
+    "camera_7": 2
+  },
+  "handoff_type": "overlapping"
+}
