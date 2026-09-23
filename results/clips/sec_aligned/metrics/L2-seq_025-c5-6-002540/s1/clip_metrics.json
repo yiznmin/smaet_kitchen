@@ -1,0 +1,102 @@
+{
+  "clip_id": "L2-seq_025-c5-6-002540",
+  "rule": "L2",
+  "level": "L2",
+  "seq": "seq_025",
+  "cameras": "camera_5",
+  "gt_id": 6,
+  "stride": 1,
+  "duration_s": 10.667,
+  "exclusive": true,
+  "n_other_ids": 0,
+  "n_sampled_cells": 321,
+  "visibility": 0.6542,
+  "n_target_cells": 210,
+  "n_matched": 206,
+  "recall_target": 0.981,
+  "recall_ci": [
+    0.9521,
+    0.9926
+  ],
+  "mean_iou": 0.87,
+  "median_iou": 0.904,
+  "p10_iou": 0.7562,
+  "p90_iou": 0.9545,
+  "frac_iou_ge_075": 0.9143,
+  "mean_iou_matched": 0.8869,
+  "n_B": 206,
+  "bound_rate": 0.981,
+  "first_bound_fid": 2540,
+  "n_distinct_chef_ids": 2,
+  "c0": 1,
+  "c_star": 1,
+  "majority_tie": false,
+  "p_continuity": 0.6311,
+  "p_continuity_ci": [
+    0.5633,
+    0.694
+  ],
+  "p_majority": 0.6311,
+  "p_majority_ci": [
+    0.5633,
+    0.694
+  ],
+  "p_exclusive": null,
+  "p_exclusive_ci": [
+    null,
+    null
+  ],
+  "chef_switches": 1,
+  "chef_switch_rate": 0.0049,
+  "chef_switch_detail": [
+    {
+      "at_fid": 2785,
+      "frm": 1,
+      "to": 5,
+      "gap_cells": 115
+    }
+  ],
+  "track_switches": 1,
+  "track_switch_rate": 0.0049,
+  "n_track_ids": 2,
+  "n_boxes": 915,
+  "n_ghost_boxes": 709,
+  "ghost_box_rate": 0.7749,
+  "n_tracks_in_window": 9,
+  "n_ghost_tracks": 7,
+  "ghost_track_rate": 0.7778,
+  "p_chef_shared_with_other_box": 0.0,
+  "n_chefs_created_before_target_bound": 0,
+  "l2_n_pairs_k5": 1,
+  "l2_n_pairs_dropped_k5": 0,
+  "l2_p_reacquire_k5": 0.0,
+  "l2_p_reacquire_ci_k5": [
+    0.0,
+    0.7935
+  ],
+  "l2_detail_k5": [
+    {
+      "before": 1,
+      "after": 5,
+      "same": false
+    }
+  ],
+  "l2_n_pairs_k1": 1,
+  "l2_n_pairs_dropped_k1": 0,
+  "l2_p_reacquire_k1": 0.0,
+  "l2_p_reacquire_ci_k1": [
+    0.0,
+    0.7935
+  ],
+  "l2_detail_k1": [
+    {
+      "before": 1,
+      "after": 5,
+      "same": false
+    }
+  ],
+  "gap_band": "within_buffer",
+  "gaps_s": [
+    3.733
+  ]
+}

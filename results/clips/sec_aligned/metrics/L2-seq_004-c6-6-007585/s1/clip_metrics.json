@@ -1,0 +1,114 @@
+{
+  "clip_id": "L2-seq_004-c6-6-007585",
+  "rule": "L2",
+  "level": "L2",
+  "seq": "seq_004",
+  "cameras": "camera_6",
+  "gt_id": 6,
+  "stride": 1,
+  "duration_s": 8.333,
+  "exclusive": true,
+  "n_other_ids": 0,
+  "n_sampled_cells": 251,
+  "visibility": 0.741,
+  "n_target_cells": 186,
+  "n_matched": 177,
+  "recall_target": 0.9516,
+  "recall_ci": [
+    0.9106,
+    0.9743
+  ],
+  "mean_iou": 0.9163,
+  "median_iou": 0.974,
+  "p10_iou": 0.8944,
+  "p90_iou": 0.9869,
+  "frac_iou_ge_075": 0.9462,
+  "mean_iou_matched": 0.9629,
+  "n_B": 177,
+  "bound_rate": 0.9516,
+  "first_bound_fid": 7585,
+  "n_distinct_chef_ids": 3,
+  "c0": 1,
+  "c_star": 1,
+  "majority_tie": false,
+  "p_continuity": 0.6158,
+  "p_continuity_ci": [
+    0.5424,
+    0.6843
+  ],
+  "p_majority": 0.6158,
+  "p_majority_ci": [
+    0.5424,
+    0.6843
+  ],
+  "p_exclusive": null,
+  "p_exclusive_ci": [
+    null,
+    null
+  ],
+  "chef_switches": 3,
+  "chef_switch_rate": 0.017,
+  "chef_switch_detail": [
+    {
+      "at_fid": 7759,
+      "frm": 1,
+      "to": 4,
+      "gap_cells": 65
+    },
+    {
+      "at_fid": 7762,
+      "frm": 4,
+      "to": 5,
+      "gap_cells": 2
+    },
+    {
+      "at_fid": 7770,
+      "frm": 5,
+      "to": 4,
+      "gap_cells": 7
+    }
+  ],
+  "track_switches": 3,
+  "track_switch_rate": 0.017,
+  "n_track_ids": 3,
+  "n_boxes": 343,
+  "n_ghost_boxes": 166,
+  "ghost_box_rate": 0.484,
+  "n_tracks_in_window": 8,
+  "n_ghost_tracks": 6,
+  "ghost_track_rate": 0.75,
+  "p_chef_shared_with_other_box": 0.0,
+  "n_chefs_created_before_target_bound": 0,
+  "l2_n_pairs_k5": 1,
+  "l2_n_pairs_dropped_k5": 0,
+  "l2_p_reacquire_k5": 0.0,
+  "l2_p_reacquire_ci_k5": [
+    0.0,
+    0.7935
+  ],
+  "l2_detail_k5": [
+    {
+      "before": 1,
+      "after": 4,
+      "same": false
+    }
+  ],
+  "l2_n_pairs_k1": 1,
+  "l2_n_pairs_dropped_k1": 0,
+  "l2_p_reacquire_k1": 0.0,
+  "l2_p_reacquire_ci_k1": [
+    0.0,
+    0.7935
+  ],
+  "l2_detail_k1": [
+    {
+      "before": 1,
+      "after": 4,
+      "same": false
+    }
+  ],
+  "gap_band": "within_buffer",
+  "gaps_s": [
+    2.2
+  ]
+}

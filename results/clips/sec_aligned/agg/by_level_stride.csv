@@ -1,0 +1,2 @@
+﻿rule,stride,n_clips,n_cells,n_target_cells,n_bound_cells,recall_target,recall_ci,mean_iou,median_iou,bound_rate,p_continuity,p_continuity_ci,p_majority,p_majority_ci,p_exclusive,n_exclusive_cells,chef_switches,n_chef_ids_median,ghost_box_rate,n_boxes,median_clip_recall
+L2,1,16,4946,3261,3198,0.9807,"(0.9754, 0.9849)",0.8969,0.9355,0.9807,0.4381,"(0.421, 0.4553)",0.6442,"(0.6274, 0.6606)",,0,25,2.0,0.3227,4722,0.979
