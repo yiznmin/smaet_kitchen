@@ -1,0 +1,26 @@
+⚠ 沒有任何鏡頭做地面校正 → 重疊路徑退回常數證據 (overlap_llr,已知過度自信,見第六輪 R8)
+讀偵測快取 results/det_cache/coco_nano/seq_026(不載入 RF-DETR),人的 class_id = 1,事後門檻 0.1
+影片:
+  camera_5camera_5_2023-12-05-12_12_13.avi7753 幀 / 258 秒 / 30.0 fps
+stride=1 → 跑完整支需 281 迴圈;本次會跑 281 迴圈(100.0%)
+TTL=600 迴圈 = 20 秒影片時間
+片段模式:fid 7160 ~ 7440(clip_id=L1-seq_026-c5-2-007160)
+
+==================================================================
+處理 281 迴圈 × 1 鏡頭,耗時 0.0 分 (p50 0 / p95 1 / max 16 ms/迴圈)
+影片覆蓋:100.0%(處理到 t=248.0s / 258s)
+偵測到「人」2170 次,各鏡頭:{'camera_5': 2170}
+綁定決策 6 次,其中沿用既有 chef 0 次
+最終 chef_id 數:6
+候選數分布(0=開新人、1=唯一候選):{0: 4, 2: 1, 4: 1}
+常駐狀態:{'active': 2, 'gone': 4, 'track_to_chef': 2, '_exit': 4, '_cam': 2, '_pending_exit': 1, '_world': 0, '_vel': 0, 'margin_blocked': 0, 'same_cam_conflicts': 0, 'revotes': 0, 'revote_switch': 0, 'revote_no_emb': 0, '_votes': 0, 'revote_pending': 0, 'revote_resolved': 0}
+輸出:results\clips\runs\L1-seq_026-c5-2-007160\s1\chef_events.jsonl
+      results\clips\runs\L1-seq_026-c5-2-007160\s1/(tracks.csv, track_events.csv, resident.csv, run_meta.json)
+
+     t(s) 鏡頭           track  chef    綁定      分數   候選
+   238.67 camera_5         0     1     新    0.00    0
+   239.57 camera_5         1     2     新    0.00    0
+   240.03 camera_5         2     3     新    0.00    0
+   241.67 camera_5         3     4     新    0.00    0
+   242.93 camera_5         4     5     新    1.09    2
+   247.70 camera_5         5     6     新   -0.49    4

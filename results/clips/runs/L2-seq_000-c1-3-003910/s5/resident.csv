@@ -1,0 +1,5 @@
+loop_i,t_sec,rss_mb,total_chefs,active,gone,track_to_chef,_exit,_cam,_pending_exit,_world,_vel,m4_seen_camera_1,m4_history_camera_1,m4_prev_removed_camera_1
+0,130.33,199.1,2,2,0,2,0,2,0,0,0,2,2,0
+50,138.67,199.6,3,2,1,2,1,2,1,0,0,3,2,0
+100,147.0,199.6,4,1,3,1,3,1,0,0,0,4,1,0
+150,155.33,199.7,4,1,3,1,3,1,0,0,0,4,1,0

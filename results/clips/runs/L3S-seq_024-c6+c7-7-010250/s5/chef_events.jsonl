@@ -1,0 +1,5 @@
+{"loop_i": 0, "video_fid": 10250, "t_sec": 341.667, "camera_id": "camera_6", "track_id": 0, "chef_id": 1, "matched": false, "score": 0.0, "n_candidates": 0, "bbox": [144.8, 577.9, 285.0, 718.3]}
+{"loop_i": 10, "video_fid": 10300, "t_sec": 343.333, "camera_id": "camera_6", "track_id": 1, "chef_id": 2, "matched": false, "score": 0.0, "n_candidates": 0, "bbox": [746.4, 204.8, 806.5, 553.4]}
+{"loop_i": 14, "video_fid": 10320, "t_sec": 344.0, "camera_id": "camera_7", "track_id": 0, "chef_id": 3, "matched": false, "score": 0.0, "n_candidates": 0, "bbox": [563.7, 99.2, 639.8, 352.2]}
+{"loop_i": 61, "video_fid": 10555, "t_sec": 351.833, "camera_id": "camera_6", "track_id": 2, "chef_id": 4, "matched": false, "score": -2.1507, "n_candidates": 2, "bbox": [593.7, 191.9, 700.7, 530.9]}
+{"loop_i": 62, "video_fid": 10560, "t_sec": 352.0, "camera_id": "camera_6", "track_id": 3, "chef_id": 5, "matched": false, "score": -2.2521, "n_candidates": 2, "bbox": [744.1, 199.3, 804.2, 545.9]}
