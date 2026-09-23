@@ -181,6 +181,14 @@ def main():
                     help="要處理幾個**迴圈**(不是影片幀數;一個迴圈 = stride 幀)。"
                          "-1 = 跑到影片結束。⚠ 預設 120 對 780 秒的影片只有 0.3%%,"
                          "而舊版摘要不會提示 —— 量出來的東西完全代表不了整支影片。")
+    # 逐片段獨立推論(2026-09-23,docs/難度分級_逐片段獨立推論_預先登記_20260923.md §3)。
+    # ⚠ 預設值 = 原行為(整支影片,從頭跑),V0 以 sha256 證明交付路徑逐位不變。
+    ap.add_argument("--start-fid", type=int, default=0,
+                    help="從這個影片幀開始(含)。**必須是 stride 的倍數**;0 = 從頭")
+    ap.add_argument("--end-fid", type=int, default=-1,
+                    help="到這個影片幀為止(含)。-1 = 到影片結束")
+    ap.add_argument("--clip-id", default=None,
+                    help="只寫進 run_meta 供追溯,不影響任何決策")
     # ⚠ 不用 choices —— chirla 需要帶 checkpoint 路徑(chirla:/path/to/best.pth),
     #   固定選項清單容納不了。未知名稱由 build_embedder 明確報錯。
     ap.add_argument("--embedder", default="none",
@@ -307,7 +315,21 @@ def main():
     # 舊版只會在結尾說「處理 120 幀」,不會提到影片還有 99.7% 沒跑。
     # 「靜默截斷」跟「靜默假通過」是同一種病:結果看起來正常,但代表不了宣稱的東西。
     metas = {c: video_meta(v) for c, v in zip(cams, args.videos)}
-    n_loops_full = min(-(-m["nb_frames"] // args.stride) for m in metas.values())
+    if args.start_fid % args.stride:
+        raise SystemExit(f"--start-fid {args.start_fid} 不在 stride={args.stride} 的格點上")
+    if 0 <= args.end_fid < args.start_fid:
+        raise SystemExit(f"--end-fid {args.end_fid} < --start-fid {args.start_fid}")
+
+    def n_sample_loops(nb_frames):
+        """這台鏡頭在 [start_fid, end_fid] 內有幾個取樣點(= 幾個迴圈)。
+
+        ⚠ 沒有這一段的話,片段跑完 coverage 會拿全長當分母 → 永遠 truncated=true,
+          下游「不可截斷」的自檢會全部誤報。start=0 / end=-1 時與舊式算法相同。
+        """
+        last = nb_frames - 1 if args.end_fid < 0 else min(args.end_fid, nb_frames - 1)
+        return 0 if last < args.start_fid else (last - args.start_fid) // args.stride + 1
+
+    n_loops_full = min(n_sample_loops(m["nb_frames"]) for m in metas.values())
     budget = n_loops_full if args.max_frames < 0 else min(args.max_frames, n_loops_full)
     print("影片:")
     for c, m in metas.items():
@@ -319,7 +341,13 @@ def main():
         print("  ⚠ 這是**截斷**跑,所有輸出只代表這一段,不可當成全長結果。")
     print(f"TTL={args.ttl} 迴圈 = {args.ttl * args.stride / args.fps:.0f} 秒影片時間")
 
-    streams = {c: iter_frames(v, stride=args.stride) for c, v in zip(cams, args.videos)}
+    if args.start_fid or args.end_fid >= 0:
+        print(f"片段模式:fid {args.start_fid} ~ "
+              f"{'影片結束' if args.end_fid < 0 else args.end_fid}"
+              f"(clip_id={args.clip_id})")
+    streams = {c: iter_frames(v, stride=args.stride, start=args.start_fid,
+                              end=(None if args.end_fid < 0 else args.end_fid))
+               for c, v in zip(cams, args.videos)}
     out_path = Path(args.out)
     out_dir = out_path.parent
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -554,6 +582,10 @@ def main():
         "tracker_path": str(args.tracker),
         "tracker_cfg": tcfg,
         "stride": args.stride, "max_frames": args.max_frames,
+        # 逐片段獨立推論(2026-09-23)。整段執行時是 0 / -1 / None,與舊檔語意相同。
+        "start_fid": args.start_fid, "end_fid": args.end_fid, "clip_id": args.clip_id,
+        "n_sample_loops_per_cam": {c: n_sample_loops(m["nb_frames"])
+                                   for c, m in metas.items()},
         "ttl_loops": args.ttl, "ttl_seconds": args.ttl * args.stride / args.fps,
         "lost_track_buffer_loops": tcfg.get("lost_track_buffer"),
         "lost_track_buffer_seconds": (tcfg.get("lost_track_buffer", 30)

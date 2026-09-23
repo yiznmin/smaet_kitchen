@@ -51,7 +51,13 @@ from common.draw_tracks import DrawTrack, draw_panel, stitch    # noqa: E402
 
 
 def load_tracks(run_dir, cams, lo, hi):
-    """回傳 {loop_i: {cam: [DrawTrack]}} 與 {(cam, track_id): chef_id}。"""
+    """回傳 {video_fid: {cam: [DrawTrack]}} 與 {(cam, track_id): chef_id}。
+
+    ⚠ 2026-09-23 修正:鍵改用 `video_fid`,不用 `loop_i`。舊版假設
+      `video_fid == loop_i × stride`,這對全長執行成立,但對**片段執行**
+      (`--start-fid` 非 0)是 `start_fid + loop_i × stride` → 每個框會畫到
+      錯誤的幀上,而且不會報任何錯。全長執行下兩者等價,行為不變(V8b)。
+    """
     per_loop = defaultdict(lambda: defaultdict(list))
     chefs, fids = {}, defaultdict(set)
     with open(Path(run_dir) / "tracks.csv", encoding="utf-8") as f:
@@ -59,7 +65,7 @@ def load_tracks(run_dir, cams, lo, hi):
             cam, fid = r["camera_id"], int(r["video_fid"])
             if cam not in cams or not (lo <= fid <= hi):
                 continue
-            loop = int(r["loop_i"])
+            loop = fid
             fids[cam].add(fid)
             box = None
             if r["x1"] != "":
@@ -210,7 +216,8 @@ def render(win, run_root, out_dir, args):
     #   人離開畫面時選定鏡頭上沒有 track → 舊版整段跳過,影片從離開前直接跳到回來後,
     #   正好剪掉 L2 的消失期間與 L3T 的轉場(V3 幀數檢查抓到 8/17 段)。
     #   已驗證 10 個序列的 tracks.csv 全部 video_fid == loop_i × stride。
-    loops = list(range(lo // stride, hi // stride + 1))
+    # ⚠ 2026-09-23:直接迭代 video_fid(見 load_tracks 的註解),片段執行才不會錯位。
+    loops = list(range(lo, hi + 1, stride))
     if lo % stride:
         raise SystemExit(f"{win['window_id']}:start_fid={lo} 不在 stride={stride} 的格點上")
     enc, n_box, n_chef, size = None, 0, 0, None
@@ -219,7 +226,7 @@ def render(win, run_root, out_dir, args):
         panels = []
         for c in cams:
             cap, nxt = caps[c]
-            fid = next((t for t in (loop * stride,)), loop * stride)
+            fid = loop
             while nxt < fid:                     # ⚠ grab 快轉,不用 POS_FRAMES 跳轉
                 if not cap.grab():
                     break
