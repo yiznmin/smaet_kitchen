@@ -181,20 +181,35 @@ def identity_rates(rows, exclusive):
 
 
 def switches(rows):
-    """編號切換(跨鏡頭一起看)與 track 切換(逐鏡頭看,track 編號各鏡頭獨立)。"""
+    """編號切換與 track 切換。
+
+    ⚠ **2026-09-24 更正,使用者指出**:原本把所有鏡頭的格子依 `(fid, camera)` 混在一起
+      排序後數相鄰變化(登記 §5.4 的字面定義),對**多鏡頭片段**量到的其實是
+      「兩台鏡頭彼此不一致」,不是「身份隨時間改變」——
+      例:`L3S-seq_004-c6+c7-8-008115` 的 camera_7 全程 chef 1、camera_6 全程 chef 3,
+      逐鏡頭各 0 / 1 次切換,混排後卻報 359 次(每一幀都算一次)。
+      跨鏡頭的不一致已經由 `l3_p_handoff` / `l3_p_simul_agree` 在量,不該在這裡重複計。
+      → 主數字改成 **`chef_switches`(逐鏡頭沿時間算再相加)**;
+        混排版留成 `chef_switches_interleaved` 備查,單鏡頭片段兩者相同。
+    """
     b = [r for r in _series(rows) if r["matched"] and r["chef_id"] != ""]
-    chef_sw = [dict(at_fid=y["video_fid"], frm=x["chef_id"], to=y["chef_id"],
-                    gap_cells=(y["video_fid"] - x["video_fid"]) // max(y["stride"], 1) - 1)
-               for x, y in zip(b, b[1:]) if x["chef_id"] != y["chef_id"]]
-    per_cam, trk_sw, n_pairs = defaultdict(list), 0, 0
+    inter = [dict(at_fid=y["video_fid"], frm=x["chef_id"], to=y["chef_id"])
+             for x, y in zip(b, b[1:]) if x["chef_id"] != y["chef_id"]]
+    per_cam = defaultdict(list)
     for r in b:
         per_cam[r["camera_id"]].append(r)
+    chef_sw, trk_sw, n_pairs = [], 0, 0
     for cam, rs in per_cam.items():
+        rs = sorted(rs, key=lambda r: r["video_fid"])
+        chef_sw += [dict(camera=cam, at_fid=y["video_fid"], frm=x["chef_id"], to=y["chef_id"],
+                         gap_cells=(y["video_fid"] - x["video_fid"]) // max(y["stride"], 1) - 1)
+                    for x, y in zip(rs, rs[1:]) if x["chef_id"] != y["chef_id"]]
         trk_sw += sum(x["track_id"] != y["track_id"] for x, y in zip(rs, rs[1:]))
         n_pairs += max(len(rs) - 1, 0)
     return dict(chef_switches=len(chef_sw),
-                chef_switch_rate=round(len(chef_sw) / max(len(b) - 1, 1), 4) if b else None,
+                chef_switch_rate=round(len(chef_sw) / n_pairs, 4) if n_pairs else None,
                 chef_switch_detail=chef_sw,
+                chef_switches_interleaved=len(inter),
                 track_switches=trk_sw,
                 track_switch_rate=round(trk_sw / n_pairs, 4) if n_pairs else None,
                 n_track_ids=len({r["track_id"] for r in b}))

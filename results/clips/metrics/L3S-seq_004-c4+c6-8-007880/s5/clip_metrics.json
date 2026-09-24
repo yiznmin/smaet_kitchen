@@ -46,88 +46,10 @@
     null,
     null
   ],
-  "chef_switches": 13,
-  "chef_switch_rate": 0.5417,
-  "chef_switch_detail": [
-    {
-      "at_fid": 7880,
-      "frm": 1,
-      "to": 2,
-      "gap_cells": -1
-    },
-    {
-      "at_fid": 7885,
-      "frm": 2,
-      "to": 1,
-      "gap_cells": 0
-    },
-    {
-      "at_fid": 7885,
-      "frm": 1,
-      "to": 2,
-      "gap_cells": -1
-    },
-    {
-      "at_fid": 7890,
-      "frm": 2,
-      "to": 1,
-      "gap_cells": 0
-    },
-    {
-      "at_fid": 7890,
-      "frm": 1,
-      "to": 2,
-      "gap_cells": -1
-    },
-    {
-      "at_fid": 7895,
-      "frm": 2,
-      "to": 1,
-      "gap_cells": 0
-    },
-    {
-      "at_fid": 7895,
-      "frm": 1,
-      "to": 2,
-      "gap_cells": -1
-    },
-    {
-      "at_fid": 7900,
-      "frm": 2,
-      "to": 1,
-      "gap_cells": 0
-    },
-    {
-      "at_fid": 7900,
-      "frm": 1,
-      "to": 2,
-      "gap_cells": -1
-    },
-    {
-      "at_fid": 7905,
-      "frm": 2,
-      "to": 1,
-      "gap_cells": 0
-    },
-    {
-      "at_fid": 7905,
-      "frm": 1,
-      "to": 2,
-      "gap_cells": -1
-    },
-    {
-      "at_fid": 7910,
-      "frm": 2,
-      "to": 1,
-      "gap_cells": 0
-    },
-    {
-      "at_fid": 7910,
-      "frm": 1,
-      "to": 2,
-      "gap_cells": -1
-    }
-  ],
+  "chef_switches": 0,
+  "chef_switch_rate": 0.0,
+  "chef_switch_detail": [],
+  "chef_switches_interleaved": 13,
   "track_switches": 0,
   "track_switch_rate": 0.0,
   "n_track_ids": 1,

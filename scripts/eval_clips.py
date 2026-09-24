@@ -128,7 +128,12 @@ def main():
              "⚠ **每段從零開始、只給該段指名的鏡頭** —— 與交付版(7 台、整段、共用身份狀態)"
              "問的是不同問題,**數字不可與 `results/levels/B*/` 並列**。", "",
              "⚠ stride 1 的記憶只有 stride 5 的五分之一(TTL 100 秒 → 20 秒、"
-             "跟丟緩衝 5 秒 → 1 秒,兩者都以迴圈計數)。", ""]
+             "跟丟緩衝 5 秒 → 1 秒,兩者都以迴圈計數)。", "",
+             "⚠ **主指標是連續率**(以片段內第一次拿到的編號為準)。"
+             "多數率只是輔助:它把「中途換號、之後穩定在**錯的**編號」算成正確,"
+             "不可當成認人正確率。", "",
+             "⚠ 編號切換次數為**逐鏡頭沿時間**計算再相加;跨鏡頭的不一致由 L3 的一致率量,"
+             "不在這裡重複計(2026-09-24 更正,見預先登記 §10.7)。", ""]
     agg_rows = []
     for (rule, stride), rows in sorted(groups.items()):
         clips_here = [m for m in per_clip
@@ -165,8 +170,8 @@ def main():
                   f"| 目標召回率 | {fmt(rec)} {row['recall_ci']} |",
                   f"| IoU 平均 / 中位 | {row['mean_iou']} / {row['median_iou']} |",
                   f"| 綁定率 | {fmt(row['bound_rate'])} |",
-                  f"| **連續率** | {fmt(cont)} {row['p_continuity_ci']} |",
-                  f"| **多數率** | {fmt(maj)} {row['p_majority_ci']} |",
+                  f"| **連續率(主指標)** | {fmt(cont)} {row['p_continuity_ci']} |",
+                  f"| 多數率(輔助) | {fmt(maj)} {row['p_majority_ci']} |",
                   f"| **排他率** | {fmt(exc, n_e > 0)} |",
                   f"| 編號切換次數 | {row['chef_switches']} |",
                   f"| 每段編號數(中位) | {row['n_chef_ids_median']} |",

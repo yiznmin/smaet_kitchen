@@ -46,16 +46,10 @@
     null,
     null
   ],
-  "chef_switches": 1,
-  "chef_switch_rate": 0.05,
-  "chef_switch_detail": [
-    {
-      "at_fid": 14925,
-      "frm": 1,
-      "to": 2,
-      "gap_cells": 7
-    }
-  ],
+  "chef_switches": 0,
+  "chef_switch_rate": 0.0,
+  "chef_switch_detail": [],
+  "chef_switches_interleaved": 1,
   "track_switches": 0,
   "track_switch_rate": 0.0,
   "n_track_ids": 1,

@@ -49,6 +49,7 @@
   "chef_switches": 0,
   "chef_switch_rate": 0.0,
   "chef_switch_detail": [],
+  "chef_switches_interleaved": 0,
   "track_switches": 1,
   "track_switch_rate": 0.0074,
   "n_track_ids": 2,

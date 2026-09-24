@@ -1,0 +1,22 @@
+{
+  "V6": {
+    "passed": true,
+    "n_failures": 0,
+    "failures": []
+  },
+  "V6b": {
+    "passed": true,
+    "n_failures": 0,
+    "failures": []
+  },
+  "V6c": {
+    "passed": true,
+    "n_failures": 0,
+    "failures": []
+  },
+  "V6d": {
+    "passed": true,
+    "n_failures": 0,
+    "failures": []
+  }
+}

@@ -50,12 +50,14 @@
   "chef_switch_rate": 0.0074,
   "chef_switch_detail": [
     {
+      "camera": "camera_4",
       "at_fid": 12203,
       "frm": 1,
       "to": 2,
       "gap_cells": 39
     }
   ],
+  "chef_switches_interleaved": 1,
   "track_switches": 1,
   "track_switch_rate": 0.0074,
   "n_track_ids": 2,

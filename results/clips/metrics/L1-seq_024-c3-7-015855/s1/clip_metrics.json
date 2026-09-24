@@ -50,78 +50,91 @@
   "chef_switch_rate": 0.0214,
   "chef_switch_detail": [
     {
+      "camera": "camera_3",
       "at_fid": 15953,
       "frm": 1,
       "to": 3,
       "gap_cells": 0
     },
     {
+      "camera": "camera_3",
       "at_fid": 15960,
       "frm": 3,
       "to": 1,
       "gap_cells": 4
     },
     {
+      "camera": "camera_3",
       "at_fid": 16110,
       "frm": 1,
       "to": 4,
       "gap_cells": 0
     },
     {
+      "camera": "camera_3",
       "at_fid": 16111,
       "frm": 4,
       "to": 1,
       "gap_cells": 0
     },
     {
+      "camera": "camera_3",
       "at_fid": 16280,
       "frm": 1,
       "to": 7,
       "gap_cells": 0
     },
     {
+      "camera": "camera_3",
       "at_fid": 16297,
       "frm": 7,
       "to": 1,
       "gap_cells": 0
     },
     {
+      "camera": "camera_3",
       "at_fid": 16300,
       "frm": 1,
       "to": 7,
       "gap_cells": 0
     },
     {
+      "camera": "camera_3",
       "at_fid": 16302,
       "frm": 7,
       "to": 1,
       "gap_cells": 0
     },
     {
+      "camera": "camera_3",
       "at_fid": 16377,
       "frm": 1,
       "to": 9,
       "gap_cells": 0
     },
     {
+      "camera": "camera_3",
       "at_fid": 16384,
       "frm": 9,
       "to": 1,
       "gap_cells": 0
     },
     {
+      "camera": "camera_3",
       "at_fid": 16386,
       "frm": 1,
       "to": 9,
       "gap_cells": 0
     },
     {
+      "camera": "camera_3",
       "at_fid": 16388,
       "frm": 9,
       "to": 1,
       "gap_cells": 0
     }
   ],
+  "chef_switches_interleaved": 12,
   "track_switches": 12,
   "track_switch_rate": 0.0214,
   "n_track_ids": 5,

@@ -65,8 +65,19 @@ def v6_family(man, root, mode):
             if clip["level"] == "L3" and m["l3_n_pairs_usable"] and m["l3_p_handoff"] != 1.0:
                 bad.append(f"{cid}:L3 一致 {m['l3_p_handoff']} 不是 1.0")
         elif mode == "permuted":
-            if m["chef_switches"] != 1:
-                bad.append(f"{cid}:切換 {m['chef_switches']} 不是 1")
+            # ⚠ 2026-09-24:切換改成逐鏡頭沿時間算(見 clip_metrics.switches 的註解),
+            #   所以中點換號的預期值是「在中點兩側都有格的鏡頭數」,不是固定 1。
+            fids = list(range(clip["start_fid"], clip["end_fid"] + 1, 5))
+            mid = fids[len(fids) // 2] if fids else 0
+            g = gts[clip["seq"]]
+            exp = sum(1 for cam in clip["cameras"]
+                      if any(clip["gt_id"] in {i for i, _b in g.get(cam, {}).get(f + 1, [])}
+                             for f in fids if f < mid)
+                      and any(clip["gt_id"] in {i for i, _b in g.get(cam, {}).get(f + 1, [])}
+                              for f in fids if f >= mid))
+            if m["chef_switches"] != exp:
+                bad.append(f"{cid}:切換 {m['chef_switches']} 不是預期的 {exp}"
+                           f"(中點兩側都有格的鏡頭數)")
             if m["p_continuity"] == 1.0:
                 bad.append(f"{cid}:連續率仍是 1.0 —— 指標無法失敗")
             if m["p_majority"] < m["p_continuity"]:
