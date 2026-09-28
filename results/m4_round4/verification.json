@@ -1,0 +1,79 @@
+{
+  "說明": "M4 第 4 輪(外觀關聯)硬性驗收。V1 於 2026-09-28 補跑三個對照後判定不通過(按登記字面),原因見 note_v1。",
+  "V1": {
+    "登記條文": "w = 0 時輸出與基準 cbiou 逐位相同(tracks.csv sha256)",
+    "判定": "FAIL(按字面);PASS(按意圖,見 note_v1)",
+    "note_v1": "新增類別 AppearanceMcByteTracker 繼承 DCMMcByteTracker(McByte 無遮罩版),不是繼承 C-BIoU。所以 w=0 的歸零點是 rf_mcbyte_nomask,不是 rf_cbiou。src/m4_track/tracker.py:87 的註解本來就寫對了,是預先登記 §7 V1 的條文寫錯基準。「關掉外觀後不改變任何數值路徑」這個意圖成立(與 nomask 逐位相同);但 §3/§4 拿 cbiou 當比較基準與門檻來源,因此判準必須改以 nomask 重讀,見預先登記 §9。",
+    "推導集逐位比對(參照 = dino_w0.0 的 dump)": {
+      "armS0_w0.0": {
+        "n_files": 6,
+        "n_identical": 6,
+        "n_total": 6,
+        "identical": true
+      },
+      "v1_rf_mcbyte_nomask": {
+        "n_files": 6,
+        "n_identical": 6,
+        "n_total": 6,
+        "identical": true
+      },
+      "v1_rf_mcbyte_nomask_dcm": {
+        "n_files": 6,
+        "n_identical": 6,
+        "n_total": 6,
+        "identical": true
+      },
+      "v1_cbiou": {
+        "n_files": 6,
+        "n_identical": 0,
+        "n_total": 6,
+        "identical": false
+      }
+    },
+    "n_tracks": {
+      "dino_w0.0": 299,
+      "armS0_w0.0": 299,
+      "v1_rf_mcbyte_nomask": 299,
+      "v1_rf_mcbyte_nomask_dcm": 299,
+      "v1_cbiou": 275
+    }
+  },
+  "V2": {
+    "條文": "同一張裁圖跑兩次,特徵逐位相同",
+    "判定": "PASS",
+    "方法": "固定 eval 模式、關閉隨機;兩模型各抽樣驗證"
+  },
+  "V3": {
+    "條文": "同 track 相鄰幀 cosine 高於不同 track 同幀 cosine,200 組通過率 >= 80%",
+    "判定": "PASS",
+    "dinov2": {
+      "通過率": 0.995,
+      "平均差距": 0.479
+    },
+    "armS0": {
+      "通過率": 0.99,
+      "平均差距": 0.164
+    }
+  },
+  "V4": {
+    "條文": "w 只用推導集估",
+    "判定": "PASS",
+    "掃描表": "results/m4_round4/w_sweep.json",
+    "備註": "dino 在登記範圍上界 w=0.5 仍在上升,事後不得延長範圍;照登記取 0.5"
+  },
+  "V5": {
+    "條文": "tracker_cfg / thr / stride / 偵測快取與基準相同,只有外觀欄位不同",
+    "判定": "PASS",
+    "證據": "w=0 與 rf_mcbyte_nomask 的 tracker_kwargs 僅多 appearance_w / embedder / ema_momentum 三個惰性欄位"
+  },
+  "V6": {
+    "條文": "src/m5_sim/world.py、src/m5_reid/** 未動;既有預先登記 1-7 節刪除 0 行",
+    "判定": "提交前以 git diff --numstat 覆核"
+  },
+  "V7": {
+    "條文": "授權寫進報告",
+    "判定": "PASS",
+    "dinov2": "Meta DINOv2-S,Apache-2.0,可商用",
+    "armS0": "ResNet-50 ImageNet 起始 + CHIRLA(CC-BY-4.0)微調,可商用"
+  }
+}

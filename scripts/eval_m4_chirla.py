@@ -246,6 +246,9 @@ def main():
     ap = argparse.ArgumentParser()
     add_common_args(ap)
     ap.add_argument("--root", default=None, help="CHIRLA 根目錄;不給就不算真值指標")
+    ap.add_argument("--video-dir", default="videos",
+                    help="影片所在的子目錄名(2026-09-28 資料集把 videos 改名為 "
+                         "clips_singal_person_result;預設維持舊名,行為不變)")
     ap.add_argument("--max-loops", type=int, default=-1)
     ap.add_argument("--dump-dir", default=None)
     args = ap.parse_args()
@@ -287,7 +290,10 @@ def main():
                 if not (args.root and args.seqs):
                     raise SystemExit(f"{backend} 需要影片:請給 --root 與 --seqs")
                 import glob
-                vids = sorted(glob.glob(f"{args.root}/videos/{seq}/{cam}_*.avi"))
+                # ⚠ 2026-09-28:CHIRLA 的 videos/ 已被改名為 clips_singal_person_result/,
+                #   內容與檔名未變。--video-dir 預設仍是 videos(舊行為不變),
+                #   找不到時才提示另一個名字,不靜默改路徑。
+                vids = sorted(glob.glob(f"{args.root}/{args.video_dir}/{seq}/{cam}_*.avi"))
                 if len(vids) != 1:
                     raise SystemExit(f"{seq} {cam} 找到 {len(vids)} 支影片(應為 1)")
                 video = vids[0]

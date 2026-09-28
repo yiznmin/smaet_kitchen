@@ -158,8 +158,16 @@ class DCMMcByteTracker(McByteTracker):
                                    predicted_state_boxes)
         return raw, raw
 
-    def _on_matched(self, track, score, was_lost):
-        """track.update 之後呼叫(score = 配到的偵測分數;was_lost = 配對前是否為 lost)。預設不做事。"""
+    def _on_matched(self, track, score, was_lost, det_idx=None, stage=None):
+        """track.update 之後呼叫。
+
+        score    配到的偵測分數
+        was_lost 配對前是否為 lost
+        det_idx  (2026-09-28 第 4 輪加)配到的是**哪一個**偵測(該階段的原始索引);
+                 外觀子類別要用它才知道該拿哪一個特徵更新 track 的記憶。
+        stage    "high" / "low" / "unconfirmed"
+        預設不做事,所以既有子類別行為不變。
+        """
 
     def update(
         self,
@@ -259,7 +267,7 @@ class DCMMcByteTracker(McByteTracker):
             track = strack_pool[row]
             was_lost = track.time_since_update > 1
             track.update(high_boxes[col])
-            self._on_matched(track, float(high_scores[col]), was_lost)
+            self._on_matched(track, float(high_scores[col]), was_lost, det_idx=col, stage="high")
             if track.number_of_successful_updates >= self.minimum_consecutive_frames and track.tracker_id == -1:
                 track.tracker_id = self._allocate_tracker_id()
             out_det_indices.append(int(high_indices[col]))
@@ -279,7 +287,7 @@ class DCMMcByteTracker(McByteTracker):
             track = remaining_tracked[row]
             was_lost = track.time_since_update > 1
             track.update(low_boxes[col])
-            self._on_matched(track, float(low_scores[col]), was_lost)
+            self._on_matched(track, float(low_scores[col]), was_lost, det_idx=col, stage="low")
             if track.number_of_successful_updates >= self.minimum_consecutive_frames and track.tracker_id == -1:
                 track.tracker_id = self._allocate_tracker_id()
             out_det_indices.append(int(low_indices[col]))
@@ -320,7 +328,7 @@ class DCMMcByteTracker(McByteTracker):
                 orig_high_idx = unmatched_high_list[col]
                 was_lost = track.time_since_update > 1
                 track.update(high_boxes[orig_high_idx])
-                self._on_matched(track, float(high_scores[orig_high_idx]), was_lost)
+                self._on_matched(track, float(high_scores[orig_high_idx]), was_lost, det_idx=orig_high_idx, stage="unconfirmed")
                 if track.number_of_successful_updates >= self.minimum_consecutive_frames and track.tracker_id == -1:
                     track.tracker_id = self._allocate_tracker_id()
                 out_det_indices.append(int(high_indices[orig_high_idx]))
