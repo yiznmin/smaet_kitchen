@@ -91,11 +91,11 @@
     "camera_3": 152
   },
   "ms_per_loop": {
-    "p50": 8.0,
-    "p95": 18.5,
-    "max": 123.6
+    "p50": 1.0,
+    "p95": 15.8,
+    "max": 137.5
   },
-  "wall_seconds": 2.0,
+  "wall_seconds": 1.7,
   "total_chefs": 2,
   "candidate_histogram": {
     "0": 2

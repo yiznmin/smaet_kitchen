@@ -92,10 +92,10 @@
   },
   "ms_per_loop": {
     "p50": 0.0,
-    "p95": 16.1,
-    "max": 755.8
+    "p95": 15.8,
+    "max": 115.9
   },
-  "wall_seconds": 1.7,
+  "wall_seconds": 0.9,
   "total_chefs": 1,
   "candidate_histogram": {
     "0": 1
