@@ -135,3 +135,6 @@ results/l2_app_probe/eval/**/per_frame.csv
 results/single_person/runs/**/tracks.csv
 results/single_person/videos/
 results/single_person/eval/**/per_frame.csv
+# 2026-09-29 外觀接進 M5 的對照:逐幀 track(由快取與設定可重新產生)
+results/m5_app/runs/**/tracks.csv
+results/m5_app/eval/**/per_frame.csv

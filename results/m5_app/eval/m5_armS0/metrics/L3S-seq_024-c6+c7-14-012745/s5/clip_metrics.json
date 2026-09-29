@@ -1,0 +1,102 @@
+{
+  "clip_id": "L3S-seq_024-c6+c7-14-012745",
+  "rule": "L3S",
+  "level": "L3",
+  "seq": "seq_024",
+  "cameras": "camera_6+camera_7",
+  "gt_id": 14,
+  "stride": 5,
+  "duration_s": 13.833,
+  "exclusive": true,
+  "n_other_ids": 0,
+  "n_sampled_cells": 168,
+  "visibility": 0.5298,
+  "n_target_cells": 89,
+  "n_matched": 78,
+  "recall_target": 0.8764,
+  "recall_ci": [
+    0.7921,
+    0.9296
+  ],
+  "mean_iou": 0.8111,
+  "median_iou": 0.9552,
+  "p10_iou": 0.0,
+  "p90_iou": 0.9806,
+  "frac_iou_ge_075": 0.809,
+  "mean_iou_matched": 0.9255,
+  "n_B": 77,
+  "bound_rate": 0.8652,
+  "first_bound_fid": 12745,
+  "n_distinct_chef_ids": 4,
+  "c0": 1,
+  "c_star": 5,
+  "majority_tie": false,
+  "p_continuity": 0.2208,
+  "p_continuity_ci": [
+    0.1427,
+    0.3254
+  ],
+  "p_majority": 0.2857,
+  "p_majority_ci": [
+    0.1969,
+    0.3949
+  ],
+  "p_exclusive": null,
+  "p_exclusive_ci": [
+    null,
+    null
+  ],
+  "chef_switches": 2,
+  "chef_switch_rate": 0.0267,
+  "chef_switch_detail": [
+    {
+      "camera": "camera_6",
+      "at_fid": 13075,
+      "frm": 1,
+      "to": 6,
+      "gap_cells": 49
+    },
+    {
+      "camera": "camera_7",
+      "at_fid": 12970,
+      "frm": 4,
+      "to": 5,
+      "gap_cells": 4
+    }
+  ],
+  "chef_switches_interleaved": 7,
+  "track_switches": 2,
+  "track_switch_rate": 0.0267,
+  "n_track_ids": 3,
+  "n_boxes": 91,
+  "n_ghost_boxes": 13,
+  "ghost_box_rate": 0.1429,
+  "n_tracks_in_window": 7,
+  "n_ghost_tracks": 2,
+  "ghost_track_rate": 0.2857,
+  "p_chef_shared_with_other_box": 0.0,
+  "n_chefs_created_before_target_bound": 0,
+  "l3_chef_per_camera": {
+    "camera_6": 1,
+    "camera_7": 5
+  },
+  "l3_n_camera_pairs": 1,
+  "l3_n_pairs_usable": 1,
+  "l3_n_pairs_dropped": 0,
+  "l3_p_handoff": 0.0,
+  "l3_p_handoff_ci": [
+    0.0,
+    0.7935
+  ],
+  "l3_n_simul_frames": 2,
+  "l3_p_simul_agree": 0.0,
+  "l3_p_simul_agree_ci": [
+    0.0,
+    0.6576
+  ],
+  "l3_n_chef_ids_per_camera": {
+    "camera_6": 2,
+    "camera_7": 2
+  },
+  "handoff_type": "overlapping"
+}
