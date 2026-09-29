@@ -1,0 +1,5 @@
+loop_i,video_fid,t_sec,camera_id,kind,track_id
+0,3245,108.167,camera_4,new_track,0
+0,3245,108.167,camera_4,new_track,1
+1,3250,108.333,camera_4,lost_track,1
+31,3400,113.333,camera_4,removed,1
