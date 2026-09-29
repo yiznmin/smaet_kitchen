@@ -1,0 +1,114 @@
+{
+  "label": "dino_w0.7",
+  "backend": "rf_mcbyte_nomask_app",
+  "tracker_kwargs": {
+    "lost_track_buffer": 30,
+    "frame_rate": 30.0,
+    "high_conf_det_threshold": 0.25,
+    "track_activation_threshold": 0.35,
+    "minimum_iou_threshold_first_assoc": 0.19999999999999996,
+    "minimum_iou_threshold_second_assoc": 0.5,
+    "minimum_iou_threshold_unconfirmed_assoc": 0.3,
+    "minimum_consecutive_frames": 2,
+    "instant_first_frame_activation": true,
+    "enable_cmc": false,
+    "enable_mask_manager": false,
+    "appearance_w": 0.7,
+    "embedder": "dinov2",
+    "ema_momentum": 0.9
+  },
+  "thr": 0.1,
+  "stride": 5,
+  "buffer": {
+    "updates": 30,
+    "seconds": 5.0,
+    "lost_track_buffer": 30
+  },
+  "seqs": [
+    "seq_000",
+    "seq_001",
+    "seq_002"
+  ],
+  "n_tracks": 147,
+  "ghost_rate": 0.25170068027210885,
+  "recall_trackframes": 0.9559673101310413,
+  "recall_allframes": 0.9522105263157895,
+  "pairs": {
+    "C": 38,
+    "A": 13
+  },
+  "n_pairs": 51,
+  "b_share": 0.0,
+  "mixed_tracks": 45,
+  "tracks_per_gt_per_cam": {
+    "median": 1,
+    "mean": 1.864
+  },
+  "gap_median_s": {
+    "C": 52.083,
+    "A": 0.0
+  },
+  "per_camera": {
+    "camera_1": {
+      "n_tracks": 27,
+      "n_ghost": 13,
+      "gtm": 2298,
+      "gtt_trk": 2409,
+      "gtt_all": 2495,
+      "mixed": 5,
+      "pairs": {
+        "C": 5,
+        "A": 1
+      }
+    },
+    "camera_2": {
+      "n_tracks": 36,
+      "n_ghost": 8,
+      "gtm": 7144,
+      "gtt_trk": 7246,
+      "gtt_all": 7253,
+      "mixed": 12,
+      "pairs": {
+        "C": 11,
+        "A": 3
+      }
+    },
+    "camera_3": {
+      "n_tracks": 40,
+      "n_ghost": 9,
+      "gtm": 13223,
+      "gtt_trk": 14183,
+      "gtt_all": 14184,
+      "mixed": 11,
+      "pairs": {
+        "C": 6,
+        "A": 3
+      }
+    },
+    "camera_4": {
+      "n_tracks": 34,
+      "n_ghost": 7,
+      "gtm": 3260,
+      "gtt_trk": 3318,
+      "gtt_all": 3331,
+      "mixed": 11,
+      "pairs": {
+        "C": 13,
+        "A": 4
+      }
+    },
+    "camera_7": {
+      "n_tracks": 10,
+      "n_ghost": 0,
+      "gtm": 1213,
+      "gtt_trk": 1232,
+      "gtt_all": 1237,
+      "mixed": 6,
+      "pairs": {
+        "C": 3,
+        "A": 2
+      }
+    }
+  },
+  "seconds": 208.2
+}
