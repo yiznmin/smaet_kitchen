@@ -397,7 +397,12 @@ def main():
                        else detect_person(model, frame, args.thr, person_cls))
                 n_det += len(det)
                 n_det_cam[c] += len(det)
-                out = trackers[c].update(det, n_frames, timestamp=t_cam)
+                # McByte 系列(含第 4 輪的外觀關聯)需要每幀畫面;依 tracker.py::update
+                # 的約定傳 **RGB**(iter_frames 給的是 BGR)。其他後端不需要,
+                # 不做多餘的轉換複製 —— 保持既有交付路徑逐位不變。
+                out = trackers[c].update(
+                    det, n_frames, timestamp=t_cam,
+                    frame=(frame[:, :, ::-1] if trackers[c].needs_frame else None))
                 per_cam[c] = (frame, out)
                 per_cam_loops[c] += 1
                 last_fid[c] = fid

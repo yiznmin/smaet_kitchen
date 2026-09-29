@@ -36,10 +36,19 @@ COMMON = ["--topology", "configs/fix_grid/base.yaml",
           "--embedder", "none", "--fps", "30.0", "--max-frames", "-1"]
 
 
-def cmd_for(clip, stride, out_root, ttl=600, tracker=None):
+def remap(path, pairs):
+    """把 manifest 裡的影片路徑換掉(2026-09-28 資料集把 videos/ 改名為
+    clips_singal_person_result/)。**不改 manifest 檔案** —— 它是預先登記的產物,
+    已提交且不得變更;只在組指令時替換。"""
+    for a, b in pairs:
+        path = path.replace(a, b)
+    return path
+
+
+def cmd_for(clip, stride, out_root, ttl=600, tracker=None, vremap=()):
     out = Path(out_root) / clip["clip_id"] / f"s{stride}" / "chef_events.jsonl"
     cmd = [PY, "scripts/m5_track_video.py",
-           "--videos", *[clip["videos"][c] for c in clip["cameras"]],
+           "--videos", *[remap(clip["videos"][c], vremap) for c in clip["cameras"]],
            "--cameras", *clip["cameras"], *COMMON,
            "--ttl", str(ttl),
            "--stride", str(stride),
@@ -65,8 +74,14 @@ def main():
                     help="loops = 出貨設定(主網格);seconds = §4.1 次要對照")
     ap.add_argument("--index", default="results/clips/agg/run_index.csv")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--tracker", default=None,
+                    help="覆蓋整個網格的追蹤器設定檔(預設 None = 沿用 COMMON 裡的 "
+                         "configs/tracker_rf_cbiou.yaml,交付路徑不變)")
+    ap.add_argument("--video-remap", nargs="*", default=["/videos/=/clips_singal_person_result/"],
+                    help="影片路徑替換,格式 舊=新;可給多組。預設處理 2026-09-28 的資料集改名")
     args = ap.parse_args()
 
+    vremap = tuple(tuple(x.split("=", 1)) for x in (args.video_remap or []))
     man = json.loads(Path(args.manifest).read_text(encoding="utf-8"))
     clips = man["clips"]
     if args.clips:
@@ -90,14 +105,15 @@ def main():
     print("共用參數:", " ".join(COMMON))
     if args.dry_run:
         for c, s, ttl, tracker in jobs:
-            print(" ".join(cmd_for(c, s, args.out_root, ttl, tracker)))
+            print(" ".join(cmd_for(c, s, args.out_root, ttl,
+                                   tracker or args.tracker, vremap)))
         return 0
 
     rows, t0 = [], time.time()
     for i, (c, s, ttl, tracker) in enumerate(jobs, 1):
         out_dir = Path(args.out_root) / c["clip_id"] / f"s{s}"
         out_dir.mkdir(parents=True, exist_ok=True)
-        cmd = cmd_for(c, s, args.out_root, ttl, tracker)
+        cmd = cmd_for(c, s, args.out_root, ttl, tracker or args.tracker, vremap)
         t = time.time()
         r = subprocess.run(cmd, capture_output=True, text=True, cwd=ROOT,
                            encoding="utf-8", errors="replace")

@@ -37,6 +37,10 @@ from render_level_video import Encoder, caption, even, probe         # noqa: E40
 
 CAPTION = "內部檢查用,不可交付 · 逐片段獨立推論 · CHIRLA CC-BY-4.0"
 
+# 2026-09-28 資料集把 videos/ 改名為 clips_singal_person_result/。
+# manifest 是預先登記的產物,已提交不得變更 → 只在讀檔時替換路徑。
+VREMAP = (("/videos/", "/clips_singal_person_result/"),)
+
 
 def load_rows(metrics_dir):
     """per_frame.csv → {(cam, fid): 列}。指標與影片共用這一份。"""
@@ -112,9 +116,12 @@ def render(clip, stride, run_root, metrics_root, out_dir, args):
     fps_out = fps_src / stride
     caps = {}
     for c in clip["cameras"]:
-        cap = cv2.VideoCapture(clip["videos"][c])
+        vpath = clip["videos"][c]
+        for a, b in VREMAP:
+            vpath = vpath.replace(a, b)
+        cap = cv2.VideoCapture(vpath)
         if not cap.isOpened():
-            raise SystemExit(f"開不了影片 {clip['videos'][c]}")
+            raise SystemExit(f"開不了影片 {vpath}")
         caps[c] = [cap, 0]
     fids = list(range(clip["start_fid"], clip["end_fid"] + 1, stride))
     enc, size, strip, n_ok, n_bad = None, None, None, 0, 0

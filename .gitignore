@@ -127,3 +127,7 @@ results/m4_round4/**/dump/
 # 同上:第 4 輪的執行 log 是逐幀進度輸出(兩支共 54 萬行 / 76 MB),摘要已在 m4.json
 results/m4_round4/**/*.log
 results/m4_round4/*.log
+# 2026-09-29 L2 加外觀的觀察:逐幀 track 與檢視影片(影片含人臉,repo 是公開的)
+results/l2_app_probe/runs/**/tracks.csv
+results/l2_app_probe/videos/
+results/l2_app_probe/eval/**/per_frame.csv

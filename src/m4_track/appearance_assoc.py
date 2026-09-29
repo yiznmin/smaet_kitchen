@@ -82,15 +82,26 @@ class AppearanceMcByteTracker(DCMMcByteTracker):
         return super().update(detections, frame=frame, timestamp=timestamp)
 
     def _crop_feature(self, box):
-        """裁圖 → 特徵。框超出畫面時夾住;裁不出東西時回零向量(中性)。"""
+        """裁圖 → 特徵。框超出畫面時夾住;裁不出東西時回 None(視為中性)。
+
+        ⚠ **色彩通道**(2026-09-29 修):`frame` 依 `tracker.py::update` 的約定是 **RGB**
+          (`eval_m4_chirla.py` 明確做 `bgr[:, :, ::-1]` 再傳進來,因為 McByte 的遮罩要 RGB)。
+          但兩個 embedder 的 `extract` 都**預期收到 BGR**、自己在內部轉成 RGB
+          (`dino_embedder.py` 的 `cvtColor(BGR2RGB)`、`chirla_embedder.py` 的 `[:, :, ::-1]`)。
+          第 4 輪直接把 RGB 裁圖丟進去 → 被再轉一次 → **紅藍通道對調**,
+          與兩個模型的訓練分佈不符。這裡補上 RGB → BGR 才交給 embedder。
+          實測影響:鑑別力幾乎沒變(`results/m4_round4/diag_channel_bug.json`,
+          d′ 反而略高 +0.21 / +0.32,因為對調是**一致的**,相對比較仍成立)——
+          所以這**不是**第 4 輪失敗的原因,但仍是錯的,要修。
+        """
         h, w = self._frame.shape[:2]
         x1, y1, x2, y2 = (int(max(0, box[0])), int(max(0, box[1])),
                           int(min(w, box[2])), int(min(h, box[3])))
         if x2 <= x1 or y2 <= y1:
             return None
         self._n_extract += 1
-        return _to_unit(np.asarray(self.embedder.extract(self._frame[y1:y2, x1:x2]),
-                                   dtype=np.float32))
+        crop_bgr = self._frame[y1:y2, x1:x2][:, :, ::-1]      # RGB(約定)→ BGR(embedder 預期)
+        return _to_unit(np.asarray(self.embedder.extract(crop_bgr), dtype=np.float32))
 
     def _sim_high(self, sub_tracklets, det_idx, high_boxes, high_scores, predicted_state_boxes):
         # w = 0:一行都不繞路,直接走基準(V1 要求逐位相同)

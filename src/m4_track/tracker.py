@@ -209,6 +209,15 @@ class KitchenTracker(BaseTracker):
         (self._bt if self._bt is not None else self._rf).reset()
         self._reset_state()
 
+    @property
+    def needs_frame(self) -> bool:
+        """這個後端是否需要每幀畫面(frame=)。
+
+        McByte 系列要:遮罩版拿它算分割遮罩,第 4 輪的外觀版拿它裁圖抽特徵。
+        呼叫端據此決定要不要付 BGR→RGB 的轉換成本(見 scripts/m5_track_video.py)。
+        """
+        return self.backend in MCBYTE_BACKENDS
+
     def update(self, detections, frame_id, timestamp=None, frame=None) -> TrackerOutput:
         # frame:RGB 影像,只有 McByte 後端會用(遮罩);其他後端忽略
         # ByteTrack 需要 confidence;空幀也要呼叫,好讓 lost/removed 計時前進
