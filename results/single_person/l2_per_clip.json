@@ -1,0 +1,431 @@
+[
+ {
+  "clip": "L2-seq_000-c1-3-003910",
+  "cam": "camera_1",
+  "dur": 29.5,
+  "n_target": 142,
+  "w0": {
+   "reacq": "0/2",
+   "cont": 0.043,
+   "sw": 2,
+   "ids": 3,
+   "ghost": 0.338,
+   "iou": 0.883,
+   "recall": 0.993
+  },
+  "armS0": {
+   "reacq": "1/2",
+   "cont": 0.362,
+   "sw": 1,
+   "ids": 2,
+   "ghost": 0.344,
+   "iou": 0.883,
+   "recall": 0.993
+  },
+  "dino": {
+   "reacq": "2/2",
+   "cont": 1.0,
+   "sw": 0,
+   "ids": 1,
+   "ghost": 0.46,
+   "iou": 0.883,
+   "recall": 1.0
+  }
+ },
+ {
+  "clip": "L2-seq_000-c7-10-001530",
+  "cam": "camera_7",
+  "dur": 13.833,
+  "n_target": 59,
+  "w0": {
+   "reacq": "0/1",
+   "cont": 0.893,
+   "sw": 1,
+   "ids": 2,
+   "ghost": 0.035,
+   "iou": 0.923,
+   "recall": 0.949
+  },
+  "armS0": {
+   "reacq": "0/1",
+   "cont": 0.893,
+   "sw": 1,
+   "ids": 2,
+   "ghost": 0.051,
+   "iou": 0.923,
+   "recall": 0.949
+  },
+  "dino": {
+   "reacq": "1/1",
+   "cont": 1.0,
+   "sw": 0,
+   "ids": 1,
+   "ghost": 0.05,
+   "iou": 0.919,
+   "recall": 0.966
+  }
+ },
+ {
+  "clip": "L2-seq_004-c4-6-004585",
+  "cam": "camera_4",
+  "dur": 9.333,
+  "n_target": 33,
+  "w0": {
+   "reacq": "0/1",
+   "cont": 0.885,
+   "sw": 1,
+   "ids": 2,
+   "ghost": 0.0,
+   "iou": 0.958,
+   "recall": 0.788
+  },
+  "armS0": {
+   "reacq": "0/1",
+   "cont": 0.885,
+   "sw": 1,
+   "ids": 2,
+   "ghost": 0.0,
+   "iou": 0.958,
+   "recall": 0.788
+  },
+  "dino": {
+   "reacq": "1/1",
+   "cont": 1.0,
+   "sw": 0,
+   "ids": 1,
+   "ghost": 0.031,
+   "iou": 0.958,
+   "recall": 0.939
+  }
+ },
+ {
+  "clip": "L2-seq_004-c7-7-004775",
+  "cam": "camera_7",
+  "dur": 10.5,
+  "n_target": 47,
+  "w0": {
+   "reacq": "0/1",
+   "cont": 0.35,
+   "sw": 4,
+   "ids": 5,
+   "ghost": 0.07,
+   "iou": 0.885,
+   "recall": 0.851
+  },
+  "armS0": {
+   "reacq": "0/1",
+   "cont": 0.477,
+   "sw": 1,
+   "ids": 2,
+   "ghost": 0.043,
+   "iou": 0.876,
+   "recall": 0.936
+  },
+  "dino": {
+   "reacq": "1/1",
+   "cont": 1.0,
+   "sw": 0,
+   "ids": 1,
+   "ghost": 0.043,
+   "iou": 0.869,
+   "recall": 0.957
+  }
+ },
+ {
+  "clip": "L2-seq_020-c1-12-007830",
+  "cam": "camera_1",
+  "dur": 12.667,
+  "n_target": 48,
+  "w0": {
+   "reacq": "0/1",
+   "cont": 0.152,
+   "sw": 1,
+   "ids": 2,
+   "ghost": 0.021,
+   "iou": 0.896,
+   "recall": 0.958
+  },
+  "armS0": {
+   "reacq": "0/1",
+   "cont": 0.152,
+   "sw": 1,
+   "ids": 2,
+   "ghost": 0.021,
+   "iou": 0.896,
+   "recall": 0.958
+  },
+  "dino": {
+   "reacq": "1/1",
+   "cont": 1.0,
+   "sw": 0,
+   "ids": 1,
+   "ghost": 0.021,
+   "iou": 0.892,
+   "recall": 0.979
+  }
+ },
+ {
+  "clip": "L2-seq_024-c1-7-014705",
+  "cam": "camera_1",
+  "dur": 7.667,
+  "n_target": 26,
+  "w0": {
+   "reacq": "0/1",
+   "cont": 0.417,
+   "sw": 1,
+   "ids": 2,
+   "ghost": 0.04,
+   "iou": 0.924,
+   "recall": 0.923
+  },
+  "armS0": {
+   "reacq": "0/1",
+   "cont": 0.417,
+   "sw": 1,
+   "ids": 2,
+   "ghost": 0.04,
+   "iou": 0.924,
+   "recall": 0.923
+  },
+  "dino": {
+   "reacq": "1/1",
+   "cont": 1.0,
+   "sw": 0,
+   "ids": 1,
+   "ghost": 0.077,
+   "iou": 0.924,
+   "recall": 0.923
+  }
+ },
+ {
+  "clip": "L2-seq_024-c3-7-011320",
+  "cam": "camera_3",
+  "dur": 7.5,
+  "n_target": 19,
+  "w0": {
+   "reacq": "0/1",
+   "cont": 0.471,
+   "sw": 1,
+   "ids": 2,
+   "ghost": 0.0,
+   "iou": 0.917,
+   "recall": 0.895
+  },
+  "armS0": {
+   "reacq": "0/1",
+   "cont": 0.471,
+   "sw": 1,
+   "ids": 2,
+   "ghost": 0.0,
+   "iou": 0.916,
+   "recall": 0.895
+  },
+  "dino": {
+   "reacq": "1/1",
+   "cont": 1.0,
+   "sw": 0,
+   "ids": 1,
+   "ghost": 0.2,
+   "iou": 0.921,
+   "recall": 0.842
+  }
+ },
+ {
+  "clip": "L2-seq_024-c4-10-014700",
+  "cam": "camera_4",
+  "dur": 3.167,
+  "n_target": 13,
+  "w0": {
+   "reacq": "0/1",
+   "cont": 0.545,
+   "sw": 1,
+   "ids": 2,
+   "ghost": 0.0,
+   "iou": 0.977,
+   "recall": 0.846
+  },
+  "armS0": {
+   "reacq": "0/1",
+   "cont": 0.583,
+   "sw": 1,
+   "ids": 2,
+   "ghost": 0.0,
+   "iou": 0.969,
+   "recall": 0.923
+  },
+  "dino": {
+   "reacq": "1/1",
+   "cont": 1.0,
+   "sw": 0,
+   "ids": 1,
+   "ghost": 0.071,
+   "iou": 0.965,
+   "recall": 1.0
+  }
+ },
+ {
+  "clip": "L2-seq_024-c4-7-012085",
+  "cam": "camera_4",
+  "dur": 5.833,
+  "n_target": 29,
+  "w0": {
+   "reacq": "1/1",
+   "cont": 1.0,
+   "sw": 0,
+   "ids": 1,
+   "ghost": 0.0,
+   "iou": 0.978,
+   "recall": 0.966
+  },
+  "armS0": {
+   "reacq": "1/1",
+   "cont": 1.0,
+   "sw": 0,
+   "ids": 1,
+   "ghost": 0.0,
+   "iou": 0.978,
+   "recall": 0.966
+  },
+  "dino": {
+   "reacq": "1/1",
+   "cont": 1.0,
+   "sw": 0,
+   "ids": 1,
+   "ghost": 0.0,
+   "iou": 0.978,
+   "recall": 0.966
+  }
+ },
+ {
+  "clip": "L2-seq_025-c2-7-005185",
+  "cam": "camera_2",
+  "dur": 4.167,
+  "n_target": 18,
+  "w0": {
+   "reacq": "0/1",
+   "cont": 0.733,
+   "sw": 1,
+   "ids": 2,
+   "ghost": 0.0,
+   "iou": 0.959,
+   "recall": 0.833
+  },
+  "armS0": {
+   "reacq": "0/1",
+   "cont": 0.75,
+   "sw": 1,
+   "ids": 2,
+   "ghost": 0.0,
+   "iou": 0.954,
+   "recall": 0.889
+  },
+  "dino": {
+   "reacq": "1/1",
+   "cont": 1.0,
+   "sw": 0,
+   "ids": 1,
+   "ghost": 0.0,
+   "iou": 0.942,
+   "recall": 1.0
+  }
+ },
+ {
+  "clip": "L2-seq_025-c3-7-007115",
+  "cam": "camera_3",
+  "dur": 14.5,
+  "n_target": 59,
+  "w0": {
+   "reacq": "0/1",
+   "cont": 0.127,
+   "sw": 4,
+   "ids": 5,
+   "ghost": 0.083,
+   "iou": 0.9,
+   "recall": 0.932
+  },
+  "armS0": {
+   "reacq": "0/1",
+   "cont": 0.123,
+   "sw": 3,
+   "ids": 4,
+   "ghost": 0.066,
+   "iou": 0.897,
+   "recall": 0.966
+  },
+  "dino": {
+   "reacq": "1/1",
+   "cont": 0.328,
+   "sw": 5,
+   "ids": 2,
+   "ghost": 0.121,
+   "iou": 0.898,
+   "recall": 0.983
+  }
+ },
+ {
+  "clip": "L2-seq_026-c4-10-005820",
+  "cam": "camera_4",
+  "dur": 9.667,
+  "n_target": 30,
+  "w0": {
+   "reacq": "0/1",
+   "cont": 0.345,
+   "sw": 1,
+   "ids": 2,
+   "ghost": 0.0,
+   "iou": 0.965,
+   "recall": 0.967
+  },
+  "armS0": {
+   "reacq": "0/1",
+   "cont": 0.345,
+   "sw": 1,
+   "ids": 2,
+   "ghost": 0.0,
+   "iou": 0.969,
+   "recall": 0.967
+  },
+  "dino": {
+   "reacq": "1/1",
+   "cont": 1.0,
+   "sw": 0,
+   "ids": 1,
+   "ghost": 0.0,
+   "iou": 0.969,
+   "recall": 1.0
+  }
+ },
+ {
+  "clip": "L2-seq_026-c4-11-002005",
+  "cam": "camera_4",
+  "dur": 9.5,
+  "n_target": 31,
+  "w0": {
+   "reacq": "0/1",
+   "cont": 0.483,
+   "sw": 1,
+   "ids": 2,
+   "ghost": 0.033,
+   "iou": 0.95,
+   "recall": 0.935
+  },
+  "armS0": {
+   "reacq": "1/1",
+   "cont": 1.0,
+   "sw": 0,
+   "ids": 1,
+   "ghost": 0.032,
+   "iou": 0.948,
+   "recall": 0.968
+  },
+  "dino": {
+   "reacq": "1/1",
+   "cont": 1.0,
+   "sw": 0,
+   "ids": 1,
+   "ghost": 0.032,
+   "iou": 0.948,
+   "recall": 0.968
+  }
+ }
+]
