@@ -1,0 +1,140 @@
+{
+  "說明": "單人情境的完整片段對照(2026-09-29,使用者指定專注單人)。60 段(L1 30 + L2 13 + L3 17)× 3 格,stride 5、thr 0.10、M5 --embedder none。L1/L2 排除 camera_5/6;L3 依 9/28 分開處理原則保留 7 台,受倒影影響者已標註。",
+  "levels": {
+    "L1": {
+      "n_clips": 30,
+      "cells": {
+        "clip_app_w0.0": {
+          "p_continuity": 0.9758,
+          "recall_target": 0.9682,
+          "mean_iou_matched": 0.8967,
+          "ghost_box_rate": 0.094,
+          "chef_switches": 5,
+          "n_distinct_chef_ids": 34
+        },
+        "clip_app_armS0_w0.2": {
+          "p_continuity": 0.9987,
+          "recall_target": 0.9686,
+          "mean_iou_matched": 0.897,
+          "ghost_box_rate": 0.1083,
+          "chef_switches": 2,
+          "n_distinct_chef_ids": 31
+        },
+        "clip_app_dino_w0.5": {
+          "p_continuity": 0.9978,
+          "recall_target": 0.9694,
+          "mean_iou_matched": 0.8968,
+          "ghost_box_rate": 0.1044,
+          "chef_switches": 6,
+          "n_distinct_chef_ids": 33
+        }
+      }
+    },
+    "L2": {
+      "n_clips": 13,
+      "cells": {
+        "clip_app_w0.0": {
+          "p_continuity": 0.3753,
+          "recall_target": 0.9332,
+          "mean_iou_matched": 0.9152,
+          "ghost_box_rate": 0.1412,
+          "chef_switches": 19,
+          "n_distinct_chef_ids": 32,
+          "l2_reacquire": "1/14",
+          "l2_reacquire_rate": 0.0714
+        },
+        "clip_app_armS0_w0.2": {
+          "p_continuity": 0.5019,
+          "recall_target": 0.9495,
+          "mean_iou_matched": 0.9138,
+          "ghost_box_rate": 0.1405,
+          "chef_switches": 13,
+          "n_distinct_chef_ids": 26,
+          "l2_reacquire": "3/14",
+          "l2_reacquire_rate": 0.2143
+        },
+        "clip_app_dino_w0.5": {
+          "p_continuity": 0.9276,
+          "recall_target": 0.9729,
+          "mean_iou_matched": 0.9127,
+          "ghost_box_rate": 0.2108,
+          "chef_switches": 5,
+          "n_distinct_chef_ids": 14,
+          "l2_reacquire": "14/14",
+          "l2_reacquire_rate": 1.0
+        }
+      }
+    },
+    "L3S": {
+      "n_clips": 12,
+      "cells": {
+        "clip_app_w0.0": {
+          "p_continuity": 0.5292,
+          "recall_target": 0.9424,
+          "mean_iou_matched": 0.9395,
+          "ghost_box_rate": 0.2053,
+          "chef_switches": 7,
+          "n_distinct_chef_ids": 29,
+          "l3_handoff": "5/16",
+          "l3_handoff_rate": 0.3125
+        },
+        "clip_app_armS0_w0.2": {
+          "p_continuity": 0.5445,
+          "recall_target": 0.9568,
+          "mean_iou_matched": 0.9378,
+          "ghost_box_rate": 0.2089,
+          "chef_switches": 5,
+          "n_distinct_chef_ids": 27,
+          "l3_handoff": "5/16",
+          "l3_handoff_rate": 0.3125
+        },
+        "clip_app_dino_w0.5": {
+          "p_continuity": 0.5204,
+          "recall_target": 0.9607,
+          "mean_iou_matched": 0.937,
+          "ghost_box_rate": 0.2099,
+          "chef_switches": 4,
+          "n_distinct_chef_ids": 26,
+          "l3_handoff": "5/16",
+          "l3_handoff_rate": 0.3125
+        }
+      }
+    },
+    "L3T": {
+      "n_clips": 5,
+      "cells": {
+        "clip_app_w0.0": {
+          "p_continuity": 0.4962,
+          "recall_target": 0.8919,
+          "mean_iou_matched": 0.9532,
+          "ghost_box_rate": 0.1258,
+          "chef_switches": 2,
+          "n_distinct_chef_ids": 12,
+          "l3_handoff": "0/5",
+          "l3_handoff_rate": 0.0
+        },
+        "clip_app_armS0_w0.2": {
+          "p_continuity": 0.4964,
+          "recall_target": 0.9257,
+          "mean_iou_matched": 0.9446,
+          "ghost_box_rate": 0.1161,
+          "chef_switches": 0,
+          "n_distinct_chef_ids": 10,
+          "l3_handoff": "0/5",
+          "l3_handoff_rate": 0.0
+        },
+        "clip_app_dino_w0.5": {
+          "p_continuity": 0.4964,
+          "recall_target": 0.9257,
+          "mean_iou_matched": 0.9446,
+          "ghost_box_rate": 0.1218,
+          "chef_switches": 0,
+          "n_distinct_chef_ids": 10,
+          "l3_handoff": "0/5",
+          "l3_handoff_rate": 0.0
+        }
+      }
+    }
+  },
+  "跨鏡頭為何完全沒變": "外觀特徵只在 M4 的**同鏡頭**關聯成本裡用(偵測 vs 這台鏡頭的 track)。跨鏡頭綁定是 M5 的工作,而 M5 全程 --embedder none。外觀根本沒有進到跨鏡頭那個決定裡 → L3S 5/16、L3T 0/5 三格**逐字相同**是結構必然,不是巧合。"
+}

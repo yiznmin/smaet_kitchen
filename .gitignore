@@ -131,3 +131,7 @@ results/m4_round4/*.log
 results/l2_app_probe/runs/**/tracks.csv
 results/l2_app_probe/videos/
 results/l2_app_probe/eval/**/per_frame.csv
+# 2026-09-29 單人情境完整對照:逐幀 track 與檢視影片(影片含人臉,repo 公開)
+results/single_person/runs/**/tracks.csv
+results/single_person/videos/
+results/single_person/eval/**/per_frame.csv
