@@ -141,3 +141,4 @@ results/m5_app/eval/**/per_frame.csv
 results/single_person/runs/**/tracks.csv
 results/m4_round4/app_dino_w02/dump/
 results/m4_round4/app_dino_w07/dump/
+results/l3_nomirror/runs/**/tracks.csv

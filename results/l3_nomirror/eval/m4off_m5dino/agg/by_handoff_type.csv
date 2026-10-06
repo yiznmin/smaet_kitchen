@@ -1,0 +1,2 @@
+﻿stride,rule,n_clips,n_pairs,n_pairs_dropped,p_handoff,handoff_ci,n_simul_frames,p_simul_agree,simul_ci
+5,L3S,3,7,2,0.7143,"(0.3589, 0.9178)",38,0.5789,"(0.4219, 0.7215)"
