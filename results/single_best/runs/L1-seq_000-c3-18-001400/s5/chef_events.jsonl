@@ -1,0 +1,2 @@
+{"loop_i": 0, "video_fid": 1400, "t_sec": 46.667, "camera_id": "camera_3", "track_id": 0, "chef_id": 1, "matched": false, "score": 0.0, "n_candidates": 0, "bbox": [943.7, 193.8, 987.8, 273.8]}
+{"loop_i": 0, "video_fid": 1400, "t_sec": 46.667, "camera_id": "camera_3", "track_id": 1, "chef_id": 2, "matched": false, "score": 0.0, "n_candidates": 0, "bbox": [1011.5, 604.0, 1080.0, 720.0]}

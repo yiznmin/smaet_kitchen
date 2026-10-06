@@ -144,3 +144,6 @@ results/m4_round4/app_dino_w07/dump/
 results/l3_nomirror/runs/**/tracks.csv
 results/l3_full/runs/**/tracks.csv
 results/m5_topofix/**/tracks.csv
+results/single_best/runs/**/tracks.csv
+results/single_best/videos/
+results/single_best/eval/**/per_frame.csv
