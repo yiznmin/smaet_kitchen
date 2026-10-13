@@ -51,14 +51,10 @@ def detect_and_crop(records, weights=None, variant="nano", thr=0.25, save_dir=No
     """
     import cv2
     from PIL import Image
-    from rfdetr import RFDETRNano, RFDETRSmall, RFDETRMedium
-    ctor = {"nano": RFDETRNano, "small": RFDETRSmall, "medium": RFDETRMedium}[variant]
-    if weights:
-        model = ctor(pretrain_weights=weights, num_classes=11)
-        use_name = False                       # 微調:人 = class_id 0
-    else:
-        model = ctor()
-        use_name = True                        # COCO:以 class_name 'person' 判定
+    # 2026-10-13:改走 m3.model.load_rfdetr(微調權重用其訓練解析度;COCO 預訓不變)
+    from m3.model import load_rfdetr
+    model = load_rfdetr(variant, weights)
+    use_name = not weights     # 微調:人 = class_id 0;COCO:以 class_name 'person' 判定
     crops, meta = [], []
     saved = 0
     for path, ident, view, fid in records:

@@ -47,12 +47,15 @@ def main():
     ap.add_argument("--precision-floor", type=float, default=0.6)
     ap.add_argument("--default", type=float, default=0.3, help="無樣本類別的預設門檻")
     ap.add_argument("--iou", type=float, default=0.5)
+    ap.add_argument("--resolution", default="auto",
+                    help="M3 推論解析度:auto(微調權重用其訓練解析度)| default(變體預設)"
+                         "| 整數。2026-10-13 前的行為等同 default")
     args = ap.parse_args()
 
-    from rfdetr import RFDETRNano, RFDETRSmall, RFDETRMedium
-    ctor = {"nano": RFDETRNano, "small": RFDETRSmall, "medium": RFDETRMedium}[args.variant]
-    print(f"載入 {args.variant} 權重:{args.weights}")
-    model = ctor(pretrain_weights=args.weights, num_classes=len(NAMES))
+    # 門檻與推論解析度綁在一起:在哪個解析度掃的,就只能在那個解析度用
+    from m3.model import load_rfdetr, model_resolution, parse_resolution
+    model = load_rfdetr(args.variant, args.weights, parse_resolution(args.resolution))
+    print(f"載入 {args.variant} 權重:{args.weights}(推論解析度 {model_resolution(model)})")
 
     print(f"對 valid 低門檻預測一次:{args.valid}")
     gt = E.load_gt(args.valid)

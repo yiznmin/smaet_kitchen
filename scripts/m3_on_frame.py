@@ -33,12 +33,10 @@ VIDEO = ROOT / "data" / "epfl" / "Boutput0.mp4"
 OUT = ROOT / "results" / "m3_acc" / "epfl_vis"
 
 
-def load_model(variant, weights):
-    from rfdetr import RFDETRNano, RFDETRSmall, RFDETRMedium
-    ctor = {"nano": RFDETRNano, "small": RFDETRSmall, "medium": RFDETRMedium}[variant]
-    if weights:
-        return ctor(pretrain_weights=weights, num_classes=len(NAMES))
-    return ctor()
+def load_model(variant, weights, resolution="auto"):
+    # 2026-10-13:改走 m3.model.load_rfdetr(微調權重用其訓練解析度;COCO 預訓不變)
+    from m3.model import load_rfdetr
+    return load_rfdetr(variant, weights, resolution)
 
 
 def main():
@@ -46,6 +44,9 @@ def main():
     ap.add_argument("--variant", default="nano", choices=["nano", "small", "medium"])
     ap.add_argument("--weights", help="微調權重 .pth(不給=用 COCO 預訓練)")
     ap.add_argument("--thresholds", help="每類門檻 json(configs/m3_thresholds.json)")
+    ap.add_argument("--resolution", default="auto",
+                    help="M3 推論解析度:auto(微調權重用其訓練解析度、COCO 用變體預設)"
+                         " | default(一律變體預設)| 整數。2026-10-13 前的行為等同 default")
     ap.add_argument("--frames", type=int, nargs="*", default=[300, 400, 500, 600])
     ap.add_argument("--images", nargs="*", help="改對這些圖片跑(可用萬用字元)")
     ap.add_argument("--thr", type=float, default=0.3, help="全域/後備門檻")
@@ -75,7 +76,9 @@ def main():
                 break
 
     print(f"載入 RF-DETR-{args.variant}{'(微調)' if args.weights else '(COCO)'} …")
-    model = load_model(args.variant, args.weights)
+    from m3.model import model_resolution, parse_resolution
+    model = load_model(args.variant, args.weights, parse_resolution(args.resolution))
+    print(f"  M3 推論解析度 {model_resolution(model)}")
     finetuned = bool(args.weights)
     base_thr = 0.1 if per_class else args.thr
     OUT.mkdir(parents=True, exist_ok=True)

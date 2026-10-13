@@ -31,10 +31,10 @@ from m4_track import KitchenTracker                         # noqa: E402
 VIDEO = ROOT / "data" / "epfl" / "Boutput0.mp4"
 
 
-def load_model(variant, weights):
-    from rfdetr import RFDETRNano, RFDETRSmall, RFDETRMedium
-    ctor = {"nano": RFDETRNano, "small": RFDETRSmall, "medium": RFDETRMedium}[variant]
-    return ctor(pretrain_weights=weights, num_classes=len(NAMES)) if weights else ctor()
+def load_model(variant, weights, resolution="auto"):
+    # 2026-10-13:改走 m3.model.load_rfdetr(微調權重用其訓練解析度;COCO 預訓不變)
+    from m3.model import load_rfdetr
+    return load_rfdetr(variant, weights, resolution)
 
 
 def color_for(tid):
@@ -46,6 +46,9 @@ def main():
     ap.add_argument("--video", default=str(VIDEO))
     ap.add_argument("--variant", default="nano", choices=["nano", "small", "medium"])
     ap.add_argument("--weights", help="微調權重(不給=COCO base,只追 person)")
+    ap.add_argument("--resolution", default="auto",
+                    help="M3 推論解析度:auto(微調權重用其訓練解析度、COCO 用變體預設)"
+                         " | default(一律變體預設)| 整數。2026-10-13 前的行為等同 default")
     ap.add_argument("--config", default=str(ROOT / "configs" / "tracker.yaml"))
     ap.add_argument("--stride", type=int, default=1)
     ap.add_argument("--max-frames", type=int, default=300)
@@ -62,7 +65,9 @@ def main():
     out_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"載入 RF-DETR-{args.variant}{'(微調)' if finetuned else '(COCO)'} + ByteTrack …")
-    model = load_model(args.variant, args.weights)
+    from m3.model import model_resolution, parse_resolution
+    model = load_model(args.variant, args.weights, parse_resolution(args.resolution))
+    print(f"  M3 推論解析度 {model_resolution(model)}")
     tracker = KitchenTracker.from_config(cfg, class_names=NAMES)
 
     frame_rows, event_rows, log = [], [], []

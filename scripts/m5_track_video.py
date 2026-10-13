@@ -53,10 +53,11 @@ PERSON_CLS_COCO = 1
 PERSON_CLS_FINETUNED = 0
 
 
-def load_model(variant, weights):
-    from rfdetr import RFDETRMedium, RFDETRNano, RFDETRSmall
-    ctor = {"nano": RFDETRNano, "small": RFDETRSmall, "medium": RFDETRMedium}[variant]
-    return ctor(pretrain_weights=weights, num_classes=len(NAMES)) if weights else ctor()
+def load_model(variant, weights, resolution="auto"):
+    # 2026-10-13:改走 m3.model.load_rfdetr。沒給 weights(COCO 預訓)時行為不變;
+    # 有給微調權重時改用它的訓練解析度(原本沒傳 resolution,實際跑在 384)。
+    from m3.model import load_rfdetr
+    return load_rfdetr(variant, weights, resolution)
 
 
 def detect_person(model, frame_bgr, thr, person_cls):
@@ -173,6 +174,9 @@ def main():
     ap.add_argument("--tracker", default=str(ROOT / "configs" / "tracker.yaml"))
     ap.add_argument("--weights", default=None, help="M3 微調權重;不給則用 COCO 預訓")
     ap.add_argument("--variant", default="nano")
+    ap.add_argument("--resolution", default="auto",
+                    help="M3 推論解析度:auto(微調權重用其訓練解析度、COCO 用變體預設)"
+                         " | default(一律變體預設)| 整數。2026-10-13 前的行為等同 default")
     ap.add_argument("--thr", type=float, default=0.3)
     ap.add_argument("--person-cls", type=int, default=None,
                     help="「人」的 class_id;預設依有無 --weights 自動判斷")
@@ -312,7 +316,9 @@ def main():
     else:
         print(f"載入 M3({args.variant}{'/微調' if args.weights else '/COCO 預訓'}),"
               f"人的 class_id = {person_cls}…")
-        model = load_model(args.variant, args.weights)
+        from m3.model import model_resolution, parse_resolution
+        model = load_model(args.variant, args.weights, parse_resolution(args.resolution))
+        print(f"  M3 推論解析度 {model_resolution(model)}")
     emb = build_embedder(args.embedder)
 
     trackers = {c: KitchenTracker.from_config(tcfg, camera_id=c) for c in cams}
@@ -589,6 +595,8 @@ def main():
         # ⚠ 2026-09-14 前沒記 thr —— 而它決定了 ByteTrack 第二輪低分關聯有沒有資料可用
         #   (supervision 只收 0.1 < score < 0.25,thr=0.3 時那一輪永遠是空的)。
         "thr": args.thr,
+        # 2026-10-13 新增。讀偵測快取時沒有載入模型,記 None。只新增欄位,不影響任何決策。
+        "m3_resolution": (int(model.model_config.resolution) if model is not None else None),
         "det_cache": args.det_cache,
         "det_cache_meta": ({c: caches[c].meta for c in cams} if caches is not None else None),
         # ⚠ 2026-09-15 前沒記追蹤器設定 —— 換了 backend(rf_botsort / rf_cbiou)之後,

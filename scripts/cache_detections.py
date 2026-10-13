@@ -53,7 +53,7 @@ def _same(a, b):
 
 
 def cache_one(model, detect_person, video, out_path, *, variant, weights, person_cls,
-              thr, stride, max_frames, spot_check, spot_thr):
+              thr, stride, max_frames, spot_check, spot_thr, resolution=None):
     expect = dict(variant=variant, weights_id=weights_id(weights), person_cls=person_cls,
                   cache_thr=thr, cache_stride=stride, complete=max_frames < 0)
     if Path(out_path).exists():
@@ -88,7 +88,9 @@ def cache_one(model, detect_person, video, out_path, *, variant, weights, person
          np.concatenate(xy) if xy else np.zeros((0, 4), dtype=np.float32),
          np.concatenate(cf) if cf else np.zeros(0, dtype=np.float32),
          np.concatenate(cl) if cl else np.zeros(0, dtype=np.int64),
-         dict(expect, n_scanned=n, max_fid=last, video=str(video), video_meta=vm,
+         # resolution 只是紀錄(2026-10-13 新增),不在 expect 裡 —— 舊快取沒有這個欄位
+         dict(expect, resolution=resolution, n_scanned=n, max_fid=last, video=str(video),
+              video_meta=vm,
               n_det=int(sum(len(a) for a in cf)), seconds=round(time.time() - t0, 1)))
     print(f"  ✓ {out_path}  {n:,} 幀、{sum(len(a) for a in cf):,} 個框、"
           f"{time.time() - t0:.0f} 秒")
@@ -123,6 +125,9 @@ def main():
     ap.add_argument("--variant", default="nano")
     ap.add_argument("--weights", default=None)
     ap.add_argument("--person-cls", type=int, default=None)
+    ap.add_argument("--resolution", default="auto",
+                    help="M3 推論解析度:auto(微調權重用其訓練解析度、COCO 用變體預設)"
+                         " | default(一律變體預設)| 整數。2026-10-13 前的行為等同 default")
     ap.add_argument("--thr", type=float, default=0.05,
                     help="快取門檻。之後事後過濾只能往上不能往下")
     ap.add_argument("--stride", type=int, default=1)
@@ -153,7 +158,9 @@ def main():
 
     print(f"模型 {args.variant}{'/微調' if args.weights else '/COCO 預訓'},"
           f"person_cls={person_cls},快取門檻 {args.thr},stride {args.stride},共 {len(jobs)} 支")
-    model = load_model(args.variant, args.weights)
+    from m3.model import model_resolution, parse_resolution
+    model = load_model(args.variant, args.weights, parse_resolution(args.resolution))
+    print(f"推論解析度 {model_resolution(model)}")
     all_ok, t0 = True, time.time()
     for i, (name, video, out_path) in enumerate(jobs, 1):
         print(f"\n[{i}/{len(jobs)}] {name}")
@@ -161,7 +168,7 @@ def main():
                             variant=args.variant, weights=args.weights,
                             person_cls=person_cls, thr=args.thr, stride=args.stride,
                             max_frames=args.max_frames, spot_check=args.spot_check,
-                            spot_thr=args.spot_thr)
+                            spot_thr=args.spot_thr, resolution=model_resolution(model))
     print(f"\n完成,{(time.time() - t0) / 60:.1f} 分鐘。"
           f"{'全部逐位比對通過' if all_ok else '⚠ 有影片逐位比對失敗 —— 快取不可用'}")
     return 0 if all_ok else 1
