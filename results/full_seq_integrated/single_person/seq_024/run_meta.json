@@ -1,0 +1,596 @@
+{
+  "pipeline": "run_pipeline.py(整合資料夾)",
+  "config_path": "D:\\yizhen\\smart_kitchen\\integrated\\pipeline_config.yaml",
+  "profile": "single_person",
+  "camera_video_map": {
+    "camera_1": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/clips_singal_person_result/seq_024/camera_1_2023-12-01-11_05_52.avi",
+    "camera_2": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/clips_singal_person_result/seq_024/camera_2_2023-12-01-11_05_52.avi",
+    "camera_3": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/clips_singal_person_result/seq_024/camera_3_2023-12-01-11_05_52.avi",
+    "camera_4": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/clips_singal_person_result/seq_024/camera_4_2023-12-01-11_05_52.avi",
+    "camera_5": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/clips_singal_person_result/seq_024/camera_5_2023-12-01-11_05_52.avi",
+    "camera_6": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/clips_singal_person_result/seq_024/camera_6_2023-12-01-11_05_52.avi",
+    "camera_7": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/clips_singal_person_result/seq_024/camera_7_2023-12-01-11_05_52.avi"
+  },
+  "videos": {
+    "camera_1": {
+      "width": 1080,
+      "height": 720,
+      "fps": 30.0,
+      "nb_frames": 16998
+    },
+    "camera_2": {
+      "width": 1080,
+      "height": 720,
+      "fps": 30.0,
+      "nb_frames": 16997
+    },
+    "camera_3": {
+      "width": 1080,
+      "height": 720,
+      "fps": 30.0,
+      "nb_frames": 16992
+    },
+    "camera_4": {
+      "width": 1080,
+      "height": 720,
+      "fps": 30.0,
+      "nb_frames": 16981
+    },
+    "camera_5": {
+      "width": 1080,
+      "height": 720,
+      "fps": 30.0,
+      "nb_frames": 16981
+    },
+    "camera_6": {
+      "width": 1080,
+      "height": 720,
+      "fps": 30.0,
+      "nb_frames": 16998
+    },
+    "camera_7": {
+      "width": 1080,
+      "height": 720,
+      "fps": 30.0,
+      "nb_frames": 16969
+    }
+  },
+  "topology_path": "(設定檔內嵌,profile=single_person)",
+  "n_links": 3,
+  "n_overlapping_pairs": 11,
+  "n_homographies": 0,
+  "world_xy_available": false,
+  "ground_plane_effective": false,
+  "velocity_effective": false,
+  "weights": null,
+  "variant": "nano",
+  "person_cls": 1,
+  "thr": 0.1,
+  "m3_base_thr": 0.1,
+  "m3_class_thresholds": {},
+  "m3_resolution": null,
+  "embedder": "dinov2",
+  "det_cache": "D:\\yizhen\\smart_kitchen\\results\\det_cache\\coco_nano\\seq_024",
+  "det_cache_meta": {
+    "camera_1": {
+      "variant": "nano",
+      "weights_id": null,
+      "person_cls": 1,
+      "cache_thr": 0.05,
+      "cache_stride": 1,
+      "complete": true,
+      "n_scanned": 16998,
+      "max_fid": 16997,
+      "video": "D:\\新增資料夾\\CHIRLA\\CHIRLA_data\\CHIRLA\\videos\\seq_024\\camera_1_2023-12-01-11_05_52.avi",
+      "video_meta": {
+        "width": 1080,
+        "height": 720,
+        "fps": 30.0,
+        "nb_frames": 16998
+      },
+      "n_det": 379978,
+      "seconds": 546.4,
+      "cache_version": 1
+    },
+    "camera_2": {
+      "variant": "nano",
+      "weights_id": null,
+      "person_cls": 1,
+      "cache_thr": 0.05,
+      "cache_stride": 1,
+      "complete": true,
+      "n_scanned": 16997,
+      "max_fid": 16996,
+      "video": "D:\\新增資料夾\\CHIRLA\\CHIRLA_data\\CHIRLA\\videos\\seq_024\\camera_2_2023-12-01-11_05_52.avi",
+      "video_meta": {
+        "width": 1080,
+        "height": 720,
+        "fps": 30.0,
+        "nb_frames": 16997
+      },
+      "n_det": 227498,
+      "seconds": 562.7,
+      "cache_version": 1
+    },
+    "camera_3": {
+      "variant": "nano",
+      "weights_id": null,
+      "person_cls": 1,
+      "cache_thr": 0.05,
+      "cache_stride": 1,
+      "complete": true,
+      "n_scanned": 16992,
+      "max_fid": 16991,
+      "video": "D:\\新增資料夾\\CHIRLA\\CHIRLA_data\\CHIRLA\\videos\\seq_024\\camera_3_2023-12-01-11_05_52.avi",
+      "video_meta": {
+        "width": 1080,
+        "height": 720,
+        "fps": 30.0,
+        "nb_frames": 16992
+      },
+      "n_det": 297348,
+      "seconds": 516.3,
+      "cache_version": 1
+    },
+    "camera_4": {
+      "variant": "nano",
+      "weights_id": null,
+      "person_cls": 1,
+      "cache_thr": 0.05,
+      "cache_stride": 1,
+      "complete": true,
+      "n_scanned": 16981,
+      "max_fid": 16980,
+      "video": "D:\\新增資料夾\\CHIRLA\\CHIRLA_data\\CHIRLA\\videos\\seq_024\\camera_4_2023-12-01-11_05_52.avi",
+      "video_meta": {
+        "width": 1080,
+        "height": 720,
+        "fps": 30.0,
+        "nb_frames": 16981
+      },
+      "n_det": 14046,
+      "seconds": 484.8,
+      "cache_version": 1
+    },
+    "camera_5": {
+      "variant": "nano",
+      "weights_id": null,
+      "person_cls": 1,
+      "cache_thr": 0.05,
+      "cache_stride": 1,
+      "complete": true,
+      "n_scanned": 16981,
+      "max_fid": 16980,
+      "video": "D:\\新增資料夾\\CHIRLA\\CHIRLA_data\\CHIRLA\\videos\\seq_024\\camera_5_2023-12-01-11_05_52.avi",
+      "video_meta": {
+        "width": 1080,
+        "height": 720,
+        "fps": 30.0,
+        "nb_frames": 16981
+      },
+      "n_det": 328751,
+      "seconds": 575.4,
+      "cache_version": 1
+    },
+    "camera_6": {
+      "variant": "nano",
+      "weights_id": null,
+      "person_cls": 1,
+      "cache_thr": 0.05,
+      "cache_stride": 1,
+      "complete": true,
+      "n_scanned": 16998,
+      "max_fid": 16997,
+      "video": "D:\\新增資料夾\\CHIRLA\\CHIRLA_data\\CHIRLA\\videos\\seq_024\\camera_6_2023-12-01-11_05_52.avi",
+      "video_meta": {
+        "width": 1080,
+        "height": 720,
+        "fps": 30.0,
+        "nb_frames": 16998
+      },
+      "n_det": 15742,
+      "seconds": 488.7,
+      "cache_version": 1
+    },
+    "camera_7": {
+      "variant": "nano",
+      "weights_id": null,
+      "person_cls": 1,
+      "cache_thr": 0.05,
+      "cache_stride": 1,
+      "complete": true,
+      "n_scanned": 16969,
+      "max_fid": 16968,
+      "video": "D:\\新增資料夾\\CHIRLA\\CHIRLA_data\\CHIRLA\\videos\\seq_024\\camera_7_2023-12-01-11_05_52.avi",
+      "video_meta": {
+        "width": 1080,
+        "height": 720,
+        "fps": 30.0,
+        "nb_frames": 16969
+      },
+      "n_det": 20691,
+      "seconds": 506.7,
+      "cache_version": 1
+    }
+  },
+  "tracker_path": "D:\\yizhen\\smart_kitchen\\integrated\\pipeline_config.yaml#m4",
+  "tracker_cfg": {
+    "backend": "rf_mcbyte_nomask_app",
+    "track_activation_threshold": 0.25,
+    "minimum_matching_threshold": 0.8,
+    "lost_track_buffer": 30,
+    "frame_rate": 30,
+    "minimum_consecutive_frames": 1,
+    "history_len": 30,
+    "backend_params": {
+      "rf_cbiou": {
+        "buffer_ratio_first": 0.3,
+        "buffer_ratio_second": 0.5
+      },
+      "rf_mcbyte_nomask_app": {
+        "appearance_w": 0.7,
+        "embedder": "dinov2",
+        "ema_momentum": 0.9
+      }
+    }
+  },
+  "stride": 5,
+  "max_frames": -1,
+  "start_fid": 0,
+  "end_fid": -1,
+  "clip_id": null,
+  "n_sample_loops_per_cam": {
+    "camera_1": 3400,
+    "camera_2": 3400,
+    "camera_3": 3399,
+    "camera_4": 3397,
+    "camera_5": 3397,
+    "camera_6": 3400,
+    "camera_7": 3394
+  },
+  "ttl_loops": 600,
+  "ttl_seconds": 100.0,
+  "lost_track_buffer_loops": 30,
+  "lost_track_buffer_seconds": 5.0,
+  "n_loops": 3400,
+  "n_loops_full": 3394,
+  "coverage": 1.0018,
+  "truncated": false,
+  "per_cam_loops": {
+    "camera_1": 3400,
+    "camera_2": 3400,
+    "camera_3": 3399,
+    "camera_4": 3397,
+    "camera_5": 3397,
+    "camera_6": 3400,
+    "camera_7": 3394
+  },
+  "n_det": 141361,
+  "n_det_per_cam": {
+    "camera_1": 38825,
+    "camera_2": 28170,
+    "camera_3": 38305,
+    "camera_4": 983,
+    "camera_5": 31660,
+    "camera_6": 1411,
+    "camera_7": 2007
+  },
+  "ms_per_loop": {
+    "p50": 433.5,
+    "p95": 718.8,
+    "max": 933.2
+  },
+  "stage_seconds": {
+    "m2": 28.78,
+    "m3": 1.44,
+    "m4": 1454.74,
+    "m5": 5.74
+  },
+  "wall_seconds": 1637.9,
+  "total_chefs": 9,
+  "candidate_histogram": {
+    "0": 6,
+    "1": 34,
+    "2": 85,
+    "3": 6,
+    "4": 17,
+    "5": 32
+  },
+  "resident_final": {
+    "active": 2,
+    "gone": 3,
+    "track_to_chef": 17,
+    "_exit": 3,
+    "_cam": 2,
+    "_pending_exit": 5,
+    "_world": 0,
+    "_vel": 0,
+    "margin_blocked": 0,
+    "same_cam_conflicts": 112,
+    "revotes": 0,
+    "revote_switch": 0,
+    "revote_no_emb": 0,
+    "_votes": 0,
+    "revote_pending": 0,
+    "revote_resolved": 0
+  },
+  "llr_threshold": 1.6094379124341003,
+  "oracle_cue": null,
+  "m2": {
+    "branch_a": true,
+    "dynamic_line": false,
+    "static_line": false,
+    "classifier_ready": false,
+    "gate_m3": false,
+    "gate_max_hold_loops": 30,
+    "n_motion_per_cam": {
+      "camera_1": 1751,
+      "camera_2": 2748,
+      "camera_3": 2883,
+      "camera_4": 604,
+      "camera_5": 926,
+      "camera_6": 1192,
+      "camera_7": 925
+    },
+    "n_m3_run_per_cam": {
+      "camera_1": 3400,
+      "camera_2": 3400,
+      "camera_3": 3399,
+      "camera_4": 3397,
+      "camera_5": 3397,
+      "camera_6": 3400,
+      "camera_7": 3394
+    },
+    "motion_ratio": 0.4637,
+    "m3_run_ratio": 1.0,
+    "n_targets": 0
+  },
+  "n_objects": 0,
+  "config": {
+    "profile": "single_person",
+    "m1": {
+      "sources": {
+        "camera_1": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/clips_singal_person_result/seq_024/camera_1_2023-12-01-11_05_52.avi",
+        "camera_2": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/clips_singal_person_result/seq_024/camera_2_2023-12-01-11_05_52.avi",
+        "camera_3": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/clips_singal_person_result/seq_024/camera_3_2023-12-01-11_05_52.avi",
+        "camera_4": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/clips_singal_person_result/seq_024/camera_4_2023-12-01-11_05_52.avi",
+        "camera_5": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/clips_singal_person_result/seq_024/camera_5_2023-12-01-11_05_52.avi",
+        "camera_6": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/clips_singal_person_result/seq_024/camera_6_2023-12-01-11_05_52.avi",
+        "camera_7": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/clips_singal_person_result/seq_024/camera_7_2023-12-01-11_05_52.avi"
+      },
+      "stride": 5,
+      "fps": 30.0,
+      "max_loops": -1,
+      "start_fid": 0,
+      "end_fid": -1
+    },
+    "m2": {
+      "branch_a": {
+        "enabled": true,
+        "diff_threshold": 25,
+        "min_motion_ratio": 0.002,
+        "blur_ksize": 5,
+        "use_reference_frame": false,
+        "gate_m3": false,
+        "gate_max_hold_loops": 30
+      },
+      "dynamic_line": {
+        "enabled": false,
+        "min_blob_area": 8,
+        "large_blob_area": 2000,
+        "exclusion_margin": 24,
+        "density_radius": 120,
+        "density_max_neighbors": 3,
+        "crop_size": 256,
+        "max_crops_per_frame": 32,
+        "mog2_history": 500,
+        "mog2_var_threshold": 16,
+        "warmup_frames": 30,
+        "persistence_frames": 3,
+        "match_max_dist": 60,
+        "track_max_miss": 2
+      },
+      "static_line": {
+        "enabled": false,
+        "baseline_alpha": 0.002,
+        "baseline_diff_thresh": 30,
+        "motion_thresh": 25,
+        "blur_ksize": 5,
+        "min_blob_area": 60,
+        "max_blob_area": 120000,
+        "crop_size": 256,
+        "warmup_frames": 30,
+        "motion_exclusion_margin": 61,
+        "max_aspect_ratio": 2.0,
+        "persistence_frames": 8,
+        "match_max_dist": 40,
+        "track_max_miss": 3,
+        "density_radius": 120,
+        "density_max_neighbors": 4,
+        "freeze_confirmed": true,
+        "floor_zone_file": null,
+        "floor_zone_name": "地板",
+        "floor_zone": null,
+        "floor_zone_by_camera": {}
+      },
+      "classifier": {
+        "onnx": "weights/branch_b_classifier.onnx",
+        "input_size": 224,
+        "target_index": 1,
+        "threshold": 0.5
+      }
+    },
+    "m3": {
+      "variant": "nano",
+      "weights": null,
+      "resolution": "auto",
+      "thr": 0.1,
+      "person_cls": null,
+      "det_cache": "D:\\yizhen\\smart_kitchen\\results\\det_cache\\coco_nano\\seq_024",
+      "class_thresholds": {
+        "人": 0.3,
+        "刀具": 0.3,
+        "砧板": 0.2,
+        "食材": 0.25,
+        "鍋鏟": 0.65,
+        "鍋子": 0.35,
+        "手": 0.1,
+        "容器": 0.65,
+        "抹布": 0.3,
+        "夾子": 0.3,
+        "手套": 0.3
+      }
+    },
+    "m4": {
+      "backend": "rf_mcbyte_nomask_app",
+      "track_activation_threshold": 0.25,
+      "minimum_matching_threshold": 0.8,
+      "lost_track_buffer": 30,
+      "frame_rate": 30,
+      "minimum_consecutive_frames": 1,
+      "history_len": 30,
+      "backend_params": {
+        "rf_cbiou": {
+          "buffer_ratio_first": 0.3,
+          "buffer_ratio_second": 0.5
+        },
+        "rf_mcbyte_nomask_app": {
+          "appearance_w": 0.7,
+          "embedder": "dinov2",
+          "ema_momentum": 0.9
+        }
+      }
+    },
+    "m5": {
+      "embedder": "dinov2",
+      "ttl_loops": 600,
+      "topology_file": null
+    },
+    "camera_topology": {
+      "fusion": {
+        "mode": "llr",
+        "background_arrival_hz": 0.0482,
+        "cost_false_merge_over_break": 5.0,
+        "transit_model": "loiter",
+        "p_loiter": 0.1798,
+        "tau_loiter_s": 8.51,
+        "appearance_profile": "dinov2",
+        "appearance_clip": null,
+        "overlap_llr": 5.0,
+        "overlap_window_s": 0.5,
+        "same_camera": {
+          "enabled": true,
+          "tau_break_s": 2.0,
+          "max_gap_s": 15.0
+        },
+        "unknown_path": {
+          "enabled": true,
+          "median_multiplier": 2.0,
+          "log_sigma": 0.8,
+          "logprior": -2.0
+        },
+        "direction": {
+          "enabled": false
+        }
+      },
+      "links": [
+        {
+          "from": "camera_2",
+          "to": "camera_6",
+          "mean_s": 3.261,
+          "std_s": 1.845
+        },
+        {
+          "from": "camera_6",
+          "to": "camera_7",
+          "mean_s": 0.617,
+          "std_s": 0.481
+        },
+        {
+          "from": "camera_7",
+          "to": "camera_5",
+          "mean_s": 10.542,
+          "std_s": 4.278
+        }
+      ],
+      "overlapping": [
+        [
+          "camera_1",
+          "camera_2"
+        ],
+        [
+          "camera_1",
+          "camera_3"
+        ],
+        [
+          "camera_1",
+          "camera_5"
+        ],
+        [
+          "camera_6",
+          "camera_7"
+        ],
+        [
+          "camera_2",
+          "camera_3"
+        ],
+        [
+          "camera_2",
+          "camera_4"
+        ],
+        [
+          "camera_2",
+          "camera_5"
+        ],
+        [
+          "camera_3",
+          "camera_4"
+        ],
+        [
+          "camera_3",
+          "camera_5"
+        ],
+        [
+          "camera_4",
+          "camera_5"
+        ],
+        [
+          "camera_5",
+          "camera_6"
+        ]
+      ],
+      "clock": {
+        "max_skew_s": 0.2
+      },
+      "cameras": {
+        "camera_1": {
+          "clock_offset_s": 0.0
+        },
+        "camera_2": {
+          "clock_offset_s": 0.0
+        },
+        "camera_3": {
+          "clock_offset_s": 0.0
+        },
+        "camera_4": {
+          "clock_offset_s": 0.0
+        },
+        "camera_5": {
+          "clock_offset_s": 0.0
+        },
+        "camera_6": {
+          "clock_offset_s": 0.0
+        },
+        "camera_7": {
+          "clock_offset_s": 0.0
+        }
+      }
+    },
+    "output": {
+      "dir": "D:\\yizhen\\smart_kitchen\\results\\full_seq_integrated\\single_person\\seq_024",
+      "resident_every": 50,
+      "save_frames": false,
+      "save_frames_every": 0
+    }
+  }
+}
