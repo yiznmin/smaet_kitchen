@@ -1,0 +1,86 @@
+{
+  "unit": "plan_px",
+  "cell": 4,
+  "walkable_cells": 2384,
+  "area": 38144.0,
+  "llr_threshold": 1.6094,
+  "derive_seqs": [
+    "seq_000",
+    "seq_001",
+    "seq_002"
+  ],
+  "landmark_points_per_camera": {
+    "camera_1": 7,
+    "camera_2": 7,
+    "camera_3": 8,
+    "camera_4": 6,
+    "camera_5": 4,
+    "camera_6": 5,
+    "camera_7": 6
+  },
+  "calibration": {
+    "landmarks": {
+      "n_pairs_total": 10268,
+      "n_pairs_used": 8731,
+      "pair_dist_median": 12.74,
+      "pair_dist_p90": 27.46,
+      "sigma_pair": 10.819,
+      "sigma_single": 7.65,
+      "n_walk_samples": 7006,
+      "speed": 17.998,
+      "speed_p95": 56.538,
+      "off_walkable_ratio": {
+        "camera_1": 0.039,
+        "camera_2": 0.129,
+        "camera_3": 0.219,
+        "camera_4": 0.238,
+        "camera_5": 0.42,
+        "camera_6": 0.514,
+        "camera_7": 0.111
+      },
+      "area": 38144.0,
+      "evidence_ceiling_nats": 3.949,
+      "v2_pass": true
+    },
+    "refined": {
+      "n_pairs_total": 10268,
+      "n_pairs_used": 8731,
+      "pair_dist_median": 12.0,
+      "pair_dist_p90": 26.63,
+      "sigma_pair": 10.192,
+      "sigma_single": 7.207,
+      "n_walk_samples": 7006,
+      "speed": 16.683,
+      "speed_p95": 41.724,
+      "off_walkable_ratio": {
+        "camera_1": 0.035,
+        "camera_2": 0.026,
+        "camera_3": 0.217,
+        "camera_4": 0.482,
+        "camera_5": 0.202,
+        "camera_6": 0.16,
+        "camera_7": 0.167
+      },
+      "area": 38144.0,
+      "evidence_ceiling_nats": 4.068,
+      "v2_pass": true
+    }
+  },
+  "cells": {
+    "P1": {
+      "source": "landmarks",
+      "distance": "rooms",
+      "plan_transit": false
+    },
+    "P2": {
+      "source": "landmarks",
+      "distance": "rooms",
+      "plan_transit": true
+    },
+    "G2": {
+      "source": "refined",
+      "distance": "grid",
+      "plan_transit": true
+    }
+  }
+}

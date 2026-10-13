@@ -1,0 +1,168 @@
+# G2 · seq_026 —— 由 scripts/chirla_build_plan_topology.py 產生,請勿手改
+# 預先登記:docs/M5_平面圖幾何接入_預先登記_20261013.md
+# 基底 configs/fix_grid/base_overlapfix.yaml;投影來源 refined;單位為示意圖像素(欄位名沿用 _m)
+camera_topology:
+  fusion:
+    mode: llr
+    background_arrival_hz: 0.0482
+    cost_false_merge_over_break: 5.0
+    transit_model: loiter
+    p_loiter: 0.1798
+    tau_loiter_s: 8.51
+    appearance_profile: dinov2
+    appearance_clip: null
+    overlap_llr: 5.0
+    overlap_window_s: 0.5
+    same_camera:
+      enabled: true
+      tau_break_s: 2.0
+      max_gap_s: 15.0
+    unknown_path:
+      enabled: true
+      median_multiplier: 2.0
+      log_sigma: 0.8
+      logprior: -2.0
+    direction:
+      enabled: false
+    ground_plane:
+      enabled: true
+      sigma_m: 7.207
+      area_m2: 38144.0
+      clip: 8.0
+      speed: 16.683
+    floorplan:
+      enabled: true
+      distance: grid
+      grid: configs/plan_grid/plan_map.npz
+    plan_transit:
+      enabled: true
+  links:
+  - from: camera_2
+    to: camera_6
+    mean_s: 3.261
+    std_s: 1.845
+  - from: camera_6
+    to: camera_7
+    mean_s: 0.617
+    std_s: 0.481
+  - from: camera_7
+    to: camera_5
+    mean_s: 10.542
+    std_s: 4.278
+  overlapping:
+  - - camera_1
+    - camera_2
+  - - camera_1
+    - camera_3
+  - - camera_1
+    - camera_5
+  - - camera_6
+    - camera_7
+  - - camera_2
+    - camera_3
+  - - camera_2
+    - camera_4
+  - - camera_2
+    - camera_5
+  - - camera_3
+    - camera_4
+  - - camera_3
+    - camera_5
+  - - camera_4
+    - camera_5
+  - - camera_5
+    - camera_6
+  clock:
+    max_skew_s: 0.2
+  cameras:
+    camera_1:
+      clock_offset_s: 0.0
+      homography:
+        matrix:
+        - - -0.4275916684438438
+          - 1.4138702412971436
+          - 754.2263721987974
+        - - -0.35210042365067373
+          - -0.2759630951928809
+          - 763.7562640935921
+        - - 0.0010747507462377948
+          - 0.0062263302098055215
+          - 1.0
+    camera_2:
+      clock_offset_s: 0.0
+      homography:
+        matrix:
+        - - -0.07849687536645719
+          - -0.21286612238732924
+          - 384.00330441266294
+        - - 0.03719901858885278
+          - -0.25742523020303176
+          - 270.1485463006029
+        - - 2.5508498585065104e-05
+          - -0.0004175765513140338
+          - 1.0
+    camera_3:
+      clock_offset_s: 0.0
+      homography:
+        matrix:
+        - - -0.0688017988557365
+          - 0.21730834862938556
+          - 274.1946068225787
+        - - -0.06106257081032368
+          - 0.3074171039075015
+          - 59.17034955321953
+        - - -0.0006375717338796368
+          - 0.0010239098596240327
+          - 1.0
+    camera_4:
+      clock_offset_s: 0.0
+      homography:
+        matrix:
+        - - -148.30123817029823
+          - -138.29087189033947
+          - -97909.70230494913
+        - - -133.28712670205206
+          - -12.835944606854408
+          - -62515.451507881204
+        - - -0.6134722575453003
+          - -0.5325298040905551
+          - 1.0
+    camera_5:
+      clock_offset_s: 0.0
+      homography:
+        matrix:
+        - - -0.21317083682274704
+          - 0.6782123551447252
+          - 579.3762565873271
+        - - 0.13861399408749087
+          - 0.7026115084710844
+          - 108.75425668509722
+        - - -0.0005676663005275091
+          - 0.0032813992969837388
+          - 1.0
+    camera_6:
+      clock_offset_s: 0.0
+      homography:
+        matrix:
+        - - -0.10023959517674501
+          - 0.18673199942874216
+          - 85.51351520469737
+        - - -0.1571001809195098
+          - -0.0526635295465967
+          - 296.89337827948
+        - - -0.0003603381773349436
+          - -0.00012553291978081375
+          - 1.0
+    camera_7:
+      clock_offset_s: 0.0
+      homography:
+        matrix:
+        - - -1.3401914456334116
+          - -4.537571441837335
+          - 407.2106918561987
+        - - -0.9235541241676546
+          - -1.1808156777534604
+          - -1610.2952880930807
+        - - -0.013243039731799947
+          - -0.015424671393823003
+          - 1.0

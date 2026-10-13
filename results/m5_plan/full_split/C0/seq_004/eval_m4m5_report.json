@@ -1,0 +1,3815 @@
+{
+  "per_run": {
+    "results/m5_plan/full/C0/seq_004": {
+      "seq": "seq_004",
+      "n_tracks": 529,
+      "n_ghost_tracks": 187,
+      "n_bindings": 342,
+      "n_ghost_bindings": 187,
+      "track_match": {
+        "camera_1|0": {
+          "n_frames": 317,
+          "n_matched": 317,
+          "match_rate": 1.0,
+          "gt_id": 1,
+          "is_ghost": false
+        },
+        "camera_1|1": {
+          "n_frames": 92,
+          "n_matched": 85,
+          "match_rate": 0.9239,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_1|2": {
+          "n_frames": 5,
+          "n_matched": 3,
+          "match_rate": 0.6,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_1|3": {
+          "n_frames": 27,
+          "n_matched": 26,
+          "match_rate": 0.963,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_1|4": {
+          "n_frames": 11,
+          "n_matched": 11,
+          "match_rate": 1.0,
+          "gt_id": 5,
+          "is_ghost": false
+        },
+        "camera_1|5": {
+          "n_frames": 44,
+          "n_matched": 10,
+          "match_rate": 0.2273,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_1|6": {
+          "n_frames": 17,
+          "n_matched": 7,
+          "match_rate": 0.4118,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_1|7": {
+          "n_frames": 6,
+          "n_matched": 2,
+          "match_rate": 0.3333,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_1|8": {
+          "n_frames": 37,
+          "n_matched": 32,
+          "match_rate": 0.8649,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_1|9": {
+          "n_frames": 60,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_1|10": {
+          "n_frames": 60,
+          "n_matched": 1,
+          "match_rate": 0.0167,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_1|11": {
+          "n_frames": 53,
+          "n_matched": 34,
+          "match_rate": 0.6415,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_1|12": {
+          "n_frames": 9,
+          "n_matched": 6,
+          "match_rate": 0.6667,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_1|13": {
+          "n_frames": 44,
+          "n_matched": 31,
+          "match_rate": 0.7045,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_1|14": {
+          "n_frames": 4,
+          "n_matched": 1,
+          "match_rate": 0.25,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_1|15": {
+          "n_frames": 10,
+          "n_matched": 7,
+          "match_rate": 0.7,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_1|16": {
+          "n_frames": 4,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_1|17": {
+          "n_frames": 13,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_1|18": {
+          "n_frames": 3,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_1|19": {
+          "n_frames": 113,
+          "n_matched": 6,
+          "match_rate": 0.0531,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_1|20": {
+          "n_frames": 76,
+          "n_matched": 72,
+          "match_rate": 0.9474,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_1|21": {
+          "n_frames": 4,
+          "n_matched": 2,
+          "match_rate": 0.5,
+          "gt_id": 1,
+          "is_ghost": false
+        },
+        "camera_1|22": {
+          "n_frames": 11,
+          "n_matched": 10,
+          "match_rate": 0.9091,
+          "gt_id": 1,
+          "is_ghost": false
+        },
+        "camera_1|23": {
+          "n_frames": 4,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_1|24": {
+          "n_frames": 80,
+          "n_matched": 42,
+          "match_rate": 0.525,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_1|25": {
+          "n_frames": 10,
+          "n_matched": 6,
+          "match_rate": 0.6,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_1|26": {
+          "n_frames": 15,
+          "n_matched": 12,
+          "match_rate": 0.8,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_1|27": {
+          "n_frames": 2,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_1|28": {
+          "n_frames": 5,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_1|29": {
+          "n_frames": 49,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_1|30": {
+          "n_frames": 33,
+          "n_matched": 12,
+          "match_rate": 0.3636,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_1|31": {
+          "n_frames": 26,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_1|32": {
+          "n_frames": 23,
+          "n_matched": 5,
+          "match_rate": 0.2174,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_1|33": {
+          "n_frames": 21,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_1|34": {
+          "n_frames": 47,
+          "n_matched": 45,
+          "match_rate": 0.9574,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_1|35": {
+          "n_frames": 8,
+          "n_matched": 8,
+          "match_rate": 1.0,
+          "gt_id": 5,
+          "is_ghost": false
+        },
+        "camera_1|36": {
+          "n_frames": 96,
+          "n_matched": 87,
+          "match_rate": 0.9062,
+          "gt_id": 1,
+          "is_ghost": false
+        },
+        "camera_1|37": {
+          "n_frames": 20,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_1|38": {
+          "n_frames": 34,
+          "n_matched": 33,
+          "match_rate": 0.9706,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_1|39": {
+          "n_frames": 8,
+          "n_matched": 1,
+          "match_rate": 0.125,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_1|40": {
+          "n_frames": 11,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_1|41": {
+          "n_frames": 9,
+          "n_matched": 7,
+          "match_rate": 0.7778,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_1|42": {
+          "n_frames": 28,
+          "n_matched": 1,
+          "match_rate": 0.0357,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_1|43": {
+          "n_frames": 22,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_1|44": {
+          "n_frames": 131,
+          "n_matched": 128,
+          "match_rate": 0.9771,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_1|45": {
+          "n_frames": 20,
+          "n_matched": 19,
+          "match_rate": 0.95,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_1|46": {
+          "n_frames": 58,
+          "n_matched": 56,
+          "match_rate": 0.9655,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_1|47": {
+          "n_frames": 17,
+          "n_matched": 17,
+          "match_rate": 1.0,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_1|48": {
+          "n_frames": 348,
+          "n_matched": 7,
+          "match_rate": 0.0201,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_1|49": {
+          "n_frames": 3,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_1|50": {
+          "n_frames": 21,
+          "n_matched": 17,
+          "match_rate": 0.8095,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_1|51": {
+          "n_frames": 54,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_1|52": {
+          "n_frames": 6,
+          "n_matched": 4,
+          "match_rate": 0.6667,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_1|53": {
+          "n_frames": 5,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_1|54": {
+          "n_frames": 19,
+          "n_matched": 19,
+          "match_rate": 1.0,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_1|55": {
+          "n_frames": 7,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_1|56": {
+          "n_frames": 3,
+          "n_matched": 1,
+          "match_rate": 0.3333,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_1|57": {
+          "n_frames": 7,
+          "n_matched": 6,
+          "match_rate": 0.8571,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_1|58": {
+          "n_frames": 47,
+          "n_matched": 46,
+          "match_rate": 0.9787,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_1|59": {
+          "n_frames": 37,
+          "n_matched": 36,
+          "match_rate": 0.973,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_1|60": {
+          "n_frames": 29,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_1|61": {
+          "n_frames": 4,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_1|62": {
+          "n_frames": 39,
+          "n_matched": 39,
+          "match_rate": 1.0,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_1|63": {
+          "n_frames": 107,
+          "n_matched": 107,
+          "match_rate": 1.0,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_1|64": {
+          "n_frames": 34,
+          "n_matched": 33,
+          "match_rate": 0.9706,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_1|65": {
+          "n_frames": 13,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_1|66": {
+          "n_frames": 59,
+          "n_matched": 54,
+          "match_rate": 0.9153,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_1|67": {
+          "n_frames": 13,
+          "n_matched": 12,
+          "match_rate": 0.9231,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_1|68": {
+          "n_frames": 24,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_1|69": {
+          "n_frames": 13,
+          "n_matched": 10,
+          "match_rate": 0.7692,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_1|70": {
+          "n_frames": 21,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_1|71": {
+          "n_frames": 56,
+          "n_matched": 56,
+          "match_rate": 1.0,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_1|72": {
+          "n_frames": 13,
+          "n_matched": 13,
+          "match_rate": 1.0,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_2|0": {
+          "n_frames": 131,
+          "n_matched": 129,
+          "match_rate": 0.9847,
+          "gt_id": 5,
+          "is_ghost": false
+        },
+        "camera_2|1": {
+          "n_frames": 158,
+          "n_matched": 154,
+          "match_rate": 0.9747,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_2|2": {
+          "n_frames": 67,
+          "n_matched": 66,
+          "match_rate": 0.9851,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_2|3": {
+          "n_frames": 22,
+          "n_matched": 21,
+          "match_rate": 0.9545,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_2|4": {
+          "n_frames": 9,
+          "n_matched": 6,
+          "match_rate": 0.6667,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_2|5": {
+          "n_frames": 9,
+          "n_matched": 6,
+          "match_rate": 0.6667,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_2|6": {
+          "n_frames": 15,
+          "n_matched": 12,
+          "match_rate": 0.8,
+          "gt_id": 5,
+          "is_ghost": false
+        },
+        "camera_2|7": {
+          "n_frames": 50,
+          "n_matched": 48,
+          "match_rate": 0.96,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_2|8": {
+          "n_frames": 1,
+          "n_matched": 1,
+          "match_rate": 1.0,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_2|9": {
+          "n_frames": 3,
+          "n_matched": 3,
+          "match_rate": 1.0,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_2|10": {
+          "n_frames": 84,
+          "n_matched": 79,
+          "match_rate": 0.9405,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_2|11": {
+          "n_frames": 8,
+          "n_matched": 1,
+          "match_rate": 0.125,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_2|12": {
+          "n_frames": 20,
+          "n_matched": 18,
+          "match_rate": 0.9,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_2|13": {
+          "n_frames": 9,
+          "n_matched": 8,
+          "match_rate": 0.8889,
+          "gt_id": 5,
+          "is_ghost": false
+        },
+        "camera_2|14": {
+          "n_frames": 11,
+          "n_matched": 10,
+          "match_rate": 0.9091,
+          "gt_id": 5,
+          "is_ghost": false
+        },
+        "camera_2|15": {
+          "n_frames": 17,
+          "n_matched": 17,
+          "match_rate": 1.0,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_2|16": {
+          "n_frames": 4,
+          "n_matched": 4,
+          "match_rate": 1.0,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_2|17": {
+          "n_frames": 490,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_2|18": {
+          "n_frames": 69,
+          "n_matched": 69,
+          "match_rate": 1.0,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_2|19": {
+          "n_frames": 2,
+          "n_matched": 2,
+          "match_rate": 1.0,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_2|20": {
+          "n_frames": 26,
+          "n_matched": 25,
+          "match_rate": 0.9615,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_2|21": {
+          "n_frames": 103,
+          "n_matched": 103,
+          "match_rate": 1.0,
+          "gt_id": 1,
+          "is_ghost": false
+        },
+        "camera_2|22": {
+          "n_frames": 17,
+          "n_matched": 15,
+          "match_rate": 0.8824,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_2|23": {
+          "n_frames": 25,
+          "n_matched": 25,
+          "match_rate": 1.0,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_2|24": {
+          "n_frames": 35,
+          "n_matched": 35,
+          "match_rate": 1.0,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_2|25": {
+          "n_frames": 30,
+          "n_matched": 30,
+          "match_rate": 1.0,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_2|26": {
+          "n_frames": 55,
+          "n_matched": 55,
+          "match_rate": 1.0,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_2|27": {
+          "n_frames": 5,
+          "n_matched": 4,
+          "match_rate": 0.8,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_2|28": {
+          "n_frames": 16,
+          "n_matched": 15,
+          "match_rate": 0.9375,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_2|29": {
+          "n_frames": 54,
+          "n_matched": 54,
+          "match_rate": 1.0,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_2|30": {
+          "n_frames": 5,
+          "n_matched": 5,
+          "match_rate": 1.0,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_2|31": {
+          "n_frames": 2,
+          "n_matched": 2,
+          "match_rate": 1.0,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_2|32": {
+          "n_frames": 6,
+          "n_matched": 5,
+          "match_rate": 0.8333,
+          "gt_id": 8,
+          "is_ghost": false
+        },
+        "camera_2|33": {
+          "n_frames": 33,
+          "n_matched": 33,
+          "match_rate": 1.0,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_2|34": {
+          "n_frames": 307,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_2|35": {
+          "n_frames": 8,
+          "n_matched": 8,
+          "match_rate": 1.0,
+          "gt_id": 1,
+          "is_ghost": false
+        },
+        "camera_2|36": {
+          "n_frames": 1038,
+          "n_matched": 1038,
+          "match_rate": 1.0,
+          "gt_id": 5,
+          "is_ghost": false
+        },
+        "camera_2|37": {
+          "n_frames": 30,
+          "n_matched": 29,
+          "match_rate": 0.9667,
+          "gt_id": 1,
+          "is_ghost": false
+        },
+        "camera_2|38": {
+          "n_frames": 5,
+          "n_matched": 5,
+          "match_rate": 1.0,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_2|39": {
+          "n_frames": 28,
+          "n_matched": 28,
+          "match_rate": 1.0,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_2|40": {
+          "n_frames": 37,
+          "n_matched": 37,
+          "match_rate": 1.0,
+          "gt_id": 1,
+          "is_ghost": false
+        },
+        "camera_2|41": {
+          "n_frames": 12,
+          "n_matched": 12,
+          "match_rate": 1.0,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_2|42": {
+          "n_frames": 23,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_2|43": {
+          "n_frames": 44,
+          "n_matched": 43,
+          "match_rate": 0.9773,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_2|44": {
+          "n_frames": 20,
+          "n_matched": 20,
+          "match_rate": 1.0,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_2|45": {
+          "n_frames": 43,
+          "n_matched": 42,
+          "match_rate": 0.9767,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_2|46": {
+          "n_frames": 4,
+          "n_matched": 4,
+          "match_rate": 1.0,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_2|47": {
+          "n_frames": 46,
+          "n_matched": 46,
+          "match_rate": 1.0,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_2|48": {
+          "n_frames": 7,
+          "n_matched": 7,
+          "match_rate": 1.0,
+          "gt_id": 8,
+          "is_ghost": false
+        },
+        "camera_2|49": {
+          "n_frames": 18,
+          "n_matched": 17,
+          "match_rate": 0.9444,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_2|50": {
+          "n_frames": 16,
+          "n_matched": 15,
+          "match_rate": 0.9375,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_2|51": {
+          "n_frames": 32,
+          "n_matched": 32,
+          "match_rate": 1.0,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_2|52": {
+          "n_frames": 61,
+          "n_matched": 61,
+          "match_rate": 1.0,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_2|53": {
+          "n_frames": 81,
+          "n_matched": 80,
+          "match_rate": 0.9877,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_2|54": {
+          "n_frames": 29,
+          "n_matched": 29,
+          "match_rate": 1.0,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_2|55": {
+          "n_frames": 49,
+          "n_matched": 49,
+          "match_rate": 1.0,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_2|56": {
+          "n_frames": 33,
+          "n_matched": 32,
+          "match_rate": 0.9697,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_2|57": {
+          "n_frames": 42,
+          "n_matched": 38,
+          "match_rate": 0.9048,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_2|58": {
+          "n_frames": 2,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_2|59": {
+          "n_frames": 14,
+          "n_matched": 14,
+          "match_rate": 1.0,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_2|60": {
+          "n_frames": 73,
+          "n_matched": 67,
+          "match_rate": 0.9178,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_2|61": {
+          "n_frames": 68,
+          "n_matched": 67,
+          "match_rate": 0.9853,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_2|62": {
+          "n_frames": 48,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_2|63": {
+          "n_frames": 4,
+          "n_matched": 2,
+          "match_rate": 0.5,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_2|64": {
+          "n_frames": 3,
+          "n_matched": 2,
+          "match_rate": 0.6667,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_2|65": {
+          "n_frames": 4,
+          "n_matched": 3,
+          "match_rate": 0.75,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_2|66": {
+          "n_frames": 5,
+          "n_matched": 5,
+          "match_rate": 1.0,
+          "gt_id": 8,
+          "is_ghost": false
+        },
+        "camera_2|67": {
+          "n_frames": 30,
+          "n_matched": 30,
+          "match_rate": 1.0,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_2|68": {
+          "n_frames": 2,
+          "n_matched": 2,
+          "match_rate": 1.0,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_2|69": {
+          "n_frames": 29,
+          "n_matched": 29,
+          "match_rate": 1.0,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_2|70": {
+          "n_frames": 10,
+          "n_matched": 10,
+          "match_rate": 1.0,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_2|71": {
+          "n_frames": 14,
+          "n_matched": 14,
+          "match_rate": 1.0,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_2|72": {
+          "n_frames": 21,
+          "n_matched": 21,
+          "match_rate": 1.0,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_3|0": {
+          "n_frames": 127,
+          "n_matched": 126,
+          "match_rate": 0.9921,
+          "gt_id": 5,
+          "is_ghost": false
+        },
+        "camera_3|1": {
+          "n_frames": 123,
+          "n_matched": 117,
+          "match_rate": 0.9512,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_3|2": {
+          "n_frames": 10,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_3|3": {
+          "n_frames": 113,
+          "n_matched": 104,
+          "match_rate": 0.9204,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_3|4": {
+          "n_frames": 98,
+          "n_matched": 94,
+          "match_rate": 0.9592,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_3|5": {
+          "n_frames": 38,
+          "n_matched": 9,
+          "match_rate": 0.2368,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_3|6": {
+          "n_frames": 129,
+          "n_matched": 129,
+          "match_rate": 1.0,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_3|7": {
+          "n_frames": 86,
+          "n_matched": 85,
+          "match_rate": 0.9884,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_3|8": {
+          "n_frames": 4,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_3|9": {
+          "n_frames": 9,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_3|10": {
+          "n_frames": 2,
+          "n_matched": 2,
+          "match_rate": 1.0,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_3|11": {
+          "n_frames": 2,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_3|12": {
+          "n_frames": 2,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_3|13": {
+          "n_frames": 70,
+          "n_matched": 60,
+          "match_rate": 0.8571,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_3|14": {
+          "n_frames": 98,
+          "n_matched": 93,
+          "match_rate": 0.949,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_3|15": {
+          "n_frames": 5,
+          "n_matched": 5,
+          "match_rate": 1.0,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_3|16": {
+          "n_frames": 3,
+          "n_matched": 1,
+          "match_rate": 0.3333,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_3|17": {
+          "n_frames": 48,
+          "n_matched": 48,
+          "match_rate": 1.0,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_3|18": {
+          "n_frames": 3,
+          "n_matched": 1,
+          "match_rate": 0.3333,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_3|19": {
+          "n_frames": 1,
+          "n_matched": 1,
+          "match_rate": 1.0,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_3|20": {
+          "n_frames": 100,
+          "n_matched": 85,
+          "match_rate": 0.85,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_3|21": {
+          "n_frames": 58,
+          "n_matched": 57,
+          "match_rate": 0.9828,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_3|22": {
+          "n_frames": 18,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_3|23": {
+          "n_frames": 2,
+          "n_matched": 1,
+          "match_rate": 0.5,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_3|24": {
+          "n_frames": 62,
+          "n_matched": 62,
+          "match_rate": 1.0,
+          "gt_id": 1,
+          "is_ghost": false
+        },
+        "camera_3|25": {
+          "n_frames": 3,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_3|26": {
+          "n_frames": 21,
+          "n_matched": 21,
+          "match_rate": 1.0,
+          "gt_id": 1,
+          "is_ghost": false
+        },
+        "camera_3|27": {
+          "n_frames": 26,
+          "n_matched": 26,
+          "match_rate": 1.0,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_3|28": {
+          "n_frames": 45,
+          "n_matched": 45,
+          "match_rate": 1.0,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_3|29": {
+          "n_frames": 20,
+          "n_matched": 17,
+          "match_rate": 0.85,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_3|30": {
+          "n_frames": 52,
+          "n_matched": 51,
+          "match_rate": 0.9808,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_3|31": {
+          "n_frames": 2,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_3|32": {
+          "n_frames": 14,
+          "n_matched": 12,
+          "match_rate": 0.8571,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_3|33": {
+          "n_frames": 26,
+          "n_matched": 26,
+          "match_rate": 1.0,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_3|34": {
+          "n_frames": 1051,
+          "n_matched": 1050,
+          "match_rate": 0.999,
+          "gt_id": 5,
+          "is_ghost": false
+        },
+        "camera_3|35": {
+          "n_frames": 22,
+          "n_matched": 20,
+          "match_rate": 0.9091,
+          "gt_id": 1,
+          "is_ghost": false
+        },
+        "camera_3|36": {
+          "n_frames": 1,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_3|37": {
+          "n_frames": 63,
+          "n_matched": 60,
+          "match_rate": 0.9524,
+          "gt_id": 1,
+          "is_ghost": false
+        },
+        "camera_3|38": {
+          "n_frames": 37,
+          "n_matched": 35,
+          "match_rate": 0.9459,
+          "gt_id": 1,
+          "is_ghost": false
+        },
+        "camera_3|39": {
+          "n_frames": 111,
+          "n_matched": 103,
+          "match_rate": 0.9279,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_3|40": {
+          "n_frames": 24,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_3|41": {
+          "n_frames": 47,
+          "n_matched": 47,
+          "match_rate": 1.0,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_3|42": {
+          "n_frames": 11,
+          "n_matched": 11,
+          "match_rate": 1.0,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_3|43": {
+          "n_frames": 8,
+          "n_matched": 4,
+          "match_rate": 0.5,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_3|44": {
+          "n_frames": 1,
+          "n_matched": 1,
+          "match_rate": 1.0,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_3|45": {
+          "n_frames": 27,
+          "n_matched": 25,
+          "match_rate": 0.9259,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_3|46": {
+          "n_frames": 40,
+          "n_matched": 39,
+          "match_rate": 0.975,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_3|47": {
+          "n_frames": 40,
+          "n_matched": 40,
+          "match_rate": 1.0,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_3|48": {
+          "n_frames": 59,
+          "n_matched": 59,
+          "match_rate": 1.0,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_3|49": {
+          "n_frames": 3,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_3|50": {
+          "n_frames": 9,
+          "n_matched": 9,
+          "match_rate": 1.0,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_3|51": {
+          "n_frames": 2,
+          "n_matched": 2,
+          "match_rate": 1.0,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_3|52": {
+          "n_frames": 51,
+          "n_matched": 51,
+          "match_rate": 1.0,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_3|53": {
+          "n_frames": 25,
+          "n_matched": 25,
+          "match_rate": 1.0,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_3|54": {
+          "n_frames": 71,
+          "n_matched": 69,
+          "match_rate": 0.9718,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_3|55": {
+          "n_frames": 56,
+          "n_matched": 56,
+          "match_rate": 1.0,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_3|56": {
+          "n_frames": 8,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_3|57": {
+          "n_frames": 47,
+          "n_matched": 42,
+          "match_rate": 0.8936,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_3|58": {
+          "n_frames": 7,
+          "n_matched": 3,
+          "match_rate": 0.4286,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_3|59": {
+          "n_frames": 51,
+          "n_matched": 51,
+          "match_rate": 1.0,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_3|60": {
+          "n_frames": 82,
+          "n_matched": 78,
+          "match_rate": 0.9512,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_3|61": {
+          "n_frames": 36,
+          "n_matched": 35,
+          "match_rate": 0.9722,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_3|62": {
+          "n_frames": 4,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_3|63": {
+          "n_frames": 46,
+          "n_matched": 46,
+          "match_rate": 1.0,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_3|64": {
+          "n_frames": 43,
+          "n_matched": 43,
+          "match_rate": 1.0,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_3|65": {
+          "n_frames": 7,
+          "n_matched": 7,
+          "match_rate": 1.0,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_4|0": {
+          "n_frames": 242,
+          "n_matched": 241,
+          "match_rate": 0.9959,
+          "gt_id": 8,
+          "is_ghost": false
+        },
+        "camera_4|1": {
+          "n_frames": 145,
+          "n_matched": 143,
+          "match_rate": 0.9862,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_4|2": {
+          "n_frames": 22,
+          "n_matched": 22,
+          "match_rate": 1.0,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_4|3": {
+          "n_frames": 177,
+          "n_matched": 174,
+          "match_rate": 0.9831,
+          "gt_id": 8,
+          "is_ghost": false
+        },
+        "camera_4|4": {
+          "n_frames": 111,
+          "n_matched": 111,
+          "match_rate": 1.0,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_4|5": {
+          "n_frames": 8,
+          "n_matched": 5,
+          "match_rate": 0.625,
+          "gt_id": 8,
+          "is_ghost": false
+        },
+        "camera_4|6": {
+          "n_frames": 5,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_4|7": {
+          "n_frames": 15,
+          "n_matched": 13,
+          "match_rate": 0.8667,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_4|8": {
+          "n_frames": 7,
+          "n_matched": 3,
+          "match_rate": 0.4286,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_4|9": {
+          "n_frames": 5,
+          "n_matched": 3,
+          "match_rate": 0.6,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_4|10": {
+          "n_frames": 17,
+          "n_matched": 17,
+          "match_rate": 1.0,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_4|11": {
+          "n_frames": 25,
+          "n_matched": 24,
+          "match_rate": 0.96,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_4|12": {
+          "n_frames": 5,
+          "n_matched": 5,
+          "match_rate": 1.0,
+          "gt_id": 5,
+          "is_ghost": false
+        },
+        "camera_4|13": {
+          "n_frames": 86,
+          "n_matched": 86,
+          "match_rate": 1.0,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_4|14": {
+          "n_frames": 27,
+          "n_matched": 27,
+          "match_rate": 1.0,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_4|15": {
+          "n_frames": 74,
+          "n_matched": 74,
+          "match_rate": 1.0,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_4|16": {
+          "n_frames": 13,
+          "n_matched": 12,
+          "match_rate": 0.9231,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_4|17": {
+          "n_frames": 7,
+          "n_matched": 7,
+          "match_rate": 1.0,
+          "gt_id": 8,
+          "is_ghost": false
+        },
+        "camera_4|18": {
+          "n_frames": 30,
+          "n_matched": 30,
+          "match_rate": 1.0,
+          "gt_id": 5,
+          "is_ghost": false
+        },
+        "camera_4|19": {
+          "n_frames": 5,
+          "n_matched": 5,
+          "match_rate": 1.0,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_4|20": {
+          "n_frames": 30,
+          "n_matched": 30,
+          "match_rate": 1.0,
+          "gt_id": 1,
+          "is_ghost": false
+        },
+        "camera_4|21": {
+          "n_frames": 7,
+          "n_matched": 7,
+          "match_rate": 1.0,
+          "gt_id": 5,
+          "is_ghost": false
+        },
+        "camera_4|22": {
+          "n_frames": 3,
+          "n_matched": 3,
+          "match_rate": 1.0,
+          "gt_id": 1,
+          "is_ghost": false
+        },
+        "camera_4|23": {
+          "n_frames": 5,
+          "n_matched": 5,
+          "match_rate": 1.0,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_4|24": {
+          "n_frames": 4,
+          "n_matched": 4,
+          "match_rate": 1.0,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_4|25": {
+          "n_frames": 5,
+          "n_matched": 5,
+          "match_rate": 1.0,
+          "gt_id": 1,
+          "is_ghost": false
+        },
+        "camera_4|26": {
+          "n_frames": 8,
+          "n_matched": 8,
+          "match_rate": 1.0,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_4|27": {
+          "n_frames": 5,
+          "n_matched": 5,
+          "match_rate": 1.0,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_4|28": {
+          "n_frames": 3,
+          "n_matched": 3,
+          "match_rate": 1.0,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_4|29": {
+          "n_frames": 23,
+          "n_matched": 23,
+          "match_rate": 1.0,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_4|30": {
+          "n_frames": 7,
+          "n_matched": 7,
+          "match_rate": 1.0,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_4|31": {
+          "n_frames": 384,
+          "n_matched": 384,
+          "match_rate": 1.0,
+          "gt_id": 8,
+          "is_ghost": false
+        },
+        "camera_4|32": {
+          "n_frames": 23,
+          "n_matched": 23,
+          "match_rate": 1.0,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_4|33": {
+          "n_frames": 318,
+          "n_matched": 316,
+          "match_rate": 0.9937,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_4|34": {
+          "n_frames": 38,
+          "n_matched": 35,
+          "match_rate": 0.9211,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_4|35": {
+          "n_frames": 3,
+          "n_matched": 1,
+          "match_rate": 0.3333,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_4|36": {
+          "n_frames": 14,
+          "n_matched": 14,
+          "match_rate": 1.0,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_4|37": {
+          "n_frames": 4,
+          "n_matched": 3,
+          "match_rate": 0.75,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_4|38": {
+          "n_frames": 3,
+          "n_matched": 2,
+          "match_rate": 0.6667,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_4|39": {
+          "n_frames": 2,
+          "n_matched": 2,
+          "match_rate": 1.0,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_4|40": {
+          "n_frames": 32,
+          "n_matched": 31,
+          "match_rate": 0.9688,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_4|41": {
+          "n_frames": 3,
+          "n_matched": 3,
+          "match_rate": 1.0,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_4|42": {
+          "n_frames": 2,
+          "n_matched": 1,
+          "match_rate": 0.5,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_4|43": {
+          "n_frames": 20,
+          "n_matched": 20,
+          "match_rate": 1.0,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_4|44": {
+          "n_frames": 4,
+          "n_matched": 4,
+          "match_rate": 1.0,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_4|45": {
+          "n_frames": 6,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_4|46": {
+          "n_frames": 38,
+          "n_matched": 38,
+          "match_rate": 1.0,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_4|47": {
+          "n_frames": 21,
+          "n_matched": 20,
+          "match_rate": 0.9524,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_4|48": {
+          "n_frames": 3,
+          "n_matched": 2,
+          "match_rate": 0.6667,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_4|49": {
+          "n_frames": 3,
+          "n_matched": 3,
+          "match_rate": 1.0,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_4|50": {
+          "n_frames": 12,
+          "n_matched": 12,
+          "match_rate": 1.0,
+          "gt_id": 8,
+          "is_ghost": false
+        },
+        "camera_4|51": {
+          "n_frames": 8,
+          "n_matched": 8,
+          "match_rate": 1.0,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_4|52": {
+          "n_frames": 6,
+          "n_matched": 6,
+          "match_rate": 1.0,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_4|53": {
+          "n_frames": 7,
+          "n_matched": 6,
+          "match_rate": 0.8571,
+          "gt_id": 8,
+          "is_ghost": false
+        },
+        "camera_4|54": {
+          "n_frames": 19,
+          "n_matched": 19,
+          "match_rate": 1.0,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_4|55": {
+          "n_frames": 3,
+          "n_matched": 3,
+          "match_rate": 1.0,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_4|56": {
+          "n_frames": 12,
+          "n_matched": 11,
+          "match_rate": 0.9167,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_4|57": {
+          "n_frames": 5,
+          "n_matched": 5,
+          "match_rate": 1.0,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_4|58": {
+          "n_frames": 1,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|0": {
+          "n_frames": 106,
+          "n_matched": 103,
+          "match_rate": 0.9717,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_5|1": {
+          "n_frames": 23,
+          "n_matched": 23,
+          "match_rate": 1.0,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_5|2": {
+          "n_frames": 57,
+          "n_matched": 56,
+          "match_rate": 0.9825,
+          "gt_id": 5,
+          "is_ghost": false
+        },
+        "camera_5|3": {
+          "n_frames": 88,
+          "n_matched": 78,
+          "match_rate": 0.8864,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_5|4": {
+          "n_frames": 13,
+          "n_matched": 13,
+          "match_rate": 1.0,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_5|5": {
+          "n_frames": 29,
+          "n_matched": 24,
+          "match_rate": 0.8276,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_5|6": {
+          "n_frames": 9,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|7": {
+          "n_frames": 5,
+          "n_matched": 4,
+          "match_rate": 0.8,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_5|8": {
+          "n_frames": 55,
+          "n_matched": 55,
+          "match_rate": 1.0,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_5|9": {
+          "n_frames": 128,
+          "n_matched": 121,
+          "match_rate": 0.9453,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_5|10": {
+          "n_frames": 92,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|11": {
+          "n_frames": 15,
+          "n_matched": 15,
+          "match_rate": 1.0,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_5|12": {
+          "n_frames": 22,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|13": {
+          "n_frames": 84,
+          "n_matched": 61,
+          "match_rate": 0.7262,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_5|14": {
+          "n_frames": 45,
+          "n_matched": 45,
+          "match_rate": 1.0,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_5|15": {
+          "n_frames": 28,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|16": {
+          "n_frames": 69,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|17": {
+          "n_frames": 44,
+          "n_matched": 37,
+          "match_rate": 0.8409,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_5|18": {
+          "n_frames": 71,
+          "n_matched": 69,
+          "match_rate": 0.9718,
+          "gt_id": 8,
+          "is_ghost": false
+        },
+        "camera_5|19": {
+          "n_frames": 21,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|20": {
+          "n_frames": 12,
+          "n_matched": 8,
+          "match_rate": 0.6667,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_5|21": {
+          "n_frames": 48,
+          "n_matched": 30,
+          "match_rate": 0.625,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_5|22": {
+          "n_frames": 37,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|23": {
+          "n_frames": 2,
+          "n_matched": 1,
+          "match_rate": 0.5,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_5|24": {
+          "n_frames": 18,
+          "n_matched": 17,
+          "match_rate": 0.9444,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_5|25": {
+          "n_frames": 7,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|26": {
+          "n_frames": 174,
+          "n_matched": 149,
+          "match_rate": 0.8563,
+          "gt_id": 5,
+          "is_ghost": false
+        },
+        "camera_5|27": {
+          "n_frames": 12,
+          "n_matched": 1,
+          "match_rate": 0.0833,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|28": {
+          "n_frames": 3,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|29": {
+          "n_frames": 33,
+          "n_matched": 29,
+          "match_rate": 0.8788,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_5|30": {
+          "n_frames": 15,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|31": {
+          "n_frames": 15,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|32": {
+          "n_frames": 18,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|33": {
+          "n_frames": 47,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|34": {
+          "n_frames": 17,
+          "n_matched": 16,
+          "match_rate": 0.9412,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_5|35": {
+          "n_frames": 21,
+          "n_matched": 21,
+          "match_rate": 1.0,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_5|36": {
+          "n_frames": 80,
+          "n_matched": 10,
+          "match_rate": 0.125,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|37": {
+          "n_frames": 145,
+          "n_matched": 123,
+          "match_rate": 0.8483,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_5|38": {
+          "n_frames": 1,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|39": {
+          "n_frames": 116,
+          "n_matched": 92,
+          "match_rate": 0.7931,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_5|40": {
+          "n_frames": 7,
+          "n_matched": 7,
+          "match_rate": 1.0,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_5|41": {
+          "n_frames": 74,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|42": {
+          "n_frames": 15,
+          "n_matched": 3,
+          "match_rate": 0.2,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|43": {
+          "n_frames": 75,
+          "n_matched": 59,
+          "match_rate": 0.7867,
+          "gt_id": 8,
+          "is_ghost": false
+        },
+        "camera_5|44": {
+          "n_frames": 17,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|45": {
+          "n_frames": 22,
+          "n_matched": 22,
+          "match_rate": 1.0,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_5|46": {
+          "n_frames": 7,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|47": {
+          "n_frames": 7,
+          "n_matched": 3,
+          "match_rate": 0.4286,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|48": {
+          "n_frames": 27,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|49": {
+          "n_frames": 85,
+          "n_matched": 85,
+          "match_rate": 1.0,
+          "gt_id": 5,
+          "is_ghost": false
+        },
+        "camera_5|50": {
+          "n_frames": 53,
+          "n_matched": 50,
+          "match_rate": 0.9434,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_5|51": {
+          "n_frames": 15,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|52": {
+          "n_frames": 22,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|53": {
+          "n_frames": 18,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|54": {
+          "n_frames": 2,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|55": {
+          "n_frames": 44,
+          "n_matched": 43,
+          "match_rate": 0.9773,
+          "gt_id": 1,
+          "is_ghost": false
+        },
+        "camera_5|56": {
+          "n_frames": 18,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|57": {
+          "n_frames": 144,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|58": {
+          "n_frames": 87,
+          "n_matched": 58,
+          "match_rate": 0.6667,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_5|59": {
+          "n_frames": 4,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|60": {
+          "n_frames": 30,
+          "n_matched": 27,
+          "match_rate": 0.9,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_5|61": {
+          "n_frames": 16,
+          "n_matched": 15,
+          "match_rate": 0.9375,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_5|62": {
+          "n_frames": 10,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|63": {
+          "n_frames": 66,
+          "n_matched": 66,
+          "match_rate": 1.0,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_5|64": {
+          "n_frames": 25,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|65": {
+          "n_frames": 36,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|66": {
+          "n_frames": 29,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|67": {
+          "n_frames": 339,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|68": {
+          "n_frames": 88,
+          "n_matched": 80,
+          "match_rate": 0.9091,
+          "gt_id": 1,
+          "is_ghost": false
+        },
+        "camera_5|69": {
+          "n_frames": 22,
+          "n_matched": 15,
+          "match_rate": 0.6818,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_5|70": {
+          "n_frames": 20,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|71": {
+          "n_frames": 50,
+          "n_matched": 48,
+          "match_rate": 0.96,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_5|72": {
+          "n_frames": 22,
+          "n_matched": 22,
+          "match_rate": 1.0,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_5|73": {
+          "n_frames": 4,
+          "n_matched": 2,
+          "match_rate": 0.5,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_5|74": {
+          "n_frames": 4,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|75": {
+          "n_frames": 2,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|76": {
+          "n_frames": 16,
+          "n_matched": 16,
+          "match_rate": 1.0,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_5|77": {
+          "n_frames": 33,
+          "n_matched": 32,
+          "match_rate": 0.9697,
+          "gt_id": 8,
+          "is_ghost": false
+        },
+        "camera_5|78": {
+          "n_frames": 4,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|79": {
+          "n_frames": 24,
+          "n_matched": 23,
+          "match_rate": 0.9583,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_5|80": {
+          "n_frames": 58,
+          "n_matched": 54,
+          "match_rate": 0.931,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_5|81": {
+          "n_frames": 3,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|82": {
+          "n_frames": 33,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|83": {
+          "n_frames": 7,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|84": {
+          "n_frames": 17,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|85": {
+          "n_frames": 29,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|86": {
+          "n_frames": 85,
+          "n_matched": 79,
+          "match_rate": 0.9294,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_5|87": {
+          "n_frames": 85,
+          "n_matched": 71,
+          "match_rate": 0.8353,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_5|88": {
+          "n_frames": 110,
+          "n_matched": 2,
+          "match_rate": 0.0182,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|89": {
+          "n_frames": 81,
+          "n_matched": 70,
+          "match_rate": 0.8642,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_5|90": {
+          "n_frames": 17,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|91": {
+          "n_frames": 15,
+          "n_matched": 9,
+          "match_rate": 0.6,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_5|92": {
+          "n_frames": 30,
+          "n_matched": 25,
+          "match_rate": 0.8333,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_5|93": {
+          "n_frames": 5,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|94": {
+          "n_frames": 65,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|95": {
+          "n_frames": 16,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|96": {
+          "n_frames": 73,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|97": {
+          "n_frames": 13,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|98": {
+          "n_frames": 49,
+          "n_matched": 46,
+          "match_rate": 0.9388,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_5|99": {
+          "n_frames": 35,
+          "n_matched": 28,
+          "match_rate": 0.8,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_5|100": {
+          "n_frames": 34,
+          "n_matched": 25,
+          "match_rate": 0.7353,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_5|101": {
+          "n_frames": 28,
+          "n_matched": 6,
+          "match_rate": 0.2143,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|102": {
+          "n_frames": 10,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|103": {
+          "n_frames": 92,
+          "n_matched": 47,
+          "match_rate": 0.5109,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_5|104": {
+          "n_frames": 56,
+          "n_matched": 51,
+          "match_rate": 0.9107,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_5|105": {
+          "n_frames": 34,
+          "n_matched": 24,
+          "match_rate": 0.7059,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_5|106": {
+          "n_frames": 2,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|107": {
+          "n_frames": 18,
+          "n_matched": 7,
+          "match_rate": 0.3889,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|108": {
+          "n_frames": 8,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|109": {
+          "n_frames": 41,
+          "n_matched": 33,
+          "match_rate": 0.8049,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_5|110": {
+          "n_frames": 33,
+          "n_matched": 1,
+          "match_rate": 0.0303,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|111": {
+          "n_frames": 36,
+          "n_matched": 9,
+          "match_rate": 0.25,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|112": {
+          "n_frames": 17,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|113": {
+          "n_frames": 22,
+          "n_matched": 4,
+          "match_rate": 0.1818,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|114": {
+          "n_frames": 21,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|115": {
+          "n_frames": 13,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|116": {
+          "n_frames": 33,
+          "n_matched": 31,
+          "match_rate": 0.9394,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_5|117": {
+          "n_frames": 7,
+          "n_matched": 7,
+          "match_rate": 1.0,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_5|118": {
+          "n_frames": 221,
+          "n_matched": 28,
+          "match_rate": 0.1267,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|119": {
+          "n_frames": 64,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|120": {
+          "n_frames": 16,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|121": {
+          "n_frames": 3,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|122": {
+          "n_frames": 49,
+          "n_matched": 2,
+          "match_rate": 0.0408,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|123": {
+          "n_frames": 54,
+          "n_matched": 48,
+          "match_rate": 0.8889,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_5|124": {
+          "n_frames": 29,
+          "n_matched": 25,
+          "match_rate": 0.8621,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_5|125": {
+          "n_frames": 56,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|126": {
+          "n_frames": 99,
+          "n_matched": 81,
+          "match_rate": 0.8182,
+          "gt_id": 8,
+          "is_ghost": false
+        },
+        "camera_5|127": {
+          "n_frames": 27,
+          "n_matched": 6,
+          "match_rate": 0.2222,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|128": {
+          "n_frames": 30,
+          "n_matched": 30,
+          "match_rate": 1.0,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_5|129": {
+          "n_frames": 135,
+          "n_matched": 1,
+          "match_rate": 0.0074,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|130": {
+          "n_frames": 8,
+          "n_matched": 4,
+          "match_rate": 0.5,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_5|131": {
+          "n_frames": 5,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|132": {
+          "n_frames": 7,
+          "n_matched": 4,
+          "match_rate": 0.5714,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_5|133": {
+          "n_frames": 10,
+          "n_matched": 7,
+          "match_rate": 0.7,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_5|134": {
+          "n_frames": 19,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|135": {
+          "n_frames": 74,
+          "n_matched": 64,
+          "match_rate": 0.8649,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_5|136": {
+          "n_frames": 17,
+          "n_matched": 6,
+          "match_rate": 0.3529,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|137": {
+          "n_frames": 13,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|138": {
+          "n_frames": 15,
+          "n_matched": 12,
+          "match_rate": 0.8,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_5|139": {
+          "n_frames": 23,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|140": {
+          "n_frames": 117,
+          "n_matched": 112,
+          "match_rate": 0.9573,
+          "gt_id": 8,
+          "is_ghost": false
+        },
+        "camera_5|141": {
+          "n_frames": 34,
+          "n_matched": 29,
+          "match_rate": 0.8529,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_5|142": {
+          "n_frames": 34,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|143": {
+          "n_frames": 25,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|144": {
+          "n_frames": 4,
+          "n_matched": 4,
+          "match_rate": 1.0,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_5|145": {
+          "n_frames": 7,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|146": {
+          "n_frames": 152,
+          "n_matched": 15,
+          "match_rate": 0.0987,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|147": {
+          "n_frames": 30,
+          "n_matched": 30,
+          "match_rate": 1.0,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_5|148": {
+          "n_frames": 82,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|149": {
+          "n_frames": 56,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|150": {
+          "n_frames": 50,
+          "n_matched": 44,
+          "match_rate": 0.88,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_5|151": {
+          "n_frames": 23,
+          "n_matched": 15,
+          "match_rate": 0.6522,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_5|152": {
+          "n_frames": 9,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|153": {
+          "n_frames": 38,
+          "n_matched": 9,
+          "match_rate": 0.2368,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|154": {
+          "n_frames": 10,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|155": {
+          "n_frames": 127,
+          "n_matched": 1,
+          "match_rate": 0.0079,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|156": {
+          "n_frames": 23,
+          "n_matched": 2,
+          "match_rate": 0.087,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|157": {
+          "n_frames": 17,
+          "n_matched": 6,
+          "match_rate": 0.3529,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|158": {
+          "n_frames": 2,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|159": {
+          "n_frames": 128,
+          "n_matched": 101,
+          "match_rate": 0.7891,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_5|160": {
+          "n_frames": 51,
+          "n_matched": 27,
+          "match_rate": 0.5294,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_5|161": {
+          "n_frames": 139,
+          "n_matched": 115,
+          "match_rate": 0.8273,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_5|162": {
+          "n_frames": 5,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|163": {
+          "n_frames": 119,
+          "n_matched": 68,
+          "match_rate": 0.5714,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_5|164": {
+          "n_frames": 3,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|165": {
+          "n_frames": 75,
+          "n_matched": 50,
+          "match_rate": 0.6667,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_5|166": {
+          "n_frames": 24,
+          "n_matched": 24,
+          "match_rate": 1.0,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_5|167": {
+          "n_frames": 23,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|168": {
+          "n_frames": 37,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|169": {
+          "n_frames": 7,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|170": {
+          "n_frames": 39,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|171": {
+          "n_frames": 105,
+          "n_matched": 105,
+          "match_rate": 1.0,
+          "gt_id": 1,
+          "is_ghost": false
+        },
+        "camera_5|172": {
+          "n_frames": 20,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|173": {
+          "n_frames": 100,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|174": {
+          "n_frames": 29,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|175": {
+          "n_frames": 91,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|176": {
+          "n_frames": 31,
+          "n_matched": 28,
+          "match_rate": 0.9032,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_5|177": {
+          "n_frames": 13,
+          "n_matched": 11,
+          "match_rate": 0.8462,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_5|178": {
+          "n_frames": 4,
+          "n_matched": 4,
+          "match_rate": 1.0,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_5|179": {
+          "n_frames": 25,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|180": {
+          "n_frames": 46,
+          "n_matched": 46,
+          "match_rate": 1.0,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_5|181": {
+          "n_frames": 45,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|182": {
+          "n_frames": 4,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_5|183": {
+          "n_frames": 4,
+          "n_matched": 4,
+          "match_rate": 1.0,
+          "gt_id": 8,
+          "is_ghost": false
+        },
+        "camera_6|0": {
+          "n_frames": 67,
+          "n_matched": 67,
+          "match_rate": 1.0,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_6|1": {
+          "n_frames": 53,
+          "n_matched": 51,
+          "match_rate": 0.9623,
+          "gt_id": 5,
+          "is_ghost": false
+        },
+        "camera_6|2": {
+          "n_frames": 15,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_6|3": {
+          "n_frames": 40,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_6|4": {
+          "n_frames": 7,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_6|5": {
+          "n_frames": 22,
+          "n_matched": 22,
+          "match_rate": 1.0,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_6|6": {
+          "n_frames": 64,
+          "n_matched": 64,
+          "match_rate": 1.0,
+          "gt_id": 5,
+          "is_ghost": false
+        },
+        "camera_6|7": {
+          "n_frames": 18,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_6|8": {
+          "n_frames": 4,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_6|9": {
+          "n_frames": 24,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_6|10": {
+          "n_frames": 63,
+          "n_matched": 60,
+          "match_rate": 0.9524,
+          "gt_id": 1,
+          "is_ghost": false
+        },
+        "camera_6|11": {
+          "n_frames": 18,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_6|12": {
+          "n_frames": 20,
+          "n_matched": 19,
+          "match_rate": 0.95,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_6|13": {
+          "n_frames": 11,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_6|14": {
+          "n_frames": 25,
+          "n_matched": 25,
+          "match_rate": 1.0,
+          "gt_id": 1,
+          "is_ghost": false
+        },
+        "camera_6|15": {
+          "n_frames": 6,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_6|16": {
+          "n_frames": 21,
+          "n_matched": 20,
+          "match_rate": 0.9524,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_6|17": {
+          "n_frames": 9,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_6|18": {
+          "n_frames": 9,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_6|19": {
+          "n_frames": 31,
+          "n_matched": 30,
+          "match_rate": 0.9677,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_6|20": {
+          "n_frames": 36,
+          "n_matched": 35,
+          "match_rate": 0.9722,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_6|21": {
+          "n_frames": 92,
+          "n_matched": 91,
+          "match_rate": 0.9891,
+          "gt_id": 8,
+          "is_ghost": false
+        },
+        "camera_6|22": {
+          "n_frames": 9,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_6|23": {
+          "n_frames": 49,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_6|24": {
+          "n_frames": 4,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_6|25": {
+          "n_frames": 42,
+          "n_matched": 39,
+          "match_rate": 0.9286,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_6|26": {
+          "n_frames": 44,
+          "n_matched": 44,
+          "match_rate": 1.0,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_6|27": {
+          "n_frames": 22,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_6|28": {
+          "n_frames": 28,
+          "n_matched": 27,
+          "match_rate": 0.9643,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_6|29": {
+          "n_frames": 2,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_6|30": {
+          "n_frames": 31,
+          "n_matched": 31,
+          "match_rate": 1.0,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_6|31": {
+          "n_frames": 7,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_6|32": {
+          "n_frames": 21,
+          "n_matched": 20,
+          "match_rate": 0.9524,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_6|33": {
+          "n_frames": 4,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_6|34": {
+          "n_frames": 30,
+          "n_matched": 30,
+          "match_rate": 1.0,
+          "gt_id": 8,
+          "is_ghost": false
+        },
+        "camera_6|35": {
+          "n_frames": 3,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_6|36": {
+          "n_frames": 16,
+          "n_matched": 16,
+          "match_rate": 1.0,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_6|37": {
+          "n_frames": 3,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_6|38": {
+          "n_frames": 21,
+          "n_matched": 21,
+          "match_rate": 1.0,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_6|39": {
+          "n_frames": 3,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_6|40": {
+          "n_frames": 21,
+          "n_matched": 21,
+          "match_rate": 1.0,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_6|41": {
+          "n_frames": 24,
+          "n_matched": 18,
+          "match_rate": 0.75,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_6|42": {
+          "n_frames": 12,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_6|43": {
+          "n_frames": 4,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_6|44": {
+          "n_frames": 27,
+          "n_matched": 26,
+          "match_rate": 0.963,
+          "gt_id": 8,
+          "is_ghost": false
+        },
+        "camera_6|45": {
+          "n_frames": 5,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_6|46": {
+          "n_frames": 43,
+          "n_matched": 43,
+          "match_rate": 1.0,
+          "gt_id": 8,
+          "is_ghost": false
+        },
+        "camera_6|47": {
+          "n_frames": 7,
+          "n_matched": 0,
+          "match_rate": 0.0,
+          "gt_id": null,
+          "is_ghost": true
+        },
+        "camera_7|0": {
+          "n_frames": 105,
+          "n_matched": 105,
+          "match_rate": 1.0,
+          "gt_id": 5,
+          "is_ghost": false
+        },
+        "camera_7|1": {
+          "n_frames": 90,
+          "n_matched": 90,
+          "match_rate": 1.0,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_7|2": {
+          "n_frames": 5,
+          "n_matched": 5,
+          "match_rate": 1.0,
+          "gt_id": 5,
+          "is_ghost": false
+        },
+        "camera_7|3": {
+          "n_frames": 6,
+          "n_matched": 5,
+          "match_rate": 0.8333,
+          "gt_id": 1,
+          "is_ghost": false
+        },
+        "camera_7|4": {
+          "n_frames": 50,
+          "n_matched": 50,
+          "match_rate": 1.0,
+          "gt_id": 1,
+          "is_ghost": false
+        },
+        "camera_7|5": {
+          "n_frames": 46,
+          "n_matched": 46,
+          "match_rate": 1.0,
+          "gt_id": 1,
+          "is_ghost": false
+        },
+        "camera_7|6": {
+          "n_frames": 18,
+          "n_matched": 18,
+          "match_rate": 1.0,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_7|7": {
+          "n_frames": 10,
+          "n_matched": 9,
+          "match_rate": 0.9,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_7|8": {
+          "n_frames": 27,
+          "n_matched": 27,
+          "match_rate": 1.0,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_7|9": {
+          "n_frames": 28,
+          "n_matched": 28,
+          "match_rate": 1.0,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_7|10": {
+          "n_frames": 67,
+          "n_matched": 67,
+          "match_rate": 1.0,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_7|11": {
+          "n_frames": 70,
+          "n_matched": 66,
+          "match_rate": 0.9429,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_7|12": {
+          "n_frames": 8,
+          "n_matched": 8,
+          "match_rate": 1.0,
+          "gt_id": 8,
+          "is_ghost": false
+        },
+        "camera_7|13": {
+          "n_frames": 12,
+          "n_matched": 10,
+          "match_rate": 0.8333,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_7|14": {
+          "n_frames": 10,
+          "n_matched": 10,
+          "match_rate": 1.0,
+          "gt_id": 8,
+          "is_ghost": false
+        },
+        "camera_7|15": {
+          "n_frames": 135,
+          "n_matched": 135,
+          "match_rate": 1.0,
+          "gt_id": 8,
+          "is_ghost": false
+        },
+        "camera_7|16": {
+          "n_frames": 38,
+          "n_matched": 38,
+          "match_rate": 1.0,
+          "gt_id": 2,
+          "is_ghost": false
+        },
+        "camera_7|17": {
+          "n_frames": 12,
+          "n_matched": 11,
+          "match_rate": 0.9167,
+          "gt_id": 4,
+          "is_ghost": false
+        },
+        "camera_7|18": {
+          "n_frames": 49,
+          "n_matched": 49,
+          "match_rate": 1.0,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_7|19": {
+          "n_frames": 97,
+          "n_matched": 94,
+          "match_rate": 0.9691,
+          "gt_id": 3,
+          "is_ghost": false
+        },
+        "camera_7|20": {
+          "n_frames": 14,
+          "n_matched": 13,
+          "match_rate": 0.9286,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_7|21": {
+          "n_frames": 8,
+          "n_matched": 6,
+          "match_rate": 0.75,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_7|22": {
+          "n_frames": 7,
+          "n_matched": 7,
+          "match_rate": 1.0,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_7|23": {
+          "n_frames": 15,
+          "n_matched": 15,
+          "match_rate": 1.0,
+          "gt_id": 7,
+          "is_ghost": false
+        },
+        "camera_7|24": {
+          "n_frames": 17,
+          "n_matched": 16,
+          "match_rate": 0.9412,
+          "gt_id": 6,
+          "is_ghost": false
+        },
+        "camera_7|25": {
+          "n_frames": 78,
+          "n_matched": 78,
+          "match_rate": 1.0,
+          "gt_id": 8,
+          "is_ghost": false
+        }
+      }
+    }
+  },
+  "m4": {
+    "camera_1": {
+      "n_tracks": 73,
+      "n_ghost": 34,
+      "gt_matched": 1602,
+      "gt_total": 1733
+    },
+    "camera_2": {
+      "n_tracks": 73,
+      "n_ghost": 6,
+      "gt_matched": 2998,
+      "gt_total": 3132
+    },
+    "camera_3": {
+      "n_tracks": 66,
+      "n_ghost": 17,
+      "gt_matched": 3289,
+      "gt_total": 3389
+    },
+    "camera_4": {
+      "n_tracks": 59,
+      "n_ghost": 5,
+      "gt_matched": 2074,
+      "gt_total": 2116
+    },
+    "camera_5": {
+      "n_tracks": 184,
+      "n_ghost": 100,
+      "gt_matched": 3674,
+      "gt_total": 4133
+    },
+    "camera_6": {
+      "n_tracks": 48,
+      "n_ghost": 25,
+      "gt_matched": 820,
+      "gt_total": 845
+    },
+    "camera_7": {
+      "n_tracks": 26,
+      "n_ghost": 0,
+      "gt_matched": 1006,
+      "gt_total": 1043
+    }
+  },
+  "m5": {
+    "idf1": 0.2164,
+    "idtp": 74,
+    "n": 342,
+    "n_gt": 8,
+    "n_pred": 4,
+    "n_transitions": 334,
+    "p_break": 0.006,
+    "p_false_merge": 0.8174,
+    "p_correct": 0.1766,
+    "fm_unmeasurable_reason": null,
+    "id_switches": 51,
+    "fragmentation": {
+      "mean": 2.125,
+      "max": 3,
+      "hist": {
+        "2": 5,
+        "3": 2,
+        "1": 1
+      }
+    },
+    "headcount": {
+      "n_pred_ids": 4,
+      "expected": 8,
+      "alarm": true,
+      "kind": "整體誤併"
+    },
+    "measurable": {
+      "p_break": true,
+      "p_false_merge": true,
+      "idf1": true,
+      "fragmentation": true,
+      "headcount": true
+    }
+  },
+  "ghost_binding_rate": 0.3534971644612476,
+  "n_ghost_bindings": 187,
+  "path_split": {
+    "overlap": {
+      "n_transitions": 242,
+      "p_break": 0.0,
+      "p_false_merge": 0.8099,
+      "p_correct": 0.1901,
+      "fm_unmeasurable_reason": null
+    },
+    "transit": {
+      "n_transitions": 29,
+      "p_break": 0.0,
+      "p_false_merge": 0.8276,
+      "p_correct": 0.1724,
+      "fm_unmeasurable_reason": null
+    }
+  },
+  "iou_thr": 0.5,
+  "match_rate_min": 0.5
+}

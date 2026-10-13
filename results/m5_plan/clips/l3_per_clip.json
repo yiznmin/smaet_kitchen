@@ -1,0 +1,186 @@
+[
+ {
+  "rule": "L3S",
+  "clip": "L3S-seq_000-c6+c7-10-001710",
+  "pair": "camera_6+camera_7",
+  "path": "重疊+連結",
+  "new": true,
+  "mirror": true
+ },
+ {
+  "rule": "L3S",
+  "clip": "L3S-seq_000-c6+c7-9-004450",
+  "pair": "camera_6+camera_7",
+  "path": "重疊+連結",
+  "new": true,
+  "mirror": true
+ },
+ {
+  "rule": "L3S",
+  "clip": "L3S-seq_004-c4+c6-8-007880",
+  "pair": "camera_4+camera_6",
+  "path": "未建模",
+  "new": false,
+  "mirror": true
+ },
+ {
+  "rule": "L3S",
+  "clip": "L3S-seq_004-c6+c7-8-008115",
+  "pair": "camera_6+camera_7",
+  "path": "重疊+連結",
+  "new": true,
+  "mirror": true
+ },
+ {
+  "rule": "L3S",
+  "clip": "L3S-seq_024-c6+c7-14-012745",
+  "pair": "camera_6+camera_7",
+  "path": "重疊+連結",
+  "new": true,
+  "mirror": true
+ },
+ {
+  "rule": "L3S",
+  "clip": "L3S-seq_024-c6+c7-6-016490",
+  "pair": "camera_6+camera_7",
+  "path": "重疊+連結",
+  "new": true,
+  "mirror": true
+ },
+ {
+  "rule": "L3S",
+  "clip": "L3S-seq_024-c6+c7-7-010250",
+  "pair": "camera_6+camera_7",
+  "path": "重疊+連結",
+  "new": true,
+  "mirror": true
+ },
+ {
+  "rule": "L3S",
+  "clip": "L3S-seq_025-c1+c2+c3-7-001780",
+  "pair": "camera_1+camera_2",
+  "path": "重疊",
+  "new": true,
+  "mirror": false
+ },
+ {
+  "rule": "L3S",
+  "clip": "L3S-seq_025-c1+c2+c3-7-001780",
+  "pair": "camera_1+camera_3",
+  "path": "重疊",
+  "new": true,
+  "mirror": false
+ },
+ {
+  "rule": "L3S",
+  "clip": "L3S-seq_025-c1+c2+c3-7-001780",
+  "pair": "camera_2+camera_3",
+  "path": "重疊",
+  "new": false,
+  "mirror": false
+ },
+ {
+  "rule": "L3S",
+  "clip": "L3S-seq_025-c1+c2+c3-7-002520",
+  "pair": "camera_1+camera_2",
+  "path": "重疊",
+  "new": true,
+  "mirror": false
+ },
+ {
+  "rule": "L3S",
+  "clip": "L3S-seq_025-c1+c2+c3-7-002520",
+  "pair": "camera_1+camera_3",
+  "path": "重疊",
+  "new": true,
+  "mirror": false
+ },
+ {
+  "rule": "L3S",
+  "clip": "L3S-seq_025-c1+c2+c3-7-002520",
+  "pair": "camera_2+camera_3",
+  "path": "重疊",
+  "new": false,
+  "mirror": false
+ },
+ {
+  "rule": "L3S",
+  "clip": "L3S-seq_025-c2+c3+c4-6-004395",
+  "pair": "camera_2+camera_3",
+  "path": "重疊",
+  "new": false,
+  "mirror": false
+ },
+ {
+  "rule": "L3S",
+  "clip": "L3S-seq_025-c2+c3+c4-6-004395",
+  "pair": "camera_2+camera_4",
+  "path": "重疊",
+  "new": false,
+  "mirror": false
+ },
+ {
+  "rule": "L3S",
+  "clip": "L3S-seq_025-c2+c3+c4-6-004395",
+  "pair": "camera_3+camera_4",
+  "path": "重疊",
+  "new": false,
+  "mirror": false
+ },
+ {
+  "rule": "L3S",
+  "clip": "L3S-seq_025-c6+c7-10-004360",
+  "pair": "camera_6+camera_7",
+  "path": "重疊+連結",
+  "new": true,
+  "mirror": true
+ },
+ {
+  "rule": "L3S",
+  "clip": "L3S-seq_026-c6+c7-3-005890",
+  "pair": "camera_6+camera_7",
+  "path": "重疊+連結",
+  "new": true,
+  "mirror": true
+ },
+ {
+  "rule": "L3T",
+  "clip": "L3T-seq_004-c6+c7-7-004590",
+  "pair": "camera_6+camera_7",
+  "path": "重疊+連結",
+  "new": true,
+  "mirror": true
+ },
+ {
+  "rule": "L3T",
+  "clip": "L3T-seq_020-c5+c6-10-000385",
+  "pair": "camera_5+camera_6",
+  "path": "重疊",
+  "new": false,
+  "mirror": true
+ },
+ {
+  "rule": "L3T",
+  "clip": "L3T-seq_024-c5+c6-10-000625",
+  "pair": "camera_5+camera_6",
+  "path": "重疊",
+  "new": false,
+  "mirror": true
+ },
+ {
+  "rule": "L3T",
+  "clip": "L3T-seq_024-c5+c6-2-014825",
+  "pair": "camera_5+camera_6",
+  "path": "重疊",
+  "new": false,
+  "mirror": true
+ },
+ {
+  "rule": "L3T",
+  "clip": "L3T-seq_024-c5+c6-6-013975",
+  "pair": "camera_5+camera_6",
+  "path": "重疊",
+  "new": false,
+  "mirror": true
+ }
+]
