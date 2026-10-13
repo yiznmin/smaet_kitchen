@@ -219,6 +219,7 @@ class SpatioTemporalIdentityManager(IdentityManager):
         #   不是事件。M4 每幀都會輸出當前 active 的 tracks,但 M5 只吃事件,
         #   所以它無從得知誰此刻在畫面上 —— 重疊路徑因此幾乎從不觸發。
         #   全景鏡頭方案第一次跑時碎裂率完全沒降,根因就是這個。
+        pair_L = None              # 逐對位置證據的快取(第 2 輪),用到才算
         overlap_pool = {}          # 重疊鏡頭 -> 此刻在該鏡頭裡的 chef 數
         for chef in self.active.values():
             for c, _t in chef.track_ids:
@@ -258,7 +259,25 @@ class SpatioTemporalIdentityManager(IdentityManager):
             if not llr_mode:
                 cands.append((w_st * 1.0 + w_app * app, cid, app))
                 continue
-            if self.topo.ground_lr is not None and world_xy is not None:
+            # 逐鏡頭對的位置證據(2026-10-13 第 2 輪)。有設定 ground_pairs 才走這裡;
+            # 這位候選沒有可用的鏡頭對時 pair_score 為 None → 落到下面原本的路徑。
+            pair_score = None
+            if (self.topo.ground_lr is not None and world_xy is not None
+                    and getattr(self.topo, "ground_pairs", None)):
+                if pair_L is None:
+                    pair_L = self._pair_likelihoods(camera_id, world_xy, t, exclude_key)
+                ob = pair_L.get(cid)
+                if ob is not None:
+                    if self.topo.ground_mode == "share":
+                        tot = sum(v[1] for v in pair_L.values())
+                        pair_score = self.f["overlap_llr"] + math.log(ob[1] / tot)
+                    else:
+                        pair_score = ob[0]
+                    pair_score += self.topo.app_lr.llr(app)
+            if pair_score is not None:
+                score = pair_score
+            elif (self.topo.ground_lr is not None and world_xy is not None
+                    and not getattr(self.topo, "ground_pairs", None)):
                 # 有地面校正:直接問「是不是站在同一個位置」,不必稀釋。
                 # ⚠ 但要把「上次觀測到現在」的可能移動算進不確定度 —— 否則會拿
                 #   舊位置跟新位置比,把對的綁定當成位置對不上而擋掉。
@@ -310,6 +329,42 @@ class SpatioTemporalIdentityManager(IdentityManager):
                 score += self.topo.cue_lr.llr(cue_token, chef.cue_token)
             cands.append((score, cid, app))
         return cands
+
+    def _pair_likelihoods(self, camera_id, world_xy, t, exclude_key=None):
+        """{chef_id: (絕對 LLR, 混合密度 L)} —— 只含「此刻在某台重疊鏡頭上、且那一對有 σ」的候選。
+
+        位置取自 _bbox[(chef, 那一台鏡頭)],不是 _world:一位 chef 可能同時被多台看著,
+        而 σ 是逐對的,必須知道這個位置是**哪一台**量到的(與 CrossViewLR 相同的取法)。
+        多台可用時取證據絕對值最大者 —— 資訊最多的觀測,負證據一樣會被選中。
+
+        L = (1 − ε)·N(d; s) + ε/A。均勻成分讓「份額」不會因為單一離群位置變成 0
+        (與 PositionLR 的 uniform_mix 同一個慣用法)。
+        """
+        eps, out = self.topo.ground_share_eps, {}
+        for cid, chef in self.active.items():
+            best = None
+            for c, _t in chef.track_ids:
+                if (c, _t) == exclude_key or c == camera_id:
+                    continue
+                if not self.topo.is_overlapping(c, camera_id):
+                    continue
+                lr = self.topo.ground_pairs.get(frozenset((c, camera_id)))
+                rec = self._bbox.get((cid, c))
+                if lr is None or rec is None:
+                    continue
+                d = self.topo.ground_dist(self.topo.world_xy(c, rec[0]), world_xy)
+                if d is None:
+                    continue
+                dt = max(0.0, t - rec[1])
+                v = lr.llr_dist(d, dt=dt)
+                if best is None or abs(v) > abs(best[0]):
+                    s = min(math.hypot(lr.sigma, lr.speed * dt), lr.sigma_max)
+                    dens = (math.exp(-d * d / (2 * s * s)) / (2 * math.pi * s * s)
+                            if math.isfinite(d) else 0.0)
+                    best = (v, (1.0 - eps) * dens + eps / lr.area)
+            if best is not None:
+                out[cid] = best
+        return out
 
     def on_new_track(self, track_id, *, camera_id=None, frame_id=0, t_sec=None,
                      crop=None, embedding=None, bbox=None, zone=None, world_xy=None,

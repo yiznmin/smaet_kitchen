@@ -295,6 +295,23 @@ class CameraTopology:
         _gp_kw = dict(sigma_m=sigma, area_m2=float(g.get("area_m2", 30.0)),
                       clip=float(g.get("clip", 8.0)), speed_mps=float(g.get("speed", 0.9)))
         self.ground_lr = GroundPlaneLR(**_gp_kw) if enabled else None
+        # 逐鏡頭對的 σ(2026-10-13 第 2 輪)。第 1 輪用單一全域 σ,被樣本最多的那一對主導,
+        # 投影誤差較大的鏡頭對把真配對全擋掉(單人 L3S 14/16 → 4/16)。
+        # 與 CrossViewLR 同一個原則:逐對估,品質差的那對自己弱。
+        #   pairs: {"cam_a|cam_b": 單台 σ}(內部乘 √2,與 sigma_m 同一個慣例)
+        #   mode:  absolute = 位置證據自己要過門檻;
+        #          share    = 把「那台鏡頭裡有 k 個人」的均勻稀釋 −log k 換成依位置分配
+        # ⚠ 沒列在 pairs 的鏡頭對**退回常數路徑**,不是用全域 σ 硬算。
+        self.ground_pairs = {}
+        if enabled:
+            for key, sig in (g.get("pairs") or {}).items():
+                a, b = key.split("|")
+                self.ground_pairs[frozenset((a, b))] = GroundPlaneLR(
+                    **{**_gp_kw, "sigma_m": float(sig)})
+        self.ground_mode = str(g.get("mode", "absolute"))
+        if self.ground_mode not in ("absolute", "share"):
+            raise ValueError(f"ground_plane.mode 只能是 absolute 或 share,收到 {self.ground_mode!r}")
+        self.ground_share_eps = float(g.get("share_eps", 0.05))
 
         # 平面圖距離(2026-10-13)。關閉時 plan_map 為 None,ground_dist 回直線距離。
         fp = f.get("floorplan") or {}

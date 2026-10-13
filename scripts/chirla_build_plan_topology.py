@@ -197,6 +197,37 @@ def calibrate(ann_root, mats, pmap, walk_map):
         off_walkable_ratio={c: round(v[0] / v[1], 3) if v[1] else None for c, v in off.items()})
 
 
+def pair_sigmas(ann_root, mats, pmap, area, thr, min_n=100):
+    """逐鏡頭對的 σ(第 2 輪,預先登記 §10.2)。推導集全部樣本,不抽樣。
+
+    可用 = 樣本 ≥ min_n 且證據上限 log(A / 2πσ_pair²) > 門檻;不可用的對不寫進拓撲,
+    執行時退回常數路徑。
+    """
+    dist = {}
+    for seq in DERIVE:
+        boxes = {c: load_boxes(glob.glob(f"{ann_root}/{seq}/{c}_*.json")[0]) for c in CAMS}
+        for t in range(1, max(len(f) for f in boxes.values()), STEP):
+            for i, a in enumerate(CAMS):
+                for b in CAMS[i + 1:]:
+                    if t >= len(boxes[a]) or t >= len(boxes[b]):
+                        continue
+                    for pid in boxes[a][t].keys() & boxes[b][t].keys():
+                        d = pmap.distance(project(mats[seq][a], foot(boxes[a][t][pid])),
+                                          project(mats[seq][b], foot(boxes[b][t][pid])))
+                        if math.isfinite(d):
+                            dist.setdefault((a, b), []).append(d)
+    out = {}
+    for (a, b), d in sorted(dist.items()):
+        sp = float(np.median(d)) / MEDIAN_TO_SIGMA
+        ceil = math.log(area / (2 * math.pi * sp * sp))
+        out[f"{a}|{b}"] = dict(n=len(d), median=round(float(np.median(d)), 2),
+                               sigma_pair=round(sp, 3),
+                               sigma_single=round(sp / math.sqrt(2.0), 3),
+                               ceiling_nats=round(ceil, 3),
+                               usable=bool(len(d) >= min_n and ceil > thr))
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--handover", default=str(
@@ -254,15 +285,24 @@ def main():
         c["v2_pass"] = c["evidence_ceiling_nats"] > thr
 
     base = yaml.safe_load((ROOT / args.base).read_text(encoding="utf-8"))["camera_topology"]
-    cells = {"P1": ("landmarks", fp_rooms, False), "P2": ("landmarks", fp_rooms, True),
-             "G2": ("refined", fp_grid, True)}
-    for name, (source, fp, transit) in cells.items():
+    pairs = pair_sigmas(args.ann_root, mats["landmarks"],
+                        PlanMap("rooms", rooms_cfg, doors_cfg), area, thr)
+    pairs_cfg = {k: v["sigma_single"] for k, v in pairs.items() if v["usable"]}
+    # (投影來源, 平面圖距離, 轉場位置證據, 逐對模式);逐對模式 None = 第 1 輪的全域 σ
+    cells = {"P1": ("landmarks", fp_rooms, False, None), "P2": ("landmarks", fp_rooms, True, None),
+             "G2": ("refined", fp_grid, True, None),
+             "Q1": ("landmarks", fp_rooms, False, "absolute"),
+             "Q2": ("landmarks", fp_rooms, False, "share")}
+    for name, (source, fp, transit, pair_mode) in cells.items():
         c = cal[source]
         (out_dir / name).mkdir(exist_ok=True)
         for s in SEQS:
             cfg = copy.deepcopy(base)
             cfg["fusion"]["ground_plane"] = {"enabled": True, "sigma_m": c["sigma_single"],
                                              "area_m2": area, "clip": 8.0, "speed": c["speed"]}
+            if pair_mode is not None:
+                cfg["fusion"]["ground_plane"].update(pairs=dict(pairs_cfg), mode=pair_mode,
+                                                     share_eps=0.05)
             cfg["fusion"]["floorplan"] = fp
             cfg["fusion"]["plan_transit"] = {"enabled": transit}
             for cam in CAMS:
@@ -278,8 +318,10 @@ def main():
     report = {"unit": "plan_px", "cell": CELL, "walkable_cells": int(walk.sum()),
               "area": area, "llr_threshold": round(thr, 4), "derive_seqs": DERIVE,
               "landmark_points_per_camera": lm_n, "calibration": cal,
+              "pair_sigmas_landmarks": pairs,
               "cells": {k: {"source": v[0], "distance": v[1]["distance"],
-                            "plan_transit": v[2]} for k, v in cells.items()}}
+                            "plan_transit": v[2], "pair_mode": v[3]}
+                        for k, v in cells.items()}}
     rp = ROOT / args.report
     rp.parent.mkdir(parents=True, exist_ok=True)
     rp.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")

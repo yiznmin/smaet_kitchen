@@ -66,21 +66,126 @@
       "v2_pass": true
     }
   },
+  "pair_sigmas_landmarks": {
+    "camera_1|camera_2": {
+      "n": 681,
+      "median": 24.3,
+      "sigma_pair": 20.638,
+      "sigma_single": 14.593,
+      "ceiling_nats": 2.657,
+      "usable": true
+    },
+    "camera_1|camera_3": {
+      "n": 2084,
+      "median": 12.49,
+      "sigma_pair": 10.609,
+      "sigma_single": 7.501,
+      "ceiling_nats": 3.988,
+      "usable": true
+    },
+    "camera_1|camera_4": {
+      "n": 3,
+      "median": 39.82,
+      "sigma_pair": 33.82,
+      "sigma_single": 23.914,
+      "ceiling_nats": 1.669,
+      "usable": false
+    },
+    "camera_1|camera_5": {
+      "n": 29,
+      "median": 8.27,
+      "sigma_pair": 7.02,
+      "sigma_single": 4.964,
+      "ceiling_nats": 4.814,
+      "usable": false
+    },
+    "camera_2|camera_3": {
+      "n": 6002,
+      "median": 10.64,
+      "sigma_pair": 9.039,
+      "sigma_single": 6.392,
+      "ceiling_nats": 4.308,
+      "usable": true
+    },
+    "camera_2|camera_4": {
+      "n": 9,
+      "median": 71.72,
+      "sigma_pair": 60.915,
+      "sigma_single": 43.073,
+      "ceiling_nats": 0.492,
+      "usable": false
+    },
+    "camera_2|camera_5": {
+      "n": 648,
+      "median": 18.03,
+      "sigma_pair": 15.315,
+      "sigma_single": 10.83,
+      "ceiling_nats": 3.254,
+      "usable": true
+    },
+    "camera_3|camera_4": {
+      "n": 158,
+      "median": 47.78,
+      "sigma_pair": 40.58,
+      "sigma_single": 28.695,
+      "ceiling_nats": 1.305,
+      "usable": false
+    },
+    "camera_3|camera_5": {
+      "n": 12,
+      "median": 249.55,
+      "sigma_pair": 211.949,
+      "sigma_single": 149.871,
+      "ceiling_nats": -2.001,
+      "usable": false
+    },
+    "camera_4|camera_5": {
+      "n": 298,
+      "median": 26.56,
+      "sigma_pair": 22.559,
+      "sigma_single": 15.951,
+      "ceiling_nats": 2.479,
+      "usable": true
+    },
+    "camera_6|camera_7": {
+      "n": 344,
+      "median": 18.56,
+      "sigma_pair": 15.767,
+      "sigma_single": 11.149,
+      "ceiling_nats": 3.195,
+      "usable": true
+    }
+  },
   "cells": {
     "P1": {
       "source": "landmarks",
       "distance": "rooms",
-      "plan_transit": false
+      "plan_transit": false,
+      "pair_mode": null
     },
     "P2": {
       "source": "landmarks",
       "distance": "rooms",
-      "plan_transit": true
+      "plan_transit": true,
+      "pair_mode": null
     },
     "G2": {
       "source": "refined",
       "distance": "grid",
-      "plan_transit": true
+      "plan_transit": true,
+      "pair_mode": null
+    },
+    "Q1": {
+      "source": "landmarks",
+      "distance": "rooms",
+      "plan_transit": false,
+      "pair_mode": "absolute"
+    },
+    "Q2": {
+      "source": "landmarks",
+      "distance": "rooms",
+      "plan_transit": false,
+      "pair_mode": "share"
     }
   }
 }
