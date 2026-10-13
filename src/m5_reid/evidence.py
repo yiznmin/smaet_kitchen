@@ -456,7 +456,17 @@ class GroundPlaneLR:
         """
         if xy_a is None or xy_b is None:
             return 0.0
-        d = math.hypot(xy_a[0] - xy_b[0], xy_a[1] - xy_b[1])
+        return self.llr_dist(math.hypot(xy_a[0] - xy_b[0], xy_a[1] - xy_b[1]), dt)
+
+    def llr_dist(self, d, dt=0.0):
+        """直接給距離(2026-10-13)。
+
+        有平面圖時距離不是直線 —— 牆是障礙物,要走出入口(見 m5_reid/floorplan.py)。
+        把「怎麼量距離」與「距離換成多少證據」拆開,後者的數學一個字沒動。
+        ⚠ d 為 None → 0.0(算不出來 ≠ 證據說不是);d 為 inf → 由 clip 收斂到 −clip。
+        """
+        if d is None:
+            return 0.0
         s = min(math.hypot(self.sigma, self.speed * max(dt, 0.0)), self.sigma_max)
         v = math.log(self.area) - math.log(2 * math.pi * s * s) - d * d / (2 * s * s)
         return max(-self.clip, min(self.clip, v))

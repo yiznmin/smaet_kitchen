@@ -191,6 +191,15 @@ class SpatioTemporalIdentityManager(IdentityManager):
                 tp = self.topo.transit_place(ex[0], camera_id)
                 if tp is not None:
                     score += tp.llr(ex[2] if len(ex) > 2 else None, bbox)
+                # 平面圖位置證據(2026-10-13):「離開點到進入點,這段時間走得到嗎?」
+                # ⚠ 只用在**跨鏡頭**:同鏡頭已有 pos_lr(影像座標、身高單位),
+                #   兩條都加等於把同一段位移算兩次。
+                # ⚠ 離場點由 _exit 既存的離場框現算,不另存狀態 —— 少一份要同步清理的東西。
+                pt = getattr(self.topo, "plan_transit_lr", None)
+                if pt is not None and ex[0] != camera_id and world_xy is not None:
+                    exit_xy = self.topo.world_xy(ex[0], ex[2] if len(ex) > 2 else None)
+                    score += pt.llr_dist(self.topo.ground_dist(exit_xy, world_xy),
+                                         dt=t - ex[1])
             else:
                 ok, sp = self.topo.transition_gate(ex[0], ex[1], camera_id, t)
                 if not ok:
@@ -256,7 +265,9 @@ class SpatioTemporalIdentityManager(IdentityManager):
                 g = self._world.get(cid)
                 if g is None:
                     continue
-                score = (self.topo.ground_lr.llr(g[0], world_xy, dt=t - g[1])
+                # 距離走 topo.ground_dist:有平面圖時牆是障礙物,沒有時是直線(原行為)。
+                score = (self.topo.ground_lr.llr_dist(
+                             self.topo.ground_dist(g[0], world_xy), dt=t - g[1])
                          + self.topo.app_lr.llr(app))
                 # 速度證據:位置相同時唯一還能分辨的線索
                 if self.topo.vel_lr is not None:

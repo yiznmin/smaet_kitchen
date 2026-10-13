@@ -65,6 +65,26 @@ class Homography:
         self.inliers = int(mask.sum()) if mask is not None else len(self.img)
         self._residuals = self._compute_residuals()
 
+    @classmethod
+    def from_matrix(cls, matrix, camera_id=None):
+        """直接給 3×3 矩陣(2026-10-13,平面圖幾何接入)。
+
+        外部擬合好的投影(例如多來源聯合最佳化的結果)沒有對應的點對可以重算,
+        所以**沒有殘差可量** → sigma_m 回 None,σ 必須由設定檔明確給。
+        ⚠ 不可以在這裡編一個預設 σ —— 與 spatiotemporal.py 的 calib_warning 同一個理由。
+        """
+        self = cls.__new__(cls)
+        self.camera_id = camera_id
+        self.img = np.zeros((0, 2))
+        self.wld = np.zeros((0, 2))
+        H = np.asarray(matrix, dtype=np.float64)
+        if H.shape != (3, 3) or abs(np.linalg.det(H)) < 1e-12:
+            raise ValueError(f"{camera_id}: homography.matrix 必須是可逆的 3×3 矩陣")
+        self.H = H
+        self.inliers = 0
+        self._residuals = np.zeros(0)
+        return self
+
     def _compute_residuals(self):
         """每個標定點的重投影誤差(公尺)。"""
         pred = self.project(self.img)
@@ -98,11 +118,17 @@ class Homography:
         """標定殘差(公尺)= GroundPlaneLR 該用的 σ。
 
         取 RMS 而非平均:GroundPlaneLR 的高斯模型吃的是標準差。
+        直接給矩陣(from_matrix)時沒有標定點 → None。
         """
+        if len(self._residuals) == 0:
+            return None
         return float(np.sqrt((self._residuals ** 2).mean()))
 
     def report(self):
         r = self._residuals
+        if len(r) == 0:
+            return {"camera_id": self.camera_id, "n_points": 0, "inliers": 0,
+                    "rms_m": None, "max_m": None, "median_m": None}
         return {"camera_id": self.camera_id, "n_points": len(self.img),
                 "inliers": self.inliers,
                 "rms_m": round(self.sigma_m, 4),
@@ -111,6 +137,8 @@ class Homography:
 
     def describe(self):
         rep = self.report()
+        if rep["n_points"] == 0:
+            return f"Homography({self.camera_id}: 直接給矩陣,無標定點殘差)"
         return (f"Homography({self.camera_id}: {rep['n_points']} 點 / "
                 f"{rep['inliers']} inlier, 殘差 RMS {rep['rms_m']:.3f}m "
                 f"最大 {rep['max_m']:.3f}m)")
@@ -133,7 +161,10 @@ def load_homographies(cameras_cfg):
         h = (cfg or {}).get("homography")
         if not h:
             continue
-        out[cam] = Homography(h["image_points"], h["world_points"], camera_id=cam)
+        if h.get("matrix") is not None:
+            out[cam] = Homography.from_matrix(h["matrix"], camera_id=cam)
+        else:
+            out[cam] = Homography(h["image_points"], h["world_points"], camera_id=cam)
     return out
 
 
@@ -143,6 +174,9 @@ def suggest_sigma(homographies, floor_m=0.05):
     取最差的那一台 —— 一對鏡頭的比對精度由較差的那台決定。
     floor 是為了避免標定點太少時殘差假性偏低(過度自信)。
     """
-    if not homographies:
+    # 直接給矩陣的鏡頭沒有殘差(sigma_m 為 None)→ 不參與;全部都是時回 None,
+    # 由呼叫端改用設定檔的 sigma_m。
+    sig = [h.sigma_m for h in (homographies or {}).values() if h.sigma_m is not None]
+    if not sig:
         return None
-    return max(max(h.sigma_m for h in homographies.values()), floor_m)
+    return max(max(sig), floor_m)

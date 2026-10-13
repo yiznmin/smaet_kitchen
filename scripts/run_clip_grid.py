@@ -64,7 +64,8 @@ def cmd_for(clip, stride, out_root, ttl=600, tracker=None, vremap=(),
     if embedder:                      # 2026-09-29:把外觀接進 M5
         cmd[cmd.index("--embedder") + 1] = embedder
     if topology:                      # 換 embedder 時 appearance_profile 要跟著換
-        cmd[cmd.index("--topology") + 1] = topology
+        # {seq} 佔位(2026-10-13):平面圖投影含各序列的畫面對齊,每序列一份拓撲。
+        cmd[cmd.index("--topology") + 1] = topology.replace("{seq}", clip["seq"])
     return cmd
 
 

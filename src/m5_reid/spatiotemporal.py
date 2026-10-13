@@ -159,7 +159,23 @@ _DEFAULT_FUSION = {
     #   所以只有那支腳本明確給旗標時才會有 token 進來;正式評估路徑拿不到訊號。
     # n_ids = 讀取器的字彙大小(有幾個不同的標記)。null = 由 runner 依真值表決定。
     "cue": {"enabled": False, "accuracy": None, "n_ids": None, "clip": 8.0},
-    "max_z": 6.0,                           # 轉場分布的遠尾截斷(省算,非決策門)
+    # ── 2026-10-13 平面圖幾何接入。**兩者預設關閉**,關閉時與 10/06 的結果逐位相同 ──
+    #    docs/M5_平面圖幾何接入_預先登記_20261013.md
+    #
+    # floorplan:場地平面圖上的距離(牆是障礙物)。開啟後 ground_plane 與 plan_transit
+    #   的距離都改走它;關閉時是兩點直線距離(原行為)。
+    #   distance: rooms(房間 + 出入口連通圖)| grid(可行走網格,grid 給 npz 路徑)
+    # ⚠ rooms / doors / grid 是某個場地的事實,必須寫在拓撲 yaml,不得寫死在程式碼。
+    "floorplan": {"enabled": False, "distance": "rooms", "rooms": {}, "doors": {},
+                  "grid": None},
+    # plan_transit:轉場路徑的位置證據 ——「離開點到進入點,這段時間走得到嗎?」
+    #   病灶:轉場路徑只有時間證據,天花板 1.484 < 門檻 1.609(L3T 5 段過 2 段)。
+    #   數學與 ground_plane 完全相同(同一個 GroundPlaneLR、同一組 σ / 速度 / 面積),
+    #   只是比的是「離場點 vs 入場點」而且 dt > 0,所以不確定度隨時間放寬。
+    # ⚠ 需要 ground_plane 生效(有 homography 才有平面圖座標),否則自動不生效。
+    # ⚠ 不得與 transit_place 同時開啟 —— 兩者都在問「從哪個位置離開」,會重複計分。
+    "plan_transit": {"enabled": False},
+    "max_z": 6.0,                          # 轉場分布的遠尾截斷(省算,非決策門)
     # ── v2(mode=weighted_sum)參數 ──────────────────────────────────
     "w_st": 0.7, "w_app": 0.3, "k_sigma": 2.0, "combined_threshold": 0.35,
     # ── 共用 ─────────────────────────────────────────────────────────
@@ -196,6 +212,15 @@ class CameraTopology:
         """影像 bbox → 世界座標(公尺)。該鏡頭沒校正就回 None。"""
         h = self.homographies.get(camera_id)
         return h.foot_to_world(bbox) if h is not None else None
+
+    def ground_dist(self, xy_a, xy_b):
+        """兩個世界座標之間的距離。有平面圖時走平面圖(牆是障礙物),否則直線。"""
+        if xy_a is None or xy_b is None:
+            return None
+        if self.plan_map is not None:
+            return self.plan_map.distance(xy_a, xy_b)
+        import math
+        return math.hypot(xy_a[0] - xy_b[0], xy_a[1] - xy_b[1])
 
     def offset(self, camera_id):
         """該相機時鐘相對基準的偏移(秒)。校正後時間 = 原始時間 − offset。"""
@@ -265,9 +290,27 @@ class CameraTopology:
                 "請完成地面校正(手冊步驟二);沒有它多人同時在場會被併成一個身份。")
             enabled = False
         sigma = float(sigma) if sigma is not None else None
-        self.ground_lr = GroundPlaneLR(sigma_m=sigma,
-                                       area_m2=float(g.get("area_m2", 30.0)),
-                                       clip=float(g.get("clip", 8.0))) if enabled else None
+        # speed:兩次觀測之間人可能走多遠。原本沒有從設定傳入(寫死 0.9 m/s),
+        #   公尺制下沒問題,但平面圖單位不是公尺時必須可設。預設值 0.9 = 原行為。
+        _gp_kw = dict(sigma_m=sigma, area_m2=float(g.get("area_m2", 30.0)),
+                      clip=float(g.get("clip", 8.0)), speed_mps=float(g.get("speed", 0.9)))
+        self.ground_lr = GroundPlaneLR(**_gp_kw) if enabled else None
+
+        # 平面圖距離(2026-10-13)。關閉時 plan_map 為 None,ground_dist 回直線距離。
+        fp = f.get("floorplan") or {}
+        self.plan_map = None
+        if fp.get("enabled", False):
+            from m5_reid.floorplan import PlanMap
+            self.plan_map = PlanMap.from_config(fp)
+        pt = f.get("plan_transit") or {}
+        # ⚠ 另建一個實例而不是共用 ground_lr:兩者之後若要分別調整(例如轉場的 σ
+        #   要含離場點外推誤差)不必再拆;目前參數完全相同。
+        self.plan_transit_lr = (GroundPlaneLR(**_gp_kw)
+                                if (pt.get("enabled", False) and enabled) else None)
+        if pt.get("enabled", False) and (f.get("transit_place") or {}).get("enabled", False):
+            raise ValueError(
+                "plan_transit 與 transit_place 不可同時開啟 —— "
+                "兩者都在問「從哪個位置離開」,同時開會重複計算證據。")
         vc = f.get("velocity") or {}
         # 速度是從地面座標差分而來,所以它繼承標定誤差,也繼承「沒標定就不能用」。
         self.vel_lr = VelocityLR(

@@ -282,8 +282,17 @@ def main():
         print("地面校正:")
         for h in topo.homographies.values():
             print("  " + h.describe())
-        print(f"  → GroundPlaneLR 用實測殘差 σ={topo.calib_sigma_m:.3f}m"
-              f"(第六輪 R8:σ 需 ≤0.2m,≥0.8m 則此證據無用)")
+        if topo.calib_sigma_m is not None:
+            print(f"  → GroundPlaneLR 用實測殘差 σ={topo.calib_sigma_m:.3f}m"
+                  f"(第六輪 R8:σ 需 ≤0.2m,≥0.8m 則此證據無用)")
+        else:
+            # 直接給矩陣的 homography 沒有標定點殘差 → σ 來自設定檔(2026-10-13)。
+            print("  → homography 為直接給定的矩陣,σ 取自設定檔:"
+                  + (topo.ground_lr.describe() if topo.ground_lr is not None
+                     else (topo.calib_warning or "ground_plane 未啟用")))
+        if getattr(topo, "plan_map", None) is not None:
+            print(f"  平面圖距離:{topo.plan_map.describe()};轉場位置證據:"
+                  f"{'開' if topo.plan_transit_lr is not None else '關'}")
     else:
         print("⚠ 沒有任何鏡頭做地面校正 → 重疊路徑退回常數證據 "
               "(overlap_llr,已知過度自信,見第六輪 R8)")
