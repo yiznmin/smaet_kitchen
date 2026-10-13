@@ -36,6 +36,8 @@ from eval_clips import annotate, load_tracks               # noqa: E402
 from eval_m4m5_chirla import load_gt                       # noqa: E402
 
 RULES = ("L1", "L2", "L3S", "L3T")
+MIRROR = {"camera_5", "camera_6"}      # 對著玻璃面,倒影會被框成人
+PATHS = ("重疊", "重疊+連結", "轉場連結", "未建模")
 # 問題旗標的門檻(只用來挑片段給人看,不是驗收門檻)
 TH = dict(recall=0.80, continuity=0.90, exclusive=0.90, simul=0.90)
 
@@ -98,8 +100,21 @@ def summarize(clips, rows_of, ms):
     n_trk = sum(m["n_tracks_in_window"] for m in um)
     n_gtrk = sum(m["n_ghost_tracks"] for m in um)
     k_shared = sum(round((m["p_chef_shared_with_other_box"] or 0) * m["n_B"]) for m in mm)
+    ious = sorted(r["iou"] for r in tgt)
+    q = (lambda p: round(ious[min(len(ious) - 1, int(p * len(ious)))], 4)) if ious else (lambda p: None)
+    # 切換率的分母:目標有編號的格子裡,同一段同一台鏡頭沿時間相鄰的格對數
+    per_cam = defaultdict(int)
+    for r in b:
+        per_cam[(r["clip_id"], r["camera_id"])] += 1
+    n_adj = sum(n - 1 for n in per_cam.values())
+    n_csw = sum(m["chef_switches"] for m in mm)
+    n_tsw = sum(m["track_switches"] for m in mm)
     out = dict(
         n_clips=len(clips), n_runs=len(uniq), n_cells=len(rows),
+        visibility=rate(len(tgt), len(rows)), iou_p10=q(0.10), iou_p90=q(0.90),
+        n_adjacent=n_adj, chef_switch_rate=rate(n_csw, n_adj),
+        track_switch_rate=rate(n_tsw, n_adj),
+        l2_false_success=sum(1 for m in mm if m.get("l2_false_success")),
         n_target_cells=len(tgt), n_matched=len(hit), n_bound_cells=len(b),
         # 偵測與定位
         recall=rate(len(hit), len(tgt)), recall_ci=wilson(len(hit), len(tgt)),
@@ -146,6 +161,53 @@ def summarize(clips, rows_of, ms):
     return out
 
 
+def breakdowns(clips, rows_of, ms, topo):
+    """三種分解:L2 依間隔帶、L3 依鏡頭對路徑、各子集依是否牽涉倒影鏡頭。回傳 {鍵: (分子, 分母)}。"""
+    ov, lk = topo
+    out = defaultdict(lambda: [0, 0])
+
+    def add(key, k, n):
+        out[key][0] += k
+        out[key][1] += n
+
+    for c in clips:
+        m, sc = ms[c["clip_id"]], c["scope"]
+        mir = "含倒影鏡頭" if m["mirror"] else "不含倒影鏡頭"
+        b = [r for r in rows_of[c["clip_id"]] if r["in_B"]]
+        add(("mirror", sc, c["rule"], mir, "n_clips"), 1, 1)
+        add(("mirror", sc, c["rule"], mir, "continuity"), sum(1 for r in b if r["is_continuity"]), len(b))
+        eb = [r for r in b if r["is_exclusive"] != ""]
+        add(("mirror", sc, c["rule"], mir, "exclusive"), sum(1 for r in eb if r["is_exclusive"]), len(eb))
+        tg = [r for r in rows_of[c["clip_id"]] if r["gt_present"]]
+        add(("mirror", sc, c["rule"], mir, "recall"), sum(1 for r in tg if r["matched"]), len(tg))
+        if c["level"] == "L2" and m.get("l2_n_pairs_k5"):
+            add(("gap", sc, m["gap_band"], "reacq"),
+                round(m["l2_p_reacquire_k5"] * m["l2_n_pairs_k5"]), m["l2_n_pairs_k5"])
+            add(("gap", sc, m["gap_band"], "n_clips"), 1, 1)
+            add(("mirror", sc, c["rule"], mir, "reacq"),
+                round(m["l2_p_reacquire_k5"] * m["l2_n_pairs_k5"]), m["l2_n_pairs_k5"])
+        if c["level"] == "L3":
+            per = m.get("l3_chef_per_camera") or {}
+            cams = sorted(c["cameras"])
+            for i, a in enumerate(cams):
+                for bb in cams[i + 1:]:
+                    key = frozenset((a, bb))
+                    path = ("重疊+連結" if key in ov and key in lk else "重疊" if key in ov
+                            else "轉場連結" if key in lk else "未建模")
+                    add(("path", sc, c["rule"], path, "pairs"), 1, 1)
+                    if per.get(a) is None or per.get(bb) is None:
+                        add(("path", sc, c["rule"], path, "dropped"), 1, 1)
+                        continue
+                    add(("path", sc, c["rule"], path, "handoff"), int(per[a] == per[bb]), 1)
+                    add(("mirror", sc, c["rule"], mir, "handoff"), int(per[a] == per[bb]), 1)
+    return {k: tuple(v) for k, v in out.items()}
+
+
+def kn(d, key):
+    k, n = d.get(key, (0, 0))
+    return "—" if not n else f"{k / n * 100:.1f}%({k:,}/{n:,})"
+
+
 def pct(v):
     return "—" if v is None else f"{v * 100:.1f}%"
 
@@ -171,12 +233,14 @@ FULL_ROWS = (
     ("多數率(輔助)", lambda r: cell(r, "majority", "majority_k", "n_bound_cells", "majority_ci")),
     ("排他率", lambda r: cell(r, "exclusive", "exclusive_k", "exclusive_n", "exclusive_ci")),
     ("編號切換總次數", lambda r: f"{r['chef_switches']:,}"),
+    ("編號切換率(次數 / 相鄰格對)", lambda r: cell(r, "chef_switch_rate", "chef_switches", "n_adjacent")),
     ("不同編號個數(理想值 = 筆數)", lambda r: f"{r['n_chef_ids']:,}(理想 {r['n_clips']:,})"),
     ("全程只有一個編號的筆數", lambda r: f"{r['n_clips_one_id']:,}/{r['n_clips']:,}"),
     ("連續率 100% 的筆數", lambda r: f"{r['n_clips_perfect']:,}/{r['n_clips']:,}"),
     ("目標拿到編號前已開的編號數(中位)", lambda r: f"{r['chefs_before_target_median']:g}"),
     ("L2 再取得率 k=5", lambda r: cell(r, "reacq_k5", "reacq_k5_k", "reacq_k5_n", "reacq_k5_ci")),
     ("L2 再取得率 k=1", lambda r: cell(r, "reacq_k1", "reacq_k1_k", "reacq_k1_n", "reacq_k1_ci")),
+    ("L2 假成功段數(再取得成功但結尾編號已不同)", lambda r: f"{r['l2_false_success']}" if r["reacq_k5_n"] else "—"),
     ("L2 無法判定的間隔對", lambda r: f"{r['reacq_k5_dropped']}" if r["reacq_k5_n"] or r["reacq_k5_dropped"] else "—"),
     ("**跨鏡頭(L3)**", None),
     ("跨鏡頭一致率", lambda r: cell(r, "handoff", "handoff_k", "handoff_n", "handoff_ci")),
@@ -188,8 +252,11 @@ FULL_ROWS = (
     ("完全沒有編號的筆數", lambda r: f"{r['n_clips_unbound']:,}/{r['n_clips']:,}"),
     ("IoU 平均(配對成功者)", lambda r: "—" if r["mean_iou_matched"] is None else f"{r['mean_iou_matched']:.4f}"),
     ("IoU 中位(全部目標格)", lambda r: "—" if r["median_iou"] is None else f"{r['median_iou']:.4f}"),
+    ("IoU 第 10 / 第 90 百分位", lambda r: "—" if r["iou_p10"] is None else f"{r['iou_p10']:.4f} / {r['iou_p90']:.4f}"),
     ("IoU ≥ 0.75 比例", lambda r: cell(r, "iou75", "iou75_k", "n_target_cells", "iou75_ci")),
     ("track 切換總次數", lambda r: f"{r['track_switches']:,}"),
+    ("track 切換率(次數 / 相鄰格對)", lambda r: cell(r, "track_switch_rate", "track_switches", "n_adjacent")),
+    ("目標可見比例(有標註框的格 / 取樣格)", lambda r: cell(r, "visibility", "n_target_cells", "n_cells")),
     ("**代價**", None),
     ("誤偵框比例", lambda r: cell(r, "ghost_box_rate", "n_ghost_boxes", "n_boxes", "ghost_box_ci")),
     ("誤偵 track 比例", lambda r: cell(r, "ghost_track_rate", "n_ghost_tracks", "n_tracks", "ghost_track_ci")),
@@ -205,13 +272,19 @@ def main():
     ap.add_argument("--root", default="D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA")
     ap.add_argument("--manifest", default="results/six_subsets/manifest.json")
     ap.add_argument("--out-root", default="results/six_subsets")
+    ap.add_argument("--eval-topology", default="configs/fix_grid/base_overlapfix.yaml",
+                    help="只用來把 L3 的鏡頭對分成 重疊 / 連結 / 未建模,四組設定共用同一份")
     ap.add_argument("--profiles", nargs="+",
                     default=["delivery", "single_person", "plan_strict", "plan_share"])
     args = ap.parse_args()
 
     man = json.loads((ROOT / args.manifest).read_text(encoding="utf-8"))
     out_root = ROOT / args.out_root
-    gts, all_rows = {}, []
+    gts, all_rows, extra = {}, [], {}
+    import yaml
+    tp = yaml.safe_load((ROOT / args.eval_topology).read_text(encoding="utf-8"))["camera_topology"]
+    topo = ({frozenset(p) for p in tp.get("overlapping", [])},
+            {frozenset((l["from"], l["to"])) for l in tp.get("links", [])})
     for profile in args.profiles:
         rows_of, ms, missing, cache = {}, {}, [], {}
         for clip in man["clips"]:
@@ -226,6 +299,14 @@ def main():
             tracks, chefs = cache[clip["run_id"]]
             rows, m = clip_metrics(clip, 5, gts[clip["seq"]], tracks, chefs)
             rows_of[clip["clip_id"]] = annotate(rows, m)
+            bound = sorted((r for r in rows_of[clip["clip_id"]] if r["in_B"]),
+                           key=lambda r: (r["video_fid"], r["camera_id"]))
+            m["last_chef"] = bound[-1]["chef_id"] if bound else ""
+            # 假成功:間隔前後的多數編號相同(算再取得成功),但片段結尾已不是第一個編號
+            m["l2_false_success"] = int(bool(
+                m.get("l2_n_pairs_k5") and m["l2_p_reacquire_k5"] == 1.0
+                and bound and bound[-1]["chef_id"] != m["c0"]))
+            m["mirror"] = int(bool(set(clip["cameras"]) & MIRROR))
             flags, sev = problem_flags(m)
             m.update(scope=clip["scope"], seq_group=clip["seq_group"], run_id=clip["run_id"],
                      problem_flags="、".join(flags), severity=sev)
@@ -240,13 +321,13 @@ def main():
                 "duration_s", "exclusive", "n_other_ids", "problem_flags", "severity",
                 "n_target_cells", "n_matched", "recall_target", "n_B", "bound_rate",
                 "mean_iou_matched", "median_iou", "frac_iou_ge_075",
-                "c0", "c_star", "p_continuity", "p_majority", "p_exclusive",
+                "mirror", "c0", "c_star", "last_chef", "l2_false_success", "p_continuity", "p_majority", "p_exclusive",
                 "chef_switches", "track_switches", "n_distinct_chef_ids", "n_track_ids",
                 "n_chefs_created_before_target_bound",
                 "n_boxes", "n_ghost_boxes", "ghost_box_rate", "n_tracks_in_window",
                 "n_ghost_tracks", "ghost_track_rate", "p_chef_shared_with_other_box",
                 "l2_p_reacquire_k5", "l2_n_pairs_k5", "l2_n_pairs_dropped_k5",
-                "l2_p_reacquire_k1", "l2_n_pairs_k1", "gaps_s",
+                "l2_p_reacquire_k1", "l2_n_pairs_k1", "gaps_s", "gap_band",
                 "l3_p_handoff", "l3_n_pairs_usable", "l3_n_pairs_dropped", "l3_chef_per_camera",
                 "l3_p_simul_agree", "l3_n_simul_frames"]
         with open(ev / "per_clip.csv", "w", encoding="utf-8-sig", newline="") as f:
@@ -255,6 +336,7 @@ def main():
             for c in done:
                 w.writerow(ms[c["clip_id"]])
 
+        extra[profile] = breakdowns(done, rows_of, ms, topo)
         groups = defaultdict(list)
         for c in done:
             groups[(c["scope"], c["rule"], "all")].append(c)
@@ -315,7 +397,8 @@ def main():
             "- 誤偵框與誤偵 track 以時間窗去重(多人 L1 同一個窗有多個目標)。",
             "- 指標定義見 `src/common/clip_metrics.py` 檔頭與 "
             "`docs/六子集測試_預先登記_20261013.md` §4。", ""]
-    for sg, title in (("all", "全部序列"), ("eval", "只含評估集序列")):
+    for sg, title in (("all", "全部序列"), ("eval", "只含評估集序列"),
+                      ("derive", "只含推導集序列")):
         full += [f"## {title}", ""]
         for scope in ("single", "multi"):
             for rule in RULES:
@@ -344,6 +427,44 @@ def main():
                         continue
                     full.append(f"| {label} | " + " | ".join(vals) + " |")
                 full.append("")
+    P = args.profiles
+    hdr = " | ".join(f"`{p}`" for p in P)
+    sep = "|---" * (len(P) + 1) + "|"
+    full += ["## 分解(全部序列)", "",
+             "### L2 再取得率依間隔長短", "",
+             "- within_buffer:離開不超過 5 秒(M4 的跟丟緩衝內);beyond_buffer:超過 5 秒。", "",
+             f"| 範圍 | 間隔帶 | 段數 | {hdr} |", "|---|---|---" + "|---" * len(P) + "|"]
+    for scope in ("single", "multi"):
+        for band in ("within_buffer", "beyond_buffer"):
+            n = extra[P[0]].get(("gap", scope, band, "n_clips"), (0, 0))[1]
+            if n:
+                full.append(f"| {name[scope]} | {band} | {n} | "
+                            + " | ".join(kn(extra[p], ("gap", scope, band, "reacq")) for p in P) + " |")
+    full += ["", "### L3 跨鏡頭一致率依鏡頭對的路徑", "",
+             f"- 路徑依 `{args.eval_topology}` 分類,四組設定共用同一份分類"
+             "(`delivery` 自己的拓撲沒有列入其中四個重疊對)。",
+             "- 重疊:兩台視野重疊;轉場連結:拓撲有列出走過去的時間;未建模:兩者皆無。", "",
+             f"| 範圍 | 規則 | 路徑 | 鏡頭對 | 排除 | {hdr} |", "|---|---|---|---|---" + "|---" * len(P) + "|"]
+    for scope in ("single", "multi"):
+        for rule in ("L3S", "L3T"):
+            for path in PATHS:
+                n = extra[P[0]].get(("path", scope, rule, path, "pairs"), (0, 0))[1]
+                if n:
+                    dr = "/".join(str(extra[p].get(("path", scope, rule, path, "dropped"), (0, 0))[1]) for p in P)
+                    full.append(f"| {name[scope]} | {rule} | {path} | {n} | {dr} | "
+                                + " | ".join(kn(extra[p], ("path", scope, rule, path, "handoff")) for p in P) + " |")
+    full += ["", "### 依是否牽涉玻璃倒影鏡頭(camera_5、camera_6)", ""]
+    for metric, title in (("recall", "目標召回率"), ("continuity", "連續率"), ("exclusive", "排他率"),
+                          ("reacq", "L2 再取得率"), ("handoff", "L3 跨鏡頭一致率")):
+        full += [f"#### {title}", "", f"| 子集 | 倒影 | 筆數 | {hdr} |", "|---|---|---" + "|---" * len(P) + "|"]
+        for scope in ("single", "multi"):
+            for rule in RULES:
+                for mir in ("不含倒影鏡頭", "含倒影鏡頭"):
+                    n = extra[P[0]].get(("mirror", scope, rule, mir, "n_clips"), (0, 0))[1]
+                    vals = [kn(extra[p], ("mirror", scope, rule, mir, metric)) for p in P]
+                    if n and any(v != "—" for v in vals):
+                        full.append(f"| {name[scope]} {rule} | {mir} | {n} | " + " | ".join(vals) + " |")
+        full.append("")
     (out_root / "metrics_full.md").write_text("\n".join(full), encoding="utf-8")
     print(f"已存 {out_root / 'summary_all.md'}、{out_root / 'metrics_full.md'}")
 
