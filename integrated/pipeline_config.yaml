@@ -217,3 +217,26 @@ profiles:
         - [camera_3, camera_5]
         - [camera_4, camera_5]
         - [camera_5, camera_6]
+
+  # ── 平面圖幾何(2026-10-13,實驗性,**尚未採用**)──────────────────────
+  # 把場地平面圖投影接進 M5 的地面位置證據。M4 與 M5 embedder 同 single_person,
+  # 拓撲改讀 configs/plan_grid/<格>/<序列>.yaml(每序列一份,因為投影含該序列的畫面對齊),
+  # 執行時必須給 --seq。只適用 CHIRLA 這個場地;換場地要重建(scripts/chirla_build_plan_topology.py,repo)。
+  # 兩輪實驗沒有一格同時通過單人與多人判準,見 reference/docs/M5_平面圖幾何接入_預先登記_20261013.md。
+  #
+  # plan_strict(實驗代號 P1):位置證據自己要過門檻。多人全長加權成本 416 -> 217,
+  #   但單人 L3S 跨鏡頭一致 14/16 -> 4/16。
+  plan_strict:
+    m4:
+      backend: rf_mcbyte_nomask_app
+    m5:
+      embedder: dinov2
+      topology_file: "configs/plan_grid/P1/{seq}.yaml"
+  # plan_share(實驗代號 Q2):逐鏡頭對 σ,把「那台鏡頭裡有 k 個人」的均勻稀釋換成依位置分配。
+  #   單人 L3S 連續率 69% -> 95%,多人全長沒有改善(加權成本 424.6)。
+  plan_share:
+    m4:
+      backend: rf_mcbyte_nomask_app
+    m5:
+      embedder: dinov2
+      topology_file: "configs/plan_grid/Q2/{seq}.yaml"

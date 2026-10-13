@@ -1,0 +1,238 @@
+# Q2 · seq_004 —— 由 scripts/chirla_build_plan_topology.py 產生,請勿手改
+# 預先登記:docs/M5_平面圖幾何接入_預先登記_20261013.md
+# 基底 configs/fix_grid/base_overlapfix.yaml;投影來源 landmarks;單位為示意圖像素(欄位名沿用 _m)
+camera_topology:
+  fusion:
+    mode: llr
+    background_arrival_hz: 0.0482
+    cost_false_merge_over_break: 5.0
+    transit_model: loiter
+    p_loiter: 0.1798
+    tau_loiter_s: 8.51
+    appearance_profile: dinov2
+    appearance_clip: null
+    overlap_llr: 5.0
+    overlap_window_s: 0.5
+    same_camera:
+      enabled: true
+      tau_break_s: 2.0
+      max_gap_s: 15.0
+    unknown_path:
+      enabled: true
+      median_multiplier: 2.0
+      log_sigma: 0.8
+      logprior: -2.0
+    direction:
+      enabled: false
+    ground_plane:
+      enabled: true
+      sigma_m: 7.65
+      area_m2: 38144.0
+      clip: 8.0
+      speed: 17.998
+      pairs:
+        camera_1|camera_2: 14.593
+        camera_1|camera_3: 7.501
+        camera_2|camera_3: 6.392
+        camera_2|camera_5: 10.83
+        camera_4|camera_5: 15.951
+        camera_6|camera_7: 11.149
+      mode: share
+      share_eps: 0.05
+    floorplan:
+      enabled: true
+      distance: rooms
+      rooms:
+        O1:
+        - 130
+        - 40
+        - 470
+        - 127
+        L1:
+        - 110
+        - 127
+        - 262
+        - 226
+        L2:
+        - 262
+        - 127
+        - 348
+        - 226
+        L3:
+        - 348
+        - 127
+        - 465
+        - 226
+        H1:
+        - 100
+        - 226
+        - 520
+        - 262
+      doors:
+        L2-H1 door:
+          xy:
+          - 328.7
+          - 227.0
+          rooms:
+          - L2
+          - H1
+        L2-O1 door:
+          xy:
+          - 293.0
+          - 126.7
+          rooms:
+          - L2
+          - O1
+        L2-L3 passage:
+          xy:
+          - 347.7
+          - 174.3
+          rooms:
+          - L2
+          - L3
+        L3-H1 door:
+          xy:
+          - 369.0
+          - 226.0
+          rooms:
+          - L3
+          - H1
+        L1-H1 door:
+          xy:
+          - 153.7
+          - 227.0
+          rooms:
+          - L1
+          - H1
+    plan_transit:
+      enabled: false
+  links:
+  - from: camera_2
+    to: camera_6
+    mean_s: 3.261
+    std_s: 1.845
+  - from: camera_6
+    to: camera_7
+    mean_s: 0.617
+    std_s: 0.481
+  - from: camera_7
+    to: camera_5
+    mean_s: 10.542
+    std_s: 4.278
+  overlapping:
+  - - camera_1
+    - camera_2
+  - - camera_1
+    - camera_3
+  - - camera_1
+    - camera_5
+  - - camera_6
+    - camera_7
+  - - camera_2
+    - camera_3
+  - - camera_2
+    - camera_4
+  - - camera_2
+    - camera_5
+  - - camera_3
+    - camera_4
+  - - camera_3
+    - camera_5
+  - - camera_4
+    - camera_5
+  - - camera_5
+    - camera_6
+  clock:
+    max_skew_s: 0.2
+  cameras:
+    camera_1:
+      clock_offset_s: 0.0
+      homography:
+        matrix:
+        - - -0.5069026799790832
+          - 0.1121589704130491
+          - 350.0457764618459
+        - - -0.27806112231098606
+          - -0.11849872969301431
+          - 217.33124937903546
+        - - -0.0014106026454875134
+          - 0.0005764939955005329
+          - 1.0
+    camera_2:
+      clock_offset_s: 0.0
+      homography:
+        matrix:
+        - - -0.07238584688090323
+          - -0.2980288225386667
+          - 359.61895178156675
+        - - 0.018297751864875415
+          - -0.2744599703933408
+          - 252.21059142434135
+        - - -4.805844098867482e-05
+          - -0.0007774427419100929
+          - 1.0
+    camera_3:
+      clock_offset_s: 0.0
+      homography:
+        matrix:
+        - - -0.08878962625691333
+          - 0.26131086207620174
+          - 276.3119180261907
+        - - -0.07737337094551744
+          - 0.34516878588887284
+          - 58.63586176442039
+        - - -0.0006957192898430103
+          - 0.0011776554868522435
+          - 1.0
+    camera_4:
+      clock_offset_s: 0.0
+      homography:
+        matrix:
+        - - -0.381158732327693
+          - -0.1843614874351339
+          - 334.80797365230046
+        - - -0.21672500403938783
+          - -0.062369518666953505
+          - 162.47865955503718
+        - - -0.001076346734310493
+          - -0.0006037142779010576
+          - 1.0
+    camera_5:
+      clock_offset_s: 0.0
+      homography:
+        matrix:
+        - - 0.21528552330451323
+          - 8.3558401590426
+          - 2279.288450474175
+        - - 2.5039899316989844
+          - 7.7908958479324655
+          - -827.2378420490788
+        - - 0.000756182311958338
+          - 0.03575553041707984
+          - 1.0
+    camera_6:
+      clock_offset_s: 0.0
+      homography:
+        matrix:
+        - - -0.24515219538293384
+          - 0.09744517981944809
+          - 138.9269391062534
+        - - -0.38608437224662656
+          - 0.042279065549164205
+          - 271.42500689295355
+        - - -0.0014125554683357187
+          - 0.00018715292733364507
+          - 1.0
+    camera_7:
+      clock_offset_s: 0.0
+      homography:
+        matrix:
+        - - -1.2510343751992703
+          - -4.519089983744752
+          - 308.8912730313904
+        - - -0.8999471243847557
+          - -1.1639025539660257
+          - -1680.307404966162
+        - - -0.0133160286526159
+          - -0.01598577781255702
+          - 1.0

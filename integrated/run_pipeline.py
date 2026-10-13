@@ -314,6 +314,9 @@ def parse_args():
                     help="M3 推論解析度(不給 = 設定檔的值,預設 auto)")
     ap.add_argument("--det-cache", default=None)
     ap.add_argument("--topology", default=None, help="外部拓撲檔(覆蓋 m5.topology_file)")
+    ap.add_argument("--seq", default=None,
+                    help="序列名稱,代入拓撲檔路徑裡的 {seq}。平面圖投影含各序列的畫面對齊,"
+                         "所以 plan_* 設定是每序列一份拓撲")
     ap.add_argument("--embedder", default=None)
     ap.add_argument("--gate-m3", action="store_true", help="啟用 M2 閘門(未經 M4/M5 評估驗證)")
     ap.add_argument("--save-frames", action="store_true")
@@ -332,6 +335,12 @@ def apply_cli(cfg, args):
             cfg["m3"][key] = val
     if args.topology is not None:
         cfg["m5"]["topology_file"] = args.topology
+    tf = cfg["m5"].get("topology_file")
+    if tf and "{seq}" in str(tf):
+        # 沒給 --seq 就直接停:靜默退回設定檔內嵌的拓撲會讓平面圖證據「看起來開著其實沒有」
+        if not args.seq:
+            raise SystemExit(f"拓撲檔路徑含 {{seq}}({tf}),請給 --seq <序列名稱>")
+        cfg["m5"]["topology_file"] = str(tf).replace("{seq}", args.seq)
     if args.embedder is not None:
         cfg["m5"]["embedder"] = args.embedder
     if args.gate_m3:
