@@ -101,6 +101,11 @@ def panel(frame, cam, fid, tracks, chefs, row, target, width):
         else:
             st, col = f"unbound  IoU {float(row['iou']):.2f}", (0, 165, 255)
         put(img, f"{cam}  fid {fid}  {st}", (10, 28), col, 0.7)
+        # 多人片段(2026-10-13):這一幀有別的真人戴著目標的編號 → 第二行標出來。
+        # 單人片段這個欄位永遠是空的,畫面與之前逐位相同。
+        if row.get("others_same_chef"):
+            put(img, f"SHARED ID with person {row['others_same_chef']}", (10, 56),
+                (0, 0, 255), 0.7)
     h, w = img.shape[:2]
     return cv2.resize(img, (width, int(h * width / w)))
 
