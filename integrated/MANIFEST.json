@@ -1,0 +1,188 @@
+{
+ "built": "2026-10-13",
+ "source_repo": "yiznmin/smaet_kitchen (branch main)",
+ "source_commit": "e38ed70abcbd4c2af049907e19fb9243633a59e0",
+ "note": "src/ 與 scripts/ 是完整 repo 同名檔案的快照。下列檔案在建置當下尚未提交,內容比 source_commit 新。",
+ "uncommitted_in_repo_at_build": [
+  "M scripts/cache_detections.py",
+  "M scripts/m3_on_frame.py",
+  "M scripts/m4_track_video.py",
+  "M scripts/m5_track_video.py",
+  "M scripts/reid_eval_epfl.py",
+  "M scripts/sweep_thresholds.py",
+  "?? scripts/train_m3_rfdetr.py",
+  "?? src/m3/model.py"
+ ],
+ "files": {
+  "src/common/clip_metrics.py": {
+   "sha256": "a83a769686f0fcb85dbb98e2250f57f4c2f304727b8c4b5ba5913b72db516141",
+   "same_as_repo": true
+  },
+  "src/common/cuda_env.py": {
+   "sha256": "ea683555e21fabea8dd55379ca84e93c918ff1821a083cb8f2b833c853871981",
+   "same_as_repo": true
+  },
+  "src/common/draw_tracks.py": {
+   "sha256": "27f657c12c79942c8634399c8c33b0115ca9c6d8f10000b9ea79d7a426905cd2",
+   "same_as_repo": true
+  },
+  "src/common/video_io.py": {
+   "sha256": "4b0c58786ca9980b10885a8c9de38e5e3f7aee8714995387112a504de0114eca",
+   "same_as_repo": true
+  },
+  "src/common/zones.py": {
+   "sha256": "4bf259b80163e166cffdbd656a59fa09c5027fb8ded9c79d58dc2a4669af59fd",
+   "same_as_repo": true
+  },
+  "src/m2_motion/branch_b.py": {
+   "sha256": "58ae57fde8c9b41d583024d0dad2a0703761cafff1be6fa46e53b993828b940b",
+   "same_as_repo": true
+  },
+  "src/m2_motion/classifier.py": {
+   "sha256": "68bc5f71eef41d206231b531bbaaf6dfcfd6169fb0ae90fa25bfd080249c36d9",
+   "same_as_repo": true
+  },
+  "src/m2_motion/detector.py": {
+   "sha256": "9f99106aeb9ed188db09accf911cb0f04d33ac8a71243fd144b07d370cc4d427",
+   "same_as_repo": true
+  },
+  "src/m2_motion/pipeline.py": {
+   "sha256": "fc1f3e0636b894505c02c80e065d446a05dae17cf277bc17303bbef56c571566",
+   "same_as_repo": true
+  },
+  "src/m2_motion/static_line.py": {
+   "sha256": "a28c63cbe5f6e1c4c105a8dfa51c2c4f4f4ea9968e09658fb063d46e2f372adc",
+   "same_as_repo": true
+  },
+  "src/m3/classes.py": {
+   "sha256": "7f1b0e1751333147b5ab451666e8184859d8fc930cad14b6305cb814df05c11f",
+   "same_as_repo": true
+  },
+  "src/m3/eval.py": {
+   "sha256": "57f2fffb0beb93d2e4b09c7bf6874afc35b1ce4b96ecaf661fd93a53fd8c5c5e",
+   "same_as_repo": true
+  },
+  "src/m3/model.py": {
+   "sha256": "313a73f7193635838b861b6e9f39c3a52be847360b38c7e4e576eeccfe4dc6bf",
+   "same_as_repo": true
+  },
+  "src/m4_track/__init__.py": {
+   "sha256": "8991fd9ca177092ab9db836b4744c5572fa970270e53b20368c64398f4c4b20c",
+   "same_as_repo": true
+  },
+  "src/m4_track/appearance_assoc.py": {
+   "sha256": "6817e02f87aafb03f80e8c1450ba53fa51267c06fab080a532bcbdee09bd48f7",
+   "same_as_repo": true
+  },
+  "src/m4_track/det_cache.py": {
+   "sha256": "9f3a37bf8942845c902124993c3361a7129eafb056ee2041d3cb75f2550811e9",
+   "same_as_repo": true
+  },
+  "src/m4_track/hybrid_cues.py": {
+   "sha256": "cdd92739e57e877b7cfe11ef7ea593ed5e80fc5caeaeaaff3b3aadb4f7427f26",
+   "same_as_repo": true
+  },
+  "src/m4_track/sparse_dcm.py": {
+   "sha256": "6b31c75b34cb79d612633c6c132906d96f08f1db2927455a5035a04b0338f30b",
+   "same_as_repo": true
+  },
+  "src/m4_track/tracker.py": {
+   "sha256": "8faf509f2804e3137055e52db31d8ad80429bfed476196659dc785e9c90e5f43",
+   "same_as_repo": true
+  },
+  "src/m5_reid/__init__.py": {
+   "sha256": "47e28b99289e0c5651528346fb34b25c4039403bc039df3afd03695afa872856",
+   "same_as_repo": true
+  },
+  "src/m5_reid/audit.py": {
+   "sha256": "7a0e79baedae096c469f6d83c79073dd43f72907dba31e4e08fbba375bef4942",
+   "same_as_repo": true
+  },
+  "src/m5_reid/calibration.py": {
+   "sha256": "a544a04e9d584d9f42be86ed52398a4a588a5f684ae28aff5a3e68adb835e0c1",
+   "same_as_repo": true
+  },
+  "src/m5_reid/chirla_embedder.py": {
+   "sha256": "90124cebd16e625872bc29a9894220f7f4f42cf9be0854aab1bcfb56bbacd38a",
+   "same_as_repo": true
+  },
+  "src/m5_reid/cue.py": {
+   "sha256": "df3b91abfc6f1c30c0c94d91b88b0f17484097aec9a980d741fbd8fb56f50617",
+   "same_as_repo": true
+  },
+  "src/m5_reid/dino_embedder.py": {
+   "sha256": "3e84ec7d60960e4441b8151b6af2d2fa3f4c0ff63cbca75e8c929c8806f2024e",
+   "same_as_repo": true
+  },
+  "src/m5_reid/embedder.py": {
+   "sha256": "b2825c118ea42d814b50b791bdb84e4e711b25891cd4c7414e5c9ad06b963e32",
+   "same_as_repo": true
+  },
+  "src/m5_reid/evidence.py": {
+   "sha256": "251eb64fa79b6be4ace64ba55b5d76fd7c36e21672755bdcd9ced8b0c5fece66",
+   "same_as_repo": true
+  },
+  "src/m5_reid/floorplan.py": {
+   "sha256": "5e69be8605a0888c0d49126a02843ebf13946fc1491f14e07d2dc811cd70e4e0",
+   "same_as_repo": true
+  },
+  "src/m5_reid/identity.py": {
+   "sha256": "88f14ad5960160b6660fbec0f5f5e53cb36d7514a1e7947c0ba41097adaee9a8",
+   "same_as_repo": true
+  },
+  "src/m5_reid/identity_st.py": {
+   "sha256": "4aa30376010de39b209d82dd3cb6e4a58b72100d7f37466529ce857bbc0df308",
+   "same_as_repo": true
+  },
+  "src/m5_reid/metrics.py": {
+   "sha256": "404ca2d6fb5dca985853cf2b3b1d8fc6ef8bd6a1b64be0549cc6e3c3bd63036a",
+   "same_as_repo": true
+  },
+  "src/m5_reid/osnet_embedder.py": {
+   "sha256": "9a13de6d8169c8e787f032cc3ba1a480d572226e15596d64d3202c8977137247",
+   "same_as_repo": true
+  },
+  "src/m5_reid/refine.py": {
+   "sha256": "af64a965ba39c56fc19af251c4e3a9a868f038a0ab8e72a7725e0c090e119f2c",
+   "same_as_repo": true
+  },
+  "src/m5_reid/spatiotemporal.py": {
+   "sha256": "ca6e63d1e5c932f5fe2935e273eee2418a807fee37e5ff56421c80165e4b1bc3",
+   "same_as_repo": true
+  },
+  "scripts/eval_clips.py": {
+   "sha256": "0dd9e60a93542dc529c3509996324deed9edbf101ab8d28c4a8b13904f63c5cd",
+   "same_as_repo": true
+  },
+  "scripts/eval_m4m5_chirla.py": {
+   "sha256": "7adbedf90bef5da3df89a8ebce866d980e864d22e92785bdee20b755bd13f5aa",
+   "same_as_repo": true
+  },
+  "scripts/m3_on_frame.py": {
+   "sha256": "13564c630b01afcb82dd0b3fd54ce593bcf32ee46801e60a63b07f1670a8a7c2",
+   "same_as_repo": true
+  },
+  "scripts/report_l3_per_clip.py": {
+   "sha256": "1a4092dc83f4c48f8ca557c1cd283f3599f0b3b8499d0e61fc9b2543c114ee65",
+   "same_as_repo": true
+  },
+  "scripts/sweep_thresholds.py": {
+   "sha256": "efe3aa0f883a0ec8e887156e49a30f43b6102a85f700d28eb7c432b63cccf3fd",
+   "same_as_repo": true
+  },
+  "scripts/train_m3_rfdetr.py": {
+   "sha256": "d617720bffa33b064a5108b50ae585fb4114631abbd106a91981651b51b816fe",
+   "same_as_repo": true
+  },
+  "scripts/train_reid_chirla.py": {
+   "sha256": "15a78d4a356f7d7492aae5dbd205b6478db8d5a05c1fe03ab52b213aea132d91",
+   "same_as_repo": true
+  }
+ },
+ "weights": {
+  "weights/m3_nano_r2_armA/checkpoint_best_total.pth": {
+   "sha256": "e6b15a564c6f148d193634524436b26054a05a3876a7fe01884697540b943a08",
+   "bytes": 123091907
+  }
+ }
+}

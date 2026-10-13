@@ -1,0 +1,4625 @@
+{
+  "source": {
+    "L1": "level1_few_sample.csv",
+    "L2": "level2_single_cam_reappear.csv",
+    "L3": "level3_cross_camera.csv"
+  },
+  "csv_dir": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA",
+  "root": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA",
+  "topology": "configs/fix_grid/base.yaml",
+  "grid": 5,
+  "fps": 30.0,
+  "git_sha": "13920bed21fceaf9de348c969e02125e78e2d519",
+  "argv": [
+    "--root",
+    "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA",
+    "--csv-dir",
+    "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA",
+    "--out",
+    "results/clips/clip_manifest.json"
+  ],
+  "counts": {
+    "L1": 34,
+    "L2": 16,
+    "L3S": 12,
+    "L3T": 5
+  },
+  "n_clips": 67,
+  "selfcheck_failures": [],
+  "clips": [
+    {
+      "clip_id": "L1-seq_026-c1-1-001870",
+      "level": "L1",
+      "rule": "L1",
+      "seq": "seq_026",
+      "cameras": [
+        "camera_1"
+      ],
+      "gt_id": 1,
+      "start_frame": 1871,
+      "end_frame": 2336,
+      "start_fid": 1870,
+      "end_fid": 2335,
+      "t_start_s": 62.333,
+      "t_end_s": 77.833,
+      "duration_s": 15.5,
+      "csv_start_frame": 1869,
+      "csv_end_frame": 2340,
+      "shift_start": 2,
+      "shift_end": 4,
+      "n_loops": {
+        "1": 466,
+        "5": 94
+      },
+      "videos": {
+        "camera_1": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_026/camera_1_2023-12-05-12_12_13.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_026",
+      "csv_row": {
+        "level": "L1",
+        "index": 0,
+        "seq": "seq_026",
+        "camera": "camera_1",
+        "person_id": "1",
+        "start_frame": "1869",
+        "end_frame": "2340",
+        "start_time": "01:02.3",
+        "end_time": "01:18.0",
+        "duration_s": "15.73",
+        "center_range_px": "14",
+        "mean_bbox_h_px": "55",
+        "is_moving": "FALSE"
+      },
+      "n_sampled_cells": 94,
+      "n_target_cells": 94,
+      "target_cells_per_cam": {
+        "camera_1": 94
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": []
+    },
+    {
+      "clip_id": "L1-seq_000-c4-1-001520",
+      "level": "L1",
+      "rule": "L1",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_4"
+      ],
+      "gt_id": 1,
+      "start_frame": 1521,
+      "end_frame": 2091,
+      "start_fid": 1520,
+      "end_fid": 2090,
+      "t_start_s": 50.667,
+      "t_end_s": 69.667,
+      "duration_s": 19.0,
+      "csv_start_frame": 1520,
+      "csv_end_frame": 2093,
+      "shift_start": 1,
+      "shift_end": 2,
+      "n_loops": {
+        "1": 571,
+        "5": 115
+      },
+      "videos": {
+        "camera_4": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_000/camera_4_2023-06-02-11_14_26.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_000",
+      "csv_row": {
+        "level": "L1",
+        "index": 1,
+        "seq": "seq_000",
+        "camera": "camera_4",
+        "person_id": "1",
+        "start_frame": "1520",
+        "end_frame": "2093",
+        "start_time": "00:50.6",
+        "end_time": "01:09.7",
+        "duration_s": "19.13",
+        "center_range_px": "715",
+        "mean_bbox_h_px": "390",
+        "is_moving": "TRUE"
+      },
+      "n_sampled_cells": 115,
+      "n_target_cells": 115,
+      "target_cells_per_cam": {
+        "camera_4": 115
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": []
+    },
+    {
+      "clip_id": "L1-seq_024-c1-2-015670",
+      "level": "L1",
+      "rule": "L1",
+      "seq": "seq_024",
+      "cameras": [
+        "camera_1"
+      ],
+      "gt_id": 2,
+      "start_frame": 15671,
+      "end_frame": 15911,
+      "start_fid": 15670,
+      "end_fid": 15910,
+      "t_start_s": 522.333,
+      "t_end_s": 530.333,
+      "duration_s": 8.0,
+      "csv_start_frame": 15670,
+      "csv_end_frame": 15914,
+      "shift_start": 1,
+      "shift_end": 3,
+      "n_loops": {
+        "1": 241,
+        "5": 49
+      },
+      "videos": {
+        "camera_1": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_024/camera_1_2023-12-01-11_05_52.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_024",
+      "csv_row": {
+        "level": "L1",
+        "index": 2,
+        "seq": "seq_024",
+        "camera": "camera_1",
+        "person_id": "2",
+        "start_frame": "15670",
+        "end_frame": "15914",
+        "start_time": "08:42.3",
+        "end_time": "08:50.4",
+        "duration_s": "8.17",
+        "center_range_px": "69",
+        "mean_bbox_h_px": "160",
+        "is_moving": "FALSE"
+      },
+      "n_sampled_cells": 49,
+      "n_target_cells": 49,
+      "target_cells_per_cam": {
+        "camera_1": 49
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": []
+    },
+    {
+      "clip_id": "L1-seq_026-c5-2-007160",
+      "level": "L1",
+      "rule": "L1",
+      "seq": "seq_026",
+      "cameras": [
+        "camera_5"
+      ],
+      "gt_id": 2,
+      "start_frame": 7161,
+      "end_frame": 7441,
+      "start_fid": 7160,
+      "end_fid": 7440,
+      "t_start_s": 238.667,
+      "t_end_s": 248.0,
+      "duration_s": 9.333,
+      "csv_start_frame": 7160,
+      "csv_end_frame": 7445,
+      "shift_start": 1,
+      "shift_end": 4,
+      "n_loops": {
+        "1": 281,
+        "5": 57
+      },
+      "videos": {
+        "camera_5": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_026/camera_5_2023-12-05-12_12_13.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_026",
+      "csv_row": {
+        "level": "L1",
+        "index": 3,
+        "seq": "seq_026",
+        "camera": "camera_5",
+        "person_id": "2",
+        "start_frame": "7160",
+        "end_frame": "7445",
+        "start_time": "03:58.6",
+        "end_time": "04:08.1",
+        "duration_s": "9.53",
+        "center_range_px": "254",
+        "mean_bbox_h_px": "390",
+        "is_moving": "TRUE"
+      },
+      "n_sampled_cells": 57,
+      "n_target_cells": 57,
+      "target_cells_per_cam": {
+        "camera_5": 57
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": []
+    },
+    {
+      "clip_id": "L1-seq_000-c1-3-004345",
+      "level": "L1",
+      "rule": "L1",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_1"
+      ],
+      "gt_id": 3,
+      "start_frame": 4346,
+      "end_frame": 4796,
+      "start_fid": 4345,
+      "end_fid": 4795,
+      "t_start_s": 144.833,
+      "t_end_s": 159.833,
+      "duration_s": 15.0,
+      "csv_start_frame": 4344,
+      "csv_end_frame": 4799,
+      "shift_start": 2,
+      "shift_end": 3,
+      "n_loops": {
+        "1": 451,
+        "5": 91
+      },
+      "videos": {
+        "camera_1": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_000/camera_1_2023-06-02-11_14_25.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_000",
+      "csv_row": {
+        "level": "L1",
+        "index": 4,
+        "seq": "seq_000",
+        "camera": "camera_1",
+        "person_id": "3",
+        "start_frame": "4344",
+        "end_frame": "4799",
+        "start_time": "02:24.8",
+        "end_time": "02:39.9",
+        "duration_s": "15.2",
+        "center_range_px": "454",
+        "mean_bbox_h_px": "316",
+        "is_moving": "TRUE"
+      },
+      "n_sampled_cells": 91,
+      "n_target_cells": 91,
+      "target_cells_per_cam": {
+        "camera_1": 91
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": []
+    },
+    {
+      "clip_id": "L1-seq_000-c7-3-002915",
+      "level": "L1",
+      "rule": "L1",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_7"
+      ],
+      "gt_id": 3,
+      "start_frame": 2916,
+      "end_frame": 3516,
+      "start_fid": 2915,
+      "end_fid": 3515,
+      "t_start_s": 97.167,
+      "t_end_s": 117.167,
+      "duration_s": 20.0,
+      "csv_start_frame": 2913,
+      "csv_end_frame": 3519,
+      "shift_start": 3,
+      "shift_end": 3,
+      "n_loops": {
+        "1": 601,
+        "5": 121
+      },
+      "videos": {
+        "camera_7": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_000/camera_7_2023-06-02-11_14_26.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_000",
+      "csv_row": {
+        "level": "L1",
+        "index": 5,
+        "seq": "seq_000",
+        "camera": "camera_7",
+        "person_id": "3",
+        "start_frame": "2913",
+        "end_frame": "3519",
+        "start_time": "01:37.1",
+        "end_time": "01:57.3",
+        "duration_s": "20.23",
+        "center_range_px": "561",
+        "mean_bbox_h_px": "352",
+        "is_moving": "TRUE"
+      },
+      "n_sampled_cells": 121,
+      "n_target_cells": 121,
+      "target_cells_per_cam": {
+        "camera_7": 121
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": []
+    },
+    {
+      "clip_id": "L1-seq_020-c1-4-007505",
+      "level": "L1",
+      "rule": "L1",
+      "seq": "seq_020",
+      "cameras": [
+        "camera_1"
+      ],
+      "gt_id": 4,
+      "start_frame": 7506,
+      "end_frame": 7811,
+      "start_fid": 7505,
+      "end_fid": 7810,
+      "t_start_s": 250.167,
+      "t_end_s": 260.333,
+      "duration_s": 10.167,
+      "csv_start_frame": 7502,
+      "csv_end_frame": 7811,
+      "shift_start": 4,
+      "shift_end": 0,
+      "n_loops": {
+        "1": 306,
+        "5": 62
+      },
+      "videos": {
+        "camera_1": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_020/camera_1_2023-07-26-13_21_40.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_020",
+      "csv_row": {
+        "level": "L1",
+        "index": 6,
+        "seq": "seq_020",
+        "camera": "camera_1",
+        "person_id": "4",
+        "start_frame": "7502",
+        "end_frame": "7811",
+        "start_time": "04:10.0",
+        "end_time": "04:20.3",
+        "duration_s": "10.33",
+        "center_range_px": "260",
+        "mean_bbox_h_px": "225",
+        "is_moving": "TRUE"
+      },
+      "n_sampled_cells": 62,
+      "n_target_cells": 62,
+      "target_cells_per_cam": {
+        "camera_1": 62
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": []
+    },
+    {
+      "clip_id": "L1-seq_020-c3-4-007425",
+      "level": "L1",
+      "rule": "L1",
+      "seq": "seq_020",
+      "cameras": [
+        "camera_3"
+      ],
+      "gt_id": 4,
+      "start_frame": 7426,
+      "end_frame": 7761,
+      "start_fid": 7425,
+      "end_fid": 7760,
+      "t_start_s": 247.5,
+      "t_end_s": 258.667,
+      "duration_s": 11.167,
+      "csv_start_frame": 7423,
+      "csv_end_frame": 7765,
+      "shift_start": 3,
+      "shift_end": 4,
+      "n_loops": {
+        "1": 336,
+        "5": 68
+      },
+      "videos": {
+        "camera_3": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_020/camera_3_2023-07-26-13_21_40.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_020",
+      "csv_row": {
+        "level": "L1",
+        "index": 7,
+        "seq": "seq_020",
+        "camera": "camera_3",
+        "person_id": "4",
+        "start_frame": "7423",
+        "end_frame": "7765",
+        "start_time": "04:07.4",
+        "end_time": "04:18.8",
+        "duration_s": "11.43",
+        "center_range_px": "737",
+        "mean_bbox_h_px": "337",
+        "is_moving": "TRUE"
+      },
+      "n_sampled_cells": 68,
+      "n_target_cells": 68,
+      "target_cells_per_cam": {
+        "camera_3": 68
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": []
+    },
+    {
+      "clip_id": "L1-seq_004-c3-5-007450",
+      "level": "L1",
+      "rule": "L1",
+      "seq": "seq_004",
+      "cameras": [
+        "camera_3"
+      ],
+      "gt_id": 5,
+      "start_frame": 7451,
+      "end_frame": 8276,
+      "start_fid": 7450,
+      "end_fid": 8275,
+      "t_start_s": 248.333,
+      "t_end_s": 275.833,
+      "duration_s": 27.5,
+      "csv_start_frame": 7448,
+      "csv_end_frame": 8279,
+      "shift_start": 3,
+      "shift_end": 3,
+      "n_loops": {
+        "1": 826,
+        "5": 166
+      },
+      "videos": {
+        "camera_3": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_004/camera_3_2023-06-08-12_29_08.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_004",
+      "csv_row": {
+        "level": "L1",
+        "index": 8,
+        "seq": "seq_004",
+        "camera": "camera_3",
+        "person_id": "5",
+        "start_frame": "7448",
+        "end_frame": "8279",
+        "start_time": "04:08.2",
+        "end_time": "04:35.9",
+        "duration_s": "27.73",
+        "center_range_px": "11",
+        "mean_bbox_h_px": "204",
+        "is_moving": "FALSE"
+      },
+      "n_sampled_cells": 166,
+      "n_target_cells": 166,
+      "target_cells_per_cam": {
+        "camera_3": 166
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": []
+    },
+    {
+      "clip_id": "L1-seq_000-c1-5-000385",
+      "level": "L1",
+      "rule": "L1",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_1"
+      ],
+      "gt_id": 5,
+      "start_frame": 386,
+      "end_frame": 1051,
+      "start_fid": 385,
+      "end_fid": 1050,
+      "t_start_s": 12.833,
+      "t_end_s": 35.0,
+      "duration_s": 22.167,
+      "csv_start_frame": 382,
+      "csv_end_frame": 1052,
+      "shift_start": 4,
+      "shift_end": 1,
+      "n_loops": {
+        "1": 666,
+        "5": 134
+      },
+      "videos": {
+        "camera_1": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_000/camera_1_2023-06-02-11_14_25.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_000",
+      "csv_row": {
+        "level": "L1",
+        "index": 9,
+        "seq": "seq_000",
+        "camera": "camera_1",
+        "person_id": "5",
+        "start_frame": "382",
+        "end_frame": "1052",
+        "start_time": "00:12.7",
+        "end_time": "00:35.0",
+        "duration_s": "22.37",
+        "center_range_px": "658",
+        "mean_bbox_h_px": "295",
+        "is_moving": "TRUE"
+      },
+      "n_sampled_cells": 134,
+      "n_target_cells": 134,
+      "target_cells_per_cam": {
+        "camera_1": 134
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": []
+    },
+    {
+      "clip_id": "L1-seq_024-c4-6-015905",
+      "level": "L1",
+      "rule": "L1",
+      "seq": "seq_024",
+      "cameras": [
+        "camera_4"
+      ],
+      "gt_id": 6,
+      "start_frame": 15906,
+      "end_frame": 16311,
+      "start_fid": 15905,
+      "end_fid": 16310,
+      "t_start_s": 530.167,
+      "t_end_s": 543.667,
+      "duration_s": 13.5,
+      "csv_start_frame": 15904,
+      "csv_end_frame": 16313,
+      "shift_start": 2,
+      "shift_end": 2,
+      "n_loops": {
+        "1": 406,
+        "5": 82
+      },
+      "videos": {
+        "camera_4": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_024/camera_4_2023-12-01-11_05_52.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_024",
+      "csv_row": {
+        "level": "L1",
+        "index": 10,
+        "seq": "seq_024",
+        "camera": "camera_4",
+        "person_id": "6",
+        "start_frame": "15904",
+        "end_frame": "16313",
+        "start_time": "08:50.1",
+        "end_time": "09:03.7",
+        "duration_s": "13.67",
+        "center_range_px": "676",
+        "mean_bbox_h_px": "361",
+        "is_moving": "TRUE"
+      },
+      "n_sampled_cells": 82,
+      "n_target_cells": 82,
+      "target_cells_per_cam": {
+        "camera_4": 82
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": []
+    },
+    {
+      "clip_id": "L1-seq_000-c5-6-004035",
+      "level": "L1",
+      "rule": "L1",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_5"
+      ],
+      "gt_id": 6,
+      "start_frame": 4036,
+      "end_frame": 4386,
+      "start_fid": 4035,
+      "end_fid": 4385,
+      "t_start_s": 134.5,
+      "t_end_s": 146.167,
+      "duration_s": 11.667,
+      "csv_start_frame": 4035,
+      "csv_end_frame": 4390,
+      "shift_start": 1,
+      "shift_end": 4,
+      "n_loops": {
+        "1": 351,
+        "5": 71
+      },
+      "videos": {
+        "camera_5": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_000/camera_5_2023-06-02-11_14_26.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_000",
+      "csv_row": {
+        "level": "L1",
+        "index": 11,
+        "seq": "seq_000",
+        "camera": "camera_5",
+        "person_id": "6",
+        "start_frame": "4035",
+        "end_frame": "4390",
+        "start_time": "02:14.5",
+        "end_time": "02:26.3",
+        "duration_s": "11.87",
+        "center_range_px": "517",
+        "mean_bbox_h_px": "284",
+        "is_moving": "TRUE"
+      },
+      "n_sampled_cells": 71,
+      "n_target_cells": 71,
+      "target_cells_per_cam": {
+        "camera_5": 71
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": []
+    },
+    {
+      "clip_id": "L1-seq_024-c3-7-015855",
+      "level": "L1",
+      "rule": "L1",
+      "seq": "seq_024",
+      "cameras": [
+        "camera_3"
+      ],
+      "gt_id": 7,
+      "start_frame": 15856,
+      "end_frame": 16426,
+      "start_fid": 15855,
+      "end_fid": 16425,
+      "t_start_s": 528.5,
+      "t_end_s": 547.5,
+      "duration_s": 19.0,
+      "csv_start_frame": 15854,
+      "csv_end_frame": 16429,
+      "shift_start": 2,
+      "shift_end": 3,
+      "n_loops": {
+        "1": 571,
+        "5": 115
+      },
+      "videos": {
+        "camera_3": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_024/camera_3_2023-12-01-11_05_52.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_024",
+      "csv_row": {
+        "level": "L1",
+        "index": 12,
+        "seq": "seq_024",
+        "camera": "camera_3",
+        "person_id": "7",
+        "start_frame": "15854",
+        "end_frame": "16429",
+        "start_time": "08:48.4",
+        "end_time": "09:07.6",
+        "duration_s": "19.2",
+        "center_range_px": "127",
+        "mean_bbox_h_px": "308",
+        "is_moving": "FALSE"
+      },
+      "n_sampled_cells": 115,
+      "n_target_cells": 115,
+      "target_cells_per_cam": {
+        "camera_3": 115
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": []
+    },
+    {
+      "clip_id": "L1-seq_025-c3-7-002520",
+      "level": "L1",
+      "rule": "L1",
+      "seq": "seq_025",
+      "cameras": [
+        "camera_3"
+      ],
+      "gt_id": 7,
+      "start_frame": 2521,
+      "end_frame": 2941,
+      "start_fid": 2520,
+      "end_fid": 2940,
+      "t_start_s": 84.0,
+      "t_end_s": 98.0,
+      "duration_s": 14.0,
+      "csv_start_frame": 2520,
+      "csv_end_frame": 2945,
+      "shift_start": 1,
+      "shift_end": 4,
+      "n_loops": {
+        "1": 421,
+        "5": 85
+      },
+      "videos": {
+        "camera_3": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_025/camera_3_2023-12-04-12_11_17.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_025",
+      "csv_row": {
+        "level": "L1",
+        "index": 13,
+        "seq": "seq_025",
+        "camera": "camera_3",
+        "person_id": "7",
+        "start_frame": "2520",
+        "end_frame": "2945",
+        "start_time": "01:24.0",
+        "end_time": "01:38.1",
+        "duration_s": "14.2",
+        "center_range_px": "322",
+        "mean_bbox_h_px": "368",
+        "is_moving": "TRUE"
+      },
+      "n_sampled_cells": 85,
+      "n_target_cells": 85,
+      "target_cells_per_cam": {
+        "camera_3": 85
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": []
+    },
+    {
+      "clip_id": "L1-seq_002-c4-8-001820",
+      "level": "L1",
+      "rule": "L1",
+      "seq": "seq_002",
+      "cameras": [
+        "camera_4"
+      ],
+      "gt_id": 8,
+      "start_frame": 1821,
+      "end_frame": 2121,
+      "start_fid": 1820,
+      "end_fid": 2120,
+      "t_start_s": 60.667,
+      "t_end_s": 70.667,
+      "duration_s": 10.0,
+      "csv_start_frame": 1819,
+      "csv_end_frame": 2124,
+      "shift_start": 2,
+      "shift_end": 3,
+      "n_loops": {
+        "1": 301,
+        "5": 61
+      },
+      "videos": {
+        "camera_4": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_002/camera_4_2023-06-02-12_09_07.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_002",
+      "csv_row": {
+        "level": "L1",
+        "index": 14,
+        "seq": "seq_002",
+        "camera": "camera_4",
+        "person_id": "8",
+        "start_frame": "1819",
+        "end_frame": "2124",
+        "start_time": "01:00.6",
+        "end_time": "01:10.8",
+        "duration_s": "10.2",
+        "center_range_px": "0",
+        "mean_bbox_h_px": "283",
+        "is_moving": "FALSE"
+      },
+      "n_sampled_cells": 61,
+      "n_target_cells": 61,
+      "target_cells_per_cam": {
+        "camera_4": 61
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": []
+    },
+    {
+      "clip_id": "L1-seq_004-c7-8-008115",
+      "level": "L1",
+      "rule": "L1",
+      "seq": "seq_004",
+      "cameras": [
+        "camera_7"
+      ],
+      "gt_id": 8,
+      "start_frame": 8116,
+      "end_frame": 8506,
+      "start_fid": 8115,
+      "end_fid": 8505,
+      "t_start_s": 270.5,
+      "t_end_s": 283.5,
+      "duration_s": 13.0,
+      "csv_start_frame": 8113,
+      "csv_end_frame": 8507,
+      "shift_start": 3,
+      "shift_end": 1,
+      "n_loops": {
+        "1": 391,
+        "5": 79
+      },
+      "videos": {
+        "camera_7": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_004/camera_7_2023-06-08-12_29_08.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_004",
+      "csv_row": {
+        "level": "L1",
+        "index": 15,
+        "seq": "seq_004",
+        "camera": "camera_7",
+        "person_id": "8",
+        "start_frame": "8113",
+        "end_frame": "8507",
+        "start_time": "04:30.4",
+        "end_time": "04:43.5",
+        "duration_s": "13.17",
+        "center_range_px": "455",
+        "mean_bbox_h_px": "332",
+        "is_moving": "TRUE"
+      },
+      "n_sampled_cells": 79,
+      "n_target_cells": 79,
+      "target_cells_per_cam": {
+        "camera_7": 79
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": []
+    },
+    {
+      "clip_id": "L1-seq_026-c7-9-002475",
+      "level": "L1",
+      "rule": "L1",
+      "seq": "seq_026",
+      "cameras": [
+        "camera_7"
+      ],
+      "gt_id": 9,
+      "start_frame": 2476,
+      "end_frame": 2861,
+      "start_fid": 2475,
+      "end_fid": 2860,
+      "t_start_s": 82.5,
+      "t_end_s": 95.333,
+      "duration_s": 12.833,
+      "csv_start_frame": 2475,
+      "csv_end_frame": 2863,
+      "shift_start": 1,
+      "shift_end": 2,
+      "n_loops": {
+        "1": 386,
+        "5": 78
+      },
+      "videos": {
+        "camera_7": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_026/camera_7_2023-12-05-12_12_13.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_026",
+      "csv_row": {
+        "level": "L1",
+        "index": 16,
+        "seq": "seq_026",
+        "camera": "camera_7",
+        "person_id": "9",
+        "start_frame": "2475",
+        "end_frame": "2863",
+        "start_time": "01:22.5",
+        "end_time": "01:35.4",
+        "duration_s": "12.97",
+        "center_range_px": "508",
+        "mean_bbox_h_px": "159",
+        "is_moving": "TRUE"
+      },
+      "n_sampled_cells": 78,
+      "n_target_cells": 78,
+      "target_cells_per_cam": {
+        "camera_7": 78
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": []
+    },
+    {
+      "clip_id": "L1-seq_020-c7-9-013530",
+      "level": "L1",
+      "rule": "L1",
+      "seq": "seq_020",
+      "cameras": [
+        "camera_7"
+      ],
+      "gt_id": 9,
+      "start_frame": 13531,
+      "end_frame": 13901,
+      "start_fid": 13530,
+      "end_fid": 13900,
+      "t_start_s": 451.0,
+      "t_end_s": 463.333,
+      "duration_s": 12.333,
+      "csv_start_frame": 13528,
+      "csv_end_frame": 13904,
+      "shift_start": 3,
+      "shift_end": 3,
+      "n_loops": {
+        "1": 371,
+        "5": 75
+      },
+      "videos": {
+        "camera_7": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_020/camera_7_2023-07-26-13_21_40.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_020",
+      "csv_row": {
+        "level": "L1",
+        "index": 17,
+        "seq": "seq_020",
+        "camera": "camera_7",
+        "person_id": "9",
+        "start_frame": "13528",
+        "end_frame": "13904",
+        "start_time": "07:30.9",
+        "end_time": "07:43.4",
+        "duration_s": "12.57",
+        "center_range_px": "29",
+        "mean_bbox_h_px": "223",
+        "is_moving": "FALSE"
+      },
+      "n_sampled_cells": 75,
+      "n_target_cells": 75,
+      "target_cells_per_cam": {
+        "camera_7": 75
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": []
+    },
+    {
+      "clip_id": "L1-seq_026-c4-10-004865",
+      "level": "L1",
+      "rule": "L1",
+      "seq": "seq_026",
+      "cameras": [
+        "camera_4"
+      ],
+      "gt_id": 10,
+      "start_frame": 4866,
+      "end_frame": 5186,
+      "start_fid": 4865,
+      "end_fid": 5185,
+      "t_start_s": 162.167,
+      "t_end_s": 172.833,
+      "duration_s": 10.667,
+      "csv_start_frame": 4866,
+      "csv_end_frame": 5190,
+      "shift_start": 0,
+      "shift_end": 4,
+      "n_loops": {
+        "1": 321,
+        "5": 65
+      },
+      "videos": {
+        "camera_4": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_026/camera_4_2023-12-05-12_12_13.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_026",
+      "csv_row": {
+        "level": "L1",
+        "index": 18,
+        "seq": "seq_026",
+        "camera": "camera_4",
+        "person_id": "10",
+        "start_frame": "4866",
+        "end_frame": "5190",
+        "start_time": "02:42.2",
+        "end_time": "02:53.0",
+        "duration_s": "10.83",
+        "center_range_px": "172",
+        "mean_bbox_h_px": "501",
+        "is_moving": "FALSE"
+      },
+      "n_sampled_cells": 65,
+      "n_target_cells": 65,
+      "target_cells_per_cam": {
+        "camera_4": 65
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": []
+    },
+    {
+      "clip_id": "L1-seq_000-c6-10-001710",
+      "level": "L1",
+      "rule": "L1",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_6"
+      ],
+      "gt_id": 10,
+      "start_frame": 1711,
+      "end_frame": 2066,
+      "start_fid": 1710,
+      "end_fid": 2065,
+      "t_start_s": 57.0,
+      "t_end_s": 68.833,
+      "duration_s": 11.833,
+      "csv_start_frame": 1708,
+      "csv_end_frame": 2068,
+      "shift_start": 3,
+      "shift_end": 2,
+      "n_loops": {
+        "1": 356,
+        "5": 72
+      },
+      "videos": {
+        "camera_6": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_000/camera_6_2023-06-02-11_14_26.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_000",
+      "csv_row": {
+        "level": "L1",
+        "index": 19,
+        "seq": "seq_000",
+        "camera": "camera_6",
+        "person_id": "10",
+        "start_frame": "1708",
+        "end_frame": "2068",
+        "start_time": "00:56.9",
+        "end_time": "01:08.9",
+        "duration_s": "12.03",
+        "center_range_px": "760",
+        "mean_bbox_h_px": "318",
+        "is_moving": "TRUE"
+      },
+      "n_sampled_cells": 72,
+      "n_target_cells": 72,
+      "target_cells_per_cam": {
+        "camera_6": 72
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": []
+    },
+    {
+      "clip_id": "L1-seq_024-c2-11-015940",
+      "level": "L1",
+      "rule": "L1",
+      "seq": "seq_024",
+      "cameras": [
+        "camera_2"
+      ],
+      "gt_id": 11,
+      "start_frame": 15941,
+      "end_frame": 16321,
+      "start_fid": 15940,
+      "end_fid": 16320,
+      "t_start_s": 531.333,
+      "t_end_s": 544.0,
+      "duration_s": 12.667,
+      "csv_start_frame": 15940,
+      "csv_end_frame": 16321,
+      "shift_start": 1,
+      "shift_end": 0,
+      "n_loops": {
+        "1": 381,
+        "5": 77
+      },
+      "videos": {
+        "camera_2": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_024/camera_2_2023-12-01-11_05_52.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_024",
+      "csv_row": {
+        "level": "L1",
+        "index": 20,
+        "seq": "seq_024",
+        "camera": "camera_2",
+        "person_id": "11",
+        "start_frame": "15940",
+        "end_frame": "16321",
+        "start_time": "08:51.3",
+        "end_time": "09:04.0",
+        "duration_s": "12.73",
+        "center_range_px": "27",
+        "mean_bbox_h_px": "145",
+        "is_moving": "FALSE"
+      },
+      "n_sampled_cells": 77,
+      "n_target_cells": 77,
+      "target_cells_per_cam": {
+        "camera_2": 77
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": []
+    },
+    {
+      "clip_id": "L1-seq_026-c7-11-004120",
+      "level": "L1",
+      "rule": "L1",
+      "seq": "seq_026",
+      "cameras": [
+        "camera_7"
+      ],
+      "gt_id": 11,
+      "start_frame": 4121,
+      "end_frame": 4381,
+      "start_fid": 4120,
+      "end_fid": 4380,
+      "t_start_s": 137.333,
+      "t_end_s": 146.0,
+      "duration_s": 8.667,
+      "csv_start_frame": 4118,
+      "csv_end_frame": 4383,
+      "shift_start": 3,
+      "shift_end": 2,
+      "n_loops": {
+        "1": 261,
+        "5": 53
+      },
+      "videos": {
+        "camera_7": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_026/camera_7_2023-12-05-12_12_13.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_026",
+      "csv_row": {
+        "level": "L1",
+        "index": 21,
+        "seq": "seq_026",
+        "camera": "camera_7",
+        "person_id": "11",
+        "start_frame": "4118",
+        "end_frame": "4383",
+        "start_time": "02:17.2",
+        "end_time": "02:26.1",
+        "duration_s": "8.87",
+        "center_range_px": "375",
+        "mean_bbox_h_px": "311",
+        "is_moving": "TRUE"
+      },
+      "n_sampled_cells": 53,
+      "n_target_cells": 53,
+      "target_cells_per_cam": {
+        "camera_7": 53
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": []
+    },
+    {
+      "clip_id": "L1-seq_020-c1-12-003195",
+      "level": "L1",
+      "rule": "L1",
+      "seq": "seq_020",
+      "cameras": [
+        "camera_1"
+      ],
+      "gt_id": 12,
+      "start_frame": 3196,
+      "end_frame": 3616,
+      "start_fid": 3195,
+      "end_fid": 3615,
+      "t_start_s": 106.5,
+      "t_end_s": 120.5,
+      "duration_s": 14.0,
+      "csv_start_frame": 3193,
+      "csv_end_frame": 3617,
+      "shift_start": 3,
+      "shift_end": 1,
+      "n_loops": {
+        "1": 421,
+        "5": 85
+      },
+      "videos": {
+        "camera_1": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_020/camera_1_2023-07-26-13_21_40.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_020",
+      "csv_row": {
+        "level": "L1",
+        "index": 22,
+        "seq": "seq_020",
+        "camera": "camera_1",
+        "person_id": "12",
+        "start_frame": "3193",
+        "end_frame": "3617",
+        "start_time": "01:46.4",
+        "end_time": "02:00.5",
+        "duration_s": "14.17",
+        "center_range_px": "407",
+        "mean_bbox_h_px": "299",
+        "is_moving": "TRUE"
+      },
+      "n_sampled_cells": 85,
+      "n_target_cells": 85,
+      "target_cells_per_cam": {
+        "camera_1": 85
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": []
+    },
+    {
+      "clip_id": "L1-seq_025-c4-12-000120",
+      "level": "L1",
+      "rule": "L1",
+      "seq": "seq_025",
+      "cameras": [
+        "camera_4"
+      ],
+      "gt_id": 12,
+      "start_frame": 121,
+      "end_frame": 496,
+      "start_fid": 120,
+      "end_fid": 495,
+      "t_start_s": 4.0,
+      "t_end_s": 16.5,
+      "duration_s": 12.5,
+      "csv_start_frame": 117,
+      "csv_end_frame": 497,
+      "shift_start": 4,
+      "shift_end": 1,
+      "n_loops": {
+        "1": 376,
+        "5": 76
+      },
+      "videos": {
+        "camera_4": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_025/camera_4_2023-12-04-12_11_17.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_025",
+      "csv_row": {
+        "level": "L1",
+        "index": 23,
+        "seq": "seq_025",
+        "camera": "camera_4",
+        "person_id": "12",
+        "start_frame": "117",
+        "end_frame": "497",
+        "start_time": "00:03.9",
+        "end_time": "00:16.5",
+        "duration_s": "12.7",
+        "center_range_px": "539",
+        "mean_bbox_h_px": "433",
+        "is_moving": "TRUE"
+      },
+      "n_sampled_cells": 76,
+      "n_target_cells": 76,
+      "target_cells_per_cam": {
+        "camera_4": 76
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": []
+    },
+    {
+      "clip_id": "L1-seq_020-c4-13-005720",
+      "level": "L1",
+      "rule": "L1",
+      "seq": "seq_020",
+      "cameras": [
+        "camera_4"
+      ],
+      "gt_id": 13,
+      "start_frame": 5721,
+      "end_frame": 5931,
+      "start_fid": 5720,
+      "end_fid": 5930,
+      "t_start_s": 190.667,
+      "t_end_s": 197.667,
+      "duration_s": 7.0,
+      "csv_start_frame": 5719,
+      "csv_end_frame": 5935,
+      "shift_start": 2,
+      "shift_end": 4,
+      "n_loops": {
+        "1": 211,
+        "5": 43
+      },
+      "videos": {
+        "camera_4": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_020/camera_4_2023-07-26-13_21_40.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_020",
+      "csv_row": {
+        "level": "L1",
+        "index": 24,
+        "seq": "seq_020",
+        "camera": "camera_4",
+        "person_id": "13",
+        "start_frame": "5719",
+        "end_frame": "5935",
+        "start_time": "03:10.6",
+        "end_time": "03:17.8",
+        "duration_s": "7.23",
+        "center_range_px": "687",
+        "mean_bbox_h_px": "473",
+        "is_moving": "TRUE"
+      },
+      "n_sampled_cells": 43,
+      "n_target_cells": 43,
+      "target_cells_per_cam": {
+        "camera_4": 43
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": []
+    },
+    {
+      "clip_id": "L1-seq_020-c5-13-006950",
+      "level": "L1",
+      "rule": "L1",
+      "seq": "seq_020",
+      "cameras": [
+        "camera_5"
+      ],
+      "gt_id": 13,
+      "start_frame": 6951,
+      "end_frame": 7141,
+      "start_fid": 6950,
+      "end_fid": 7140,
+      "t_start_s": 231.667,
+      "t_end_s": 238.0,
+      "duration_s": 6.333,
+      "csv_start_frame": 6949,
+      "csv_end_frame": 7143,
+      "shift_start": 2,
+      "shift_end": 2,
+      "n_loops": {
+        "1": 191,
+        "5": 39
+      },
+      "videos": {
+        "camera_5": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_020/camera_5_2023-07-26-13_21_40.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_020",
+      "csv_row": {
+        "level": "L1",
+        "index": 25,
+        "seq": "seq_020",
+        "camera": "camera_5",
+        "person_id": "13",
+        "start_frame": "6949",
+        "end_frame": "7143",
+        "start_time": "03:51.6",
+        "end_time": "03:58.1",
+        "duration_s": "6.5",
+        "center_range_px": "219",
+        "mean_bbox_h_px": "318",
+        "is_moving": "TRUE"
+      },
+      "n_sampled_cells": 39,
+      "n_target_cells": 39,
+      "target_cells_per_cam": {
+        "camera_5": 39
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": []
+    },
+    {
+      "clip_id": "L1-seq_024-c7-14-015805",
+      "level": "L1",
+      "rule": "L1",
+      "seq": "seq_024",
+      "cameras": [
+        "camera_7"
+      ],
+      "gt_id": 14,
+      "start_frame": 15806,
+      "end_frame": 16126,
+      "start_fid": 15805,
+      "end_fid": 16125,
+      "t_start_s": 526.833,
+      "t_end_s": 537.5,
+      "duration_s": 10.667,
+      "csv_start_frame": 15804,
+      "csv_end_frame": 16127,
+      "shift_start": 2,
+      "shift_end": 1,
+      "n_loops": {
+        "1": 321,
+        "5": 65
+      },
+      "videos": {
+        "camera_7": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_024/camera_7_2023-12-01-11_05_52.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_024",
+      "csv_row": {
+        "level": "L1",
+        "index": 26,
+        "seq": "seq_024",
+        "camera": "camera_7",
+        "person_id": "14",
+        "start_frame": "15804",
+        "end_frame": "16127",
+        "start_time": "08:46.8",
+        "end_time": "08:57.5",
+        "duration_s": "10.8",
+        "center_range_px": "514",
+        "mean_bbox_h_px": "220",
+        "is_moving": "TRUE"
+      },
+      "n_sampled_cells": 65,
+      "n_target_cells": 65,
+      "target_cells_per_cam": {
+        "camera_7": 65
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": []
+    },
+    {
+      "clip_id": "L1-seq_024-c7-14-012820",
+      "level": "L1",
+      "rule": "L1",
+      "seq": "seq_024",
+      "cameras": [
+        "camera_7"
+      ],
+      "gt_id": 14,
+      "start_frame": 12821,
+      "end_frame": 13081,
+      "start_fid": 12820,
+      "end_fid": 13080,
+      "t_start_s": 427.333,
+      "t_end_s": 436.0,
+      "duration_s": 8.667,
+      "csv_start_frame": 12818,
+      "csv_end_frame": 13084,
+      "shift_start": 3,
+      "shift_end": 3,
+      "n_loops": {
+        "1": 261,
+        "5": 53
+      },
+      "videos": {
+        "camera_7": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_024/camera_7_2023-12-01-11_05_52.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_024",
+      "csv_row": {
+        "level": "L1",
+        "index": 27,
+        "seq": "seq_024",
+        "camera": "camera_7",
+        "person_id": "14",
+        "start_frame": "12818",
+        "end_frame": "13084",
+        "start_time": "07:07.2",
+        "end_time": "07:16.1",
+        "duration_s": "8.9",
+        "center_range_px": "562",
+        "mean_bbox_h_px": "228",
+        "is_moving": "TRUE"
+      },
+      "n_sampled_cells": 53,
+      "n_target_cells": 53,
+      "target_cells_per_cam": {
+        "camera_7": 53
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": []
+    },
+    {
+      "clip_id": "L1-seq_020-c4-15-002795",
+      "level": "L1",
+      "rule": "L1",
+      "seq": "seq_020",
+      "cameras": [
+        "camera_4"
+      ],
+      "gt_id": 15,
+      "start_frame": 2796,
+      "end_frame": 3211,
+      "start_fid": 2795,
+      "end_fid": 3210,
+      "t_start_s": 93.167,
+      "t_end_s": 107.0,
+      "duration_s": 13.833,
+      "csv_start_frame": 2793,
+      "csv_end_frame": 3212,
+      "shift_start": 3,
+      "shift_end": 1,
+      "n_loops": {
+        "1": 416,
+        "5": 84
+      },
+      "videos": {
+        "camera_4": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_020/camera_4_2023-07-26-13_21_40.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_020",
+      "csv_row": {
+        "level": "L1",
+        "index": 28,
+        "seq": "seq_020",
+        "camera": "camera_4",
+        "person_id": "15",
+        "start_frame": "2793",
+        "end_frame": "3212",
+        "start_time": "01:33.1",
+        "end_time": "01:47.0",
+        "duration_s": "14",
+        "center_range_px": "76",
+        "mean_bbox_h_px": "158",
+        "is_moving": "FALSE"
+      },
+      "n_sampled_cells": 84,
+      "n_target_cells": 84,
+      "target_cells_per_cam": {
+        "camera_4": 84
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": []
+    },
+    {
+      "clip_id": "L1-seq_020-c4-15-003245",
+      "level": "L1",
+      "rule": "L1",
+      "seq": "seq_020",
+      "cameras": [
+        "camera_4"
+      ],
+      "gt_id": 15,
+      "start_frame": 3246,
+      "end_frame": 3431,
+      "start_fid": 3245,
+      "end_fid": 3430,
+      "t_start_s": 108.167,
+      "t_end_s": 114.333,
+      "duration_s": 6.167,
+      "csv_start_frame": 3245,
+      "csv_end_frame": 3435,
+      "shift_start": 1,
+      "shift_end": 4,
+      "n_loops": {
+        "1": 186,
+        "5": 38
+      },
+      "videos": {
+        "camera_4": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_020/camera_4_2023-07-26-13_21_40.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_020",
+      "csv_row": {
+        "level": "L1",
+        "index": 29,
+        "seq": "seq_020",
+        "camera": "camera_4",
+        "person_id": "15",
+        "start_frame": "3245",
+        "end_frame": "3435",
+        "start_time": "01:48.1",
+        "end_time": "01:54.5",
+        "duration_s": "6.37",
+        "center_range_px": "38",
+        "mean_bbox_h_px": "165",
+        "is_moving": "FALSE"
+      },
+      "n_sampled_cells": 38,
+      "n_target_cells": 38,
+      "target_cells_per_cam": {
+        "camera_4": 38
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": []
+    },
+    {
+      "clip_id": "L1-seq_020-c3-16-002975",
+      "level": "L1",
+      "rule": "L1",
+      "seq": "seq_020",
+      "cameras": [
+        "camera_3"
+      ],
+      "gt_id": 16,
+      "start_frame": 2976,
+      "end_frame": 3206,
+      "start_fid": 2975,
+      "end_fid": 3205,
+      "t_start_s": 99.167,
+      "t_end_s": 106.833,
+      "duration_s": 7.667,
+      "csv_start_frame": 2976,
+      "csv_end_frame": 3209,
+      "shift_start": 0,
+      "shift_end": 3,
+      "n_loops": {
+        "1": 231,
+        "5": 47
+      },
+      "videos": {
+        "camera_3": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_020/camera_3_2023-07-26-13_21_40.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_020",
+      "csv_row": {
+        "level": "L1",
+        "index": 30,
+        "seq": "seq_020",
+        "camera": "camera_3",
+        "person_id": "16",
+        "start_frame": "2976",
+        "end_frame": "3209",
+        "start_time": "01:39.2",
+        "end_time": "01:46.9",
+        "duration_s": "7.8",
+        "center_range_px": "7",
+        "mean_bbox_h_px": "238",
+        "is_moving": "FALSE"
+      },
+      "n_sampled_cells": 47,
+      "n_target_cells": 47,
+      "target_cells_per_cam": {
+        "camera_3": 47
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": []
+    },
+    {
+      "clip_id": "L1-seq_000-c3-18-000540",
+      "level": "L1",
+      "rule": "L1",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_3"
+      ],
+      "gt_id": 18,
+      "start_frame": 541,
+      "end_frame": 806,
+      "start_fid": 540,
+      "end_fid": 805,
+      "t_start_s": 18.0,
+      "t_end_s": 26.833,
+      "duration_s": 8.833,
+      "csv_start_frame": 537,
+      "csv_end_frame": 806,
+      "shift_start": 4,
+      "shift_end": 0,
+      "n_loops": {
+        "1": 266,
+        "5": 54
+      },
+      "videos": {
+        "camera_3": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_000/camera_3_2023-06-02-11_14_26.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_000",
+      "csv_row": {
+        "level": "L1",
+        "index": 31,
+        "seq": "seq_000",
+        "camera": "camera_3",
+        "person_id": "18",
+        "start_frame": "537",
+        "end_frame": "806",
+        "start_time": "00:17.9",
+        "end_time": "00:26.8",
+        "duration_s": "9",
+        "center_range_px": "15",
+        "mean_bbox_h_px": "69",
+        "is_moving": "FALSE"
+      },
+      "n_sampled_cells": 54,
+      "n_target_cells": 54,
+      "target_cells_per_cam": {
+        "camera_3": 54
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": []
+    },
+    {
+      "clip_id": "L1-seq_000-c3-18-001400",
+      "level": "L1",
+      "rule": "L1",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_3"
+      ],
+      "gt_id": 18,
+      "start_frame": 1401,
+      "end_frame": 1831,
+      "start_fid": 1400,
+      "end_fid": 1830,
+      "t_start_s": 46.667,
+      "t_end_s": 61.0,
+      "duration_s": 14.333,
+      "csv_start_frame": 1400,
+      "csv_end_frame": 1831,
+      "shift_start": 1,
+      "shift_end": 0,
+      "n_loops": {
+        "1": 431,
+        "5": 87
+      },
+      "videos": {
+        "camera_3": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_000/camera_3_2023-06-02-11_14_26.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_000",
+      "csv_row": {
+        "level": "L1",
+        "index": 32,
+        "seq": "seq_000",
+        "camera": "camera_3",
+        "person_id": "18",
+        "start_frame": "1400",
+        "end_frame": "1831",
+        "start_time": "00:46.6",
+        "end_time": "01:01.0",
+        "duration_s": "14.4",
+        "center_range_px": "20",
+        "mean_bbox_h_px": "68",
+        "is_moving": "FALSE"
+      },
+      "n_sampled_cells": 87,
+      "n_target_cells": 87,
+      "target_cells_per_cam": {
+        "camera_3": 87
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": []
+    },
+    {
+      "clip_id": "L1-seq_006-c2-24-002915",
+      "level": "L1",
+      "rule": "L1",
+      "seq": "seq_006",
+      "cameras": [
+        "camera_2"
+      ],
+      "gt_id": 24,
+      "start_frame": 2916,
+      "end_frame": 3346,
+      "start_fid": 2915,
+      "end_fid": 3345,
+      "t_start_s": 97.167,
+      "t_end_s": 111.5,
+      "duration_s": 14.333,
+      "csv_start_frame": 2916,
+      "csv_end_frame": 3348,
+      "shift_start": 0,
+      "shift_end": 2,
+      "n_loops": {
+        "1": 431,
+        "5": 87
+      },
+      "videos": {
+        "camera_2": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_006/camera_2_2023-06-13-13_24_46.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_006",
+      "csv_row": {
+        "level": "L1",
+        "index": 33,
+        "seq": "seq_006",
+        "camera": "camera_2",
+        "person_id": "24",
+        "start_frame": "2916",
+        "end_frame": "3348",
+        "start_time": "01:37.2",
+        "end_time": "01:51.6",
+        "duration_s": "14.43",
+        "center_range_px": "1",
+        "mean_bbox_h_px": "262",
+        "is_moving": "FALSE"
+      },
+      "n_sampled_cells": 87,
+      "n_target_cells": 87,
+      "target_cells_per_cam": {
+        "camera_2": 87
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": []
+    },
+    {
+      "clip_id": "L2-seq_000-c1-3-003910",
+      "level": "L2",
+      "rule": "L2",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_1"
+      ],
+      "gt_id": 3,
+      "start_frame": 3911,
+      "end_frame": 4796,
+      "start_fid": 3910,
+      "end_fid": 4795,
+      "t_start_s": 130.333,
+      "t_end_s": 159.833,
+      "duration_s": 29.5,
+      "csv_start_frame": 3908,
+      "csv_end_frame": 4799,
+      "shift_start": 3,
+      "shift_end": 3,
+      "n_loops": {
+        "1": 886,
+        "5": 178
+      },
+      "videos": {
+        "camera_1": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_000/camera_1_2023-06-02-11_14_25.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_000",
+      "csv_row": {
+        "level": "L2",
+        "index": 0,
+        "seq": "seq_000",
+        "camera": "camera_1",
+        "person_id": "3",
+        "start_frame": "3908",
+        "end_frame": "4799",
+        "start_time": "02:10.23",
+        "end_time": "02:39.93",
+        "duration_s": "29.73",
+        "n_appearances": "3",
+        "min_gap_s": "2.93",
+        "max_gap_s": "3.0",
+        "appearances": "[3908-3940]; [4029-4253]; [4344-4799]",
+        "center_range_px": "454",
+        "mean_bbox_h_px": "241",
+        "is_moving": "True"
+      },
+      "n_sampled_cells": 178,
+      "n_target_cells": 142,
+      "target_cells_per_cam": {
+        "camera_1": 142
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": [],
+      "appearances": [
+        [
+          3908,
+          3940
+        ],
+        [
+          4029,
+          4253
+        ],
+        [
+          4344,
+          4799
+        ]
+      ],
+      "gaps_s": [
+        2.967,
+        3.033
+      ],
+      "gap_band": "within_buffer"
+    },
+    {
+      "clip_id": "L2-seq_000-c7-10-001530",
+      "level": "L2",
+      "rule": "L2",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_7"
+      ],
+      "gt_id": 10,
+      "start_frame": 1531,
+      "end_frame": 1946,
+      "start_fid": 1530,
+      "end_fid": 1945,
+      "t_start_s": 51.0,
+      "t_end_s": 64.833,
+      "duration_s": 13.833,
+      "csv_start_frame": 1531,
+      "csv_end_frame": 1946,
+      "shift_start": 0,
+      "shift_end": 0,
+      "n_loops": {
+        "1": 416,
+        "5": 84
+      },
+      "videos": {
+        "camera_7": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_000/camera_7_2023-06-02-11_14_26.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_000",
+      "csv_row": {
+        "level": "L2",
+        "index": 1,
+        "seq": "seq_000",
+        "camera": "camera_7",
+        "person_id": "10",
+        "start_frame": "1531",
+        "end_frame": "1946",
+        "start_time": "00:51.00",
+        "end_time": "01:04.83",
+        "duration_s": "13.87",
+        "n_appearances": "2",
+        "min_gap_s": "4.17",
+        "max_gap_s": "4.17",
+        "appearances": "[1531-1783]; [1909-1946]",
+        "center_range_px": "436",
+        "mean_bbox_h_px": "289",
+        "is_moving": "True"
+      },
+      "n_sampled_cells": 84,
+      "n_target_cells": 59,
+      "target_cells_per_cam": {
+        "camera_7": 59
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": [],
+      "appearances": [
+        [
+          1531,
+          1783
+        ],
+        [
+          1909,
+          1946
+        ]
+      ],
+      "gaps_s": [
+        4.2
+      ],
+      "gap_band": "within_buffer"
+    },
+    {
+      "clip_id": "L2-seq_004-c4-6-004585",
+      "level": "L2",
+      "rule": "L2",
+      "seq": "seq_004",
+      "cameras": [
+        "camera_4"
+      ],
+      "gt_id": 6,
+      "start_frame": 4586,
+      "end_frame": 4866,
+      "start_fid": 4585,
+      "end_fid": 4865,
+      "t_start_s": 152.833,
+      "t_end_s": 162.167,
+      "duration_s": 9.333,
+      "csv_start_frame": 4585,
+      "csv_end_frame": 4869,
+      "shift_start": 1,
+      "shift_end": 3,
+      "n_loops": {
+        "1": 281,
+        "5": 57
+      },
+      "videos": {
+        "camera_4": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_004/camera_4_2023-06-08-12_29_08.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_004",
+      "csv_row": {
+        "level": "L2",
+        "index": 2,
+        "seq": "seq_004",
+        "camera": "camera_4",
+        "person_id": "6",
+        "start_frame": "4585",
+        "end_frame": "4869",
+        "start_time": "02:32.80",
+        "end_time": "02:42.27",
+        "duration_s": "9.5",
+        "n_appearances": "2",
+        "min_gap_s": "4.03",
+        "max_gap_s": "4.03",
+        "appearances": "[4585-4706]; [4828-4869]",
+        "center_range_px": "988",
+        "mean_bbox_h_px": "433",
+        "is_moving": "True"
+      },
+      "n_sampled_cells": 57,
+      "n_target_cells": 33,
+      "target_cells_per_cam": {
+        "camera_4": 33
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": [],
+      "appearances": [
+        [
+          4585,
+          4706
+        ],
+        [
+          4828,
+          4869
+        ]
+      ],
+      "gaps_s": [
+        4.067
+      ],
+      "gap_band": "within_buffer"
+    },
+    {
+      "clip_id": "L2-seq_004-c6-6-007585",
+      "level": "L2",
+      "rule": "L2",
+      "seq": "seq_004",
+      "cameras": [
+        "camera_6"
+      ],
+      "gt_id": 6,
+      "start_frame": 7586,
+      "end_frame": 7836,
+      "start_fid": 7585,
+      "end_fid": 7835,
+      "t_start_s": 252.833,
+      "t_end_s": 261.167,
+      "duration_s": 8.333,
+      "csv_start_frame": 7585,
+      "csv_end_frame": 7836,
+      "shift_start": 1,
+      "shift_end": 0,
+      "n_loops": {
+        "1": 251,
+        "5": 51
+      },
+      "videos": {
+        "camera_6": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_004/camera_6_2023-06-08-12_29_08.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_004",
+      "csv_row": {
+        "level": "L2",
+        "index": 3,
+        "seq": "seq_004",
+        "camera": "camera_6",
+        "person_id": "6",
+        "start_frame": "7585",
+        "end_frame": "7836",
+        "start_time": "04:12.80",
+        "end_time": "04:21.17",
+        "duration_s": "8.4",
+        "n_appearances": "2",
+        "min_gap_s": "2.17",
+        "max_gap_s": "2.17",
+        "appearances": "[7585-7694]; [7760-7836]",
+        "center_range_px": "487",
+        "mean_bbox_h_px": "394",
+        "is_moving": "True"
+      },
+      "n_sampled_cells": 51,
+      "n_target_cells": 38,
+      "target_cells_per_cam": {
+        "camera_6": 38
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": [],
+      "appearances": [
+        [
+          7585,
+          7694
+        ],
+        [
+          7760,
+          7836
+        ]
+      ],
+      "gaps_s": [
+        2.2
+      ],
+      "gap_band": "within_buffer"
+    },
+    {
+      "clip_id": "L2-seq_004-c7-7-004775",
+      "level": "L2",
+      "rule": "L2",
+      "seq": "seq_004",
+      "cameras": [
+        "camera_7"
+      ],
+      "gt_id": 7,
+      "start_frame": 4776,
+      "end_frame": 5091,
+      "start_fid": 4775,
+      "end_fid": 5090,
+      "t_start_s": 159.167,
+      "t_end_s": 169.667,
+      "duration_s": 10.5,
+      "csv_start_frame": 4772,
+      "csv_end_frame": 5092,
+      "shift_start": 4,
+      "shift_end": 1,
+      "n_loops": {
+        "1": 316,
+        "5": 64
+      },
+      "videos": {
+        "camera_7": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_004/camera_7_2023-06-08-12_29_08.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_004",
+      "csv_row": {
+        "level": "L2",
+        "index": 4,
+        "seq": "seq_004",
+        "camera": "camera_7",
+        "person_id": "7",
+        "start_frame": "4772",
+        "end_frame": "5092",
+        "start_time": "02:39.03",
+        "end_time": "02:49.70",
+        "duration_s": "10.7",
+        "n_appearances": "2",
+        "min_gap_s": "2.87",
+        "max_gap_s": "2.87",
+        "appearances": "[4772-4889]; [4976-5092]",
+        "center_range_px": "559",
+        "mean_bbox_h_px": "226",
+        "is_moving": "True"
+      },
+      "n_sampled_cells": 64,
+      "n_target_cells": 47,
+      "target_cells_per_cam": {
+        "camera_7": 47
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": [],
+      "appearances": [
+        [
+          4772,
+          4889
+        ],
+        [
+          4976,
+          5092
+        ]
+      ],
+      "gaps_s": [
+        2.9
+      ],
+      "gap_band": "within_buffer"
+    },
+    {
+      "clip_id": "L2-seq_020-c1-12-007830",
+      "level": "L2",
+      "rule": "L2",
+      "seq": "seq_020",
+      "cameras": [
+        "camera_1"
+      ],
+      "gt_id": 12,
+      "start_frame": 7831,
+      "end_frame": 8211,
+      "start_fid": 7830,
+      "end_fid": 8210,
+      "t_start_s": 261.0,
+      "t_end_s": 273.667,
+      "duration_s": 12.667,
+      "csv_start_frame": 7827,
+      "csv_end_frame": 8211,
+      "shift_start": 4,
+      "shift_end": 0,
+      "n_loops": {
+        "1": 381,
+        "5": 77
+      },
+      "videos": {
+        "camera_1": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_020/camera_1_2023-07-26-13_21_40.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_020",
+      "csv_row": {
+        "level": "L2",
+        "index": 5,
+        "seq": "seq_020",
+        "camera": "camera_1",
+        "person_id": "12",
+        "start_frame": "7827",
+        "end_frame": "8211",
+        "start_time": "04:20.87",
+        "end_time": "04:33.67",
+        "duration_s": "12.83",
+        "n_appearances": "2",
+        "min_gap_s": "4.8",
+        "max_gap_s": "4.8",
+        "appearances": "[7827-7864]; [8009-8211]",
+        "center_range_px": "150",
+        "mean_bbox_h_px": "173",
+        "is_moving": "True"
+      },
+      "n_sampled_cells": 77,
+      "n_target_cells": 48,
+      "target_cells_per_cam": {
+        "camera_1": 48
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": [],
+      "appearances": [
+        [
+          7827,
+          7864
+        ],
+        [
+          8009,
+          8211
+        ]
+      ],
+      "gaps_s": [
+        4.833
+      ],
+      "gap_band": "within_buffer"
+    },
+    {
+      "clip_id": "L2-seq_024-c1-7-014705",
+      "level": "L2",
+      "rule": "L2",
+      "seq": "seq_024",
+      "cameras": [
+        "camera_1"
+      ],
+      "gt_id": 7,
+      "start_frame": 14706,
+      "end_frame": 14936,
+      "start_fid": 14705,
+      "end_fid": 14935,
+      "t_start_s": 490.167,
+      "t_end_s": 497.833,
+      "duration_s": 7.667,
+      "csv_start_frame": 14704,
+      "csv_end_frame": 14938,
+      "shift_start": 2,
+      "shift_end": 2,
+      "n_loops": {
+        "1": 231,
+        "5": 47
+      },
+      "videos": {
+        "camera_1": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_024/camera_1_2023-12-01-11_05_52.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_024",
+      "csv_row": {
+        "level": "L2",
+        "index": 6,
+        "seq": "seq_024",
+        "camera": "camera_1",
+        "person_id": "7",
+        "start_frame": "14704",
+        "end_frame": "14938",
+        "start_time": "08:10.10",
+        "end_time": "08:17.90",
+        "duration_s": "7.83",
+        "n_appearances": "2",
+        "min_gap_s": "3.4",
+        "max_gap_s": "3.4",
+        "appearances": "[14704-14764]; [14867-14938]",
+        "center_range_px": "248",
+        "mean_bbox_h_px": "234",
+        "is_moving": "True"
+      },
+      "n_sampled_cells": 47,
+      "n_target_cells": 26,
+      "target_cells_per_cam": {
+        "camera_1": 26
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": [],
+      "appearances": [
+        [
+          14704,
+          14764
+        ],
+        [
+          14867,
+          14938
+        ]
+      ],
+      "gaps_s": [
+        3.433
+      ],
+      "gap_band": "within_buffer"
+    },
+    {
+      "clip_id": "L2-seq_024-c3-7-011320",
+      "level": "L2",
+      "rule": "L2",
+      "seq": "seq_024",
+      "cameras": [
+        "camera_3"
+      ],
+      "gt_id": 7,
+      "start_frame": 11321,
+      "end_frame": 11546,
+      "start_fid": 11320,
+      "end_fid": 11545,
+      "t_start_s": 377.333,
+      "t_end_s": 384.833,
+      "duration_s": 7.5,
+      "csv_start_frame": 11321,
+      "csv_end_frame": 11546,
+      "shift_start": 0,
+      "shift_end": 0,
+      "n_loops": {
+        "1": 226,
+        "5": 46
+      },
+      "videos": {
+        "camera_3": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_024/camera_3_2023-12-01-11_05_52.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_024",
+      "csv_row": {
+        "level": "L2",
+        "index": 7,
+        "seq": "seq_024",
+        "camera": "camera_3",
+        "person_id": "7",
+        "start_frame": "11321",
+        "end_frame": "11546",
+        "start_time": "06:17.33",
+        "end_time": "06:24.83",
+        "duration_s": "7.53",
+        "n_appearances": "2",
+        "min_gap_s": "4.47",
+        "max_gap_s": "4.47",
+        "appearances": "[11321-11363]; [11498-11546]",
+        "center_range_px": "99",
+        "mean_bbox_h_px": "297",
+        "is_moving": "False"
+      },
+      "n_sampled_cells": 46,
+      "n_target_cells": 19,
+      "target_cells_per_cam": {
+        "camera_3": 19
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": [],
+      "appearances": [
+        [
+          11321,
+          11363
+        ],
+        [
+          11498,
+          11546
+        ]
+      ],
+      "gaps_s": [
+        4.5
+      ],
+      "gap_band": "within_buffer"
+    },
+    {
+      "clip_id": "L2-seq_024-c4-7-012085",
+      "level": "L2",
+      "rule": "L2",
+      "seq": "seq_024",
+      "cameras": [
+        "camera_4"
+      ],
+      "gt_id": 7,
+      "start_frame": 12086,
+      "end_frame": 12261,
+      "start_fid": 12085,
+      "end_fid": 12260,
+      "t_start_s": 402.833,
+      "t_end_s": 408.667,
+      "duration_s": 5.833,
+      "csv_start_frame": 12084,
+      "csv_end_frame": 12261,
+      "shift_start": 2,
+      "shift_end": 0,
+      "n_loops": {
+        "1": 176,
+        "5": 36
+      },
+      "videos": {
+        "camera_4": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_024/camera_4_2023-12-01-11_05_52.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_024",
+      "csv_row": {
+        "level": "L2",
+        "index": 8,
+        "seq": "seq_024",
+        "camera": "camera_4",
+        "person_id": "7",
+        "start_frame": "12084",
+        "end_frame": "12261",
+        "start_time": "06:42.77",
+        "end_time": "06:48.67",
+        "duration_s": "5.93",
+        "n_appearances": "2",
+        "min_gap_s": "1.2",
+        "max_gap_s": "1.2",
+        "appearances": "[12084-12164]; [12201-12261]",
+        "center_range_px": "399",
+        "mean_bbox_h_px": "443",
+        "is_moving": "True"
+      },
+      "n_sampled_cells": 36,
+      "n_target_cells": 29,
+      "target_cells_per_cam": {
+        "camera_4": 29
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": [],
+      "appearances": [
+        [
+          12084,
+          12164
+        ],
+        [
+          12201,
+          12261
+        ]
+      ],
+      "gaps_s": [
+        1.233
+      ],
+      "gap_band": "within_buffer"
+    },
+    {
+      "clip_id": "L2-seq_024-c4-10-014700",
+      "level": "L2",
+      "rule": "L2",
+      "seq": "seq_024",
+      "cameras": [
+        "camera_4"
+      ],
+      "gt_id": 10,
+      "start_frame": 14701,
+      "end_frame": 14796,
+      "start_fid": 14700,
+      "end_fid": 14795,
+      "t_start_s": 490.0,
+      "t_end_s": 493.167,
+      "duration_s": 3.167,
+      "csv_start_frame": 14699,
+      "csv_end_frame": 14796,
+      "shift_start": 2,
+      "shift_end": 0,
+      "n_loops": {
+        "1": 96,
+        "5": 20
+      },
+      "videos": {
+        "camera_4": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_024/camera_4_2023-12-01-11_05_52.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_024",
+      "csv_row": {
+        "level": "L2",
+        "index": 9,
+        "seq": "seq_024",
+        "camera": "camera_4",
+        "person_id": "10",
+        "start_frame": "14699",
+        "end_frame": "14796",
+        "start_time": "08:09.93",
+        "end_time": "08:13.17",
+        "duration_s": "3.27",
+        "n_appearances": "2",
+        "min_gap_s": "1.1",
+        "max_gap_s": "1.1",
+        "appearances": "[14699-14733]; [14767-14796]",
+        "center_range_px": "156",
+        "mean_bbox_h_px": "418",
+        "is_moving": "False"
+      },
+      "n_sampled_cells": 20,
+      "n_target_cells": 13,
+      "target_cells_per_cam": {
+        "camera_4": 13
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": [],
+      "appearances": [
+        [
+          14699,
+          14733
+        ],
+        [
+          14767,
+          14796
+        ]
+      ],
+      "gaps_s": [
+        1.133
+      ],
+      "gap_band": "within_buffer"
+    },
+    {
+      "clip_id": "L2-seq_025-c2-7-005185",
+      "level": "L2",
+      "rule": "L2",
+      "seq": "seq_025",
+      "cameras": [
+        "camera_2"
+      ],
+      "gt_id": 7,
+      "start_frame": 5186,
+      "end_frame": 5311,
+      "start_fid": 5185,
+      "end_fid": 5310,
+      "t_start_s": 172.833,
+      "t_end_s": 177.0,
+      "duration_s": 4.167,
+      "csv_start_frame": 5183,
+      "csv_end_frame": 5315,
+      "shift_start": 3,
+      "shift_end": 4,
+      "n_loops": {
+        "1": 126,
+        "5": 26
+      },
+      "videos": {
+        "camera_2": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_025/camera_2_2023-12-04-12_11_17.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_025",
+      "csv_row": {
+        "level": "L2",
+        "index": 10,
+        "seq": "seq_025",
+        "camera": "camera_2",
+        "person_id": "7",
+        "start_frame": "5183",
+        "end_frame": "5315",
+        "start_time": "02:52.73",
+        "end_time": "02:57.13",
+        "duration_s": "4.43",
+        "n_appearances": "2",
+        "min_gap_s": "1.43",
+        "max_gap_s": "1.43",
+        "appearances": "[5183-5241]; [5285-5315]",
+        "center_range_px": "350",
+        "mean_bbox_h_px": "290",
+        "is_moving": "True"
+      },
+      "n_sampled_cells": 26,
+      "n_target_cells": 18,
+      "target_cells_per_cam": {
+        "camera_2": 18
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": [],
+      "appearances": [
+        [
+          5183,
+          5241
+        ],
+        [
+          5285,
+          5315
+        ]
+      ],
+      "gaps_s": [
+        1.467
+      ],
+      "gap_band": "within_buffer"
+    },
+    {
+      "clip_id": "L2-seq_025-c3-7-007115",
+      "level": "L2",
+      "rule": "L2",
+      "seq": "seq_025",
+      "cameras": [
+        "camera_3"
+      ],
+      "gt_id": 7,
+      "start_frame": 7116,
+      "end_frame": 7551,
+      "start_fid": 7115,
+      "end_fid": 7550,
+      "t_start_s": 237.167,
+      "t_end_s": 251.667,
+      "duration_s": 14.5,
+      "csv_start_frame": 7112,
+      "csv_end_frame": 7552,
+      "shift_start": 4,
+      "shift_end": 1,
+      "n_loops": {
+        "1": 436,
+        "5": 88
+      },
+      "videos": {
+        "camera_3": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_025/camera_3_2023-12-04-12_11_17.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_025",
+      "csv_row": {
+        "level": "L2",
+        "index": 11,
+        "seq": "seq_025",
+        "camera": "camera_3",
+        "person_id": "7",
+        "start_frame": "7112",
+        "end_frame": "7552",
+        "start_time": "03:57.03",
+        "end_time": "04:11.70",
+        "duration_s": "14.7",
+        "n_appearances": "2",
+        "min_gap_s": "4.83",
+        "max_gap_s": "4.83",
+        "appearances": "[7112-7303]; [7449-7552]",
+        "center_range_px": "776",
+        "mean_bbox_h_px": "356",
+        "is_moving": "True"
+      },
+      "n_sampled_cells": 88,
+      "n_target_cells": 59,
+      "target_cells_per_cam": {
+        "camera_3": 59
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": [],
+      "appearances": [
+        [
+          7112,
+          7303
+        ],
+        [
+          7449,
+          7552
+        ]
+      ],
+      "gaps_s": [
+        4.867
+      ],
+      "gap_band": "within_buffer"
+    },
+    {
+      "clip_id": "L2-seq_025-c5-6-002540",
+      "level": "L2",
+      "rule": "L2",
+      "seq": "seq_025",
+      "cameras": [
+        "camera_5"
+      ],
+      "gt_id": 6,
+      "start_frame": 2541,
+      "end_frame": 2861,
+      "start_fid": 2540,
+      "end_fid": 2860,
+      "t_start_s": 84.667,
+      "t_end_s": 95.333,
+      "duration_s": 10.667,
+      "csv_start_frame": 2541,
+      "csv_end_frame": 2864,
+      "shift_start": 0,
+      "shift_end": 3,
+      "n_loops": {
+        "1": 321,
+        "5": 65
+      },
+      "videos": {
+        "camera_5": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_025/camera_5_2023-12-04-12_11_17.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_025",
+      "csv_row": {
+        "level": "L2",
+        "index": 12,
+        "seq": "seq_025",
+        "camera": "camera_5",
+        "person_id": "6",
+        "start_frame": "2541",
+        "end_frame": "2864",
+        "start_time": "01:24.67",
+        "end_time": "01:35.43",
+        "duration_s": "10.8",
+        "n_appearances": "2",
+        "min_gap_s": "3.7",
+        "max_gap_s": "3.7",
+        "appearances": "[2541-2670]; [2782-2864]",
+        "center_range_px": "79",
+        "mean_bbox_h_px": "122",
+        "is_moving": "True"
+      },
+      "n_sampled_cells": 65,
+      "n_target_cells": 42,
+      "target_cells_per_cam": {
+        "camera_5": 42
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": [],
+      "appearances": [
+        [
+          2541,
+          2670
+        ],
+        [
+          2782,
+          2864
+        ]
+      ],
+      "gaps_s": [
+        3.733
+      ],
+      "gap_band": "within_buffer"
+    },
+    {
+      "clip_id": "L2-seq_025-c6-2-006810",
+      "level": "L2",
+      "rule": "L2",
+      "seq": "seq_025",
+      "cameras": [
+        "camera_6"
+      ],
+      "gt_id": 2,
+      "start_frame": 6811,
+      "end_frame": 7036,
+      "start_fid": 6810,
+      "end_fid": 7035,
+      "t_start_s": 227.0,
+      "t_end_s": 234.5,
+      "duration_s": 7.5,
+      "csv_start_frame": 6807,
+      "csv_end_frame": 7036,
+      "shift_start": 4,
+      "shift_end": 0,
+      "n_loops": {
+        "1": 226,
+        "5": 46
+      },
+      "videos": {
+        "camera_6": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_025/camera_6_2023-12-04-12_11_17.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_025",
+      "csv_row": {
+        "level": "L2",
+        "index": 13,
+        "seq": "seq_025",
+        "camera": "camera_6",
+        "person_id": "2",
+        "start_frame": "6807",
+        "end_frame": "7036",
+        "start_time": "03:46.87",
+        "end_time": "03:54.50",
+        "duration_s": "7.67",
+        "n_appearances": "2",
+        "min_gap_s": "2.67",
+        "max_gap_s": "2.67",
+        "appearances": "[6807-6891]; [6972-7036]",
+        "center_range_px": "413",
+        "mean_bbox_h_px": "335",
+        "is_moving": "True"
+      },
+      "n_sampled_cells": 46,
+      "n_target_cells": 30,
+      "target_cells_per_cam": {
+        "camera_6": 30
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": [],
+      "appearances": [
+        [
+          6807,
+          6891
+        ],
+        [
+          6972,
+          7036
+        ]
+      ],
+      "gaps_s": [
+        2.7
+      ],
+      "gap_band": "within_buffer"
+    },
+    {
+      "clip_id": "L2-seq_026-c4-11-002005",
+      "level": "L2",
+      "rule": "L2",
+      "seq": "seq_026",
+      "cameras": [
+        "camera_4"
+      ],
+      "gt_id": 11,
+      "start_frame": 2006,
+      "end_frame": 2291,
+      "start_fid": 2005,
+      "end_fid": 2290,
+      "t_start_s": 66.833,
+      "t_end_s": 76.333,
+      "duration_s": 9.5,
+      "csv_start_frame": 2005,
+      "csv_end_frame": 2295,
+      "shift_start": 1,
+      "shift_end": 4,
+      "n_loops": {
+        "1": 286,
+        "5": 58
+      },
+      "videos": {
+        "camera_4": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_026/camera_4_2023-12-05-12_12_13.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_026",
+      "csv_row": {
+        "level": "L2",
+        "index": 14,
+        "seq": "seq_026",
+        "camera": "camera_4",
+        "person_id": "11",
+        "start_frame": "2005",
+        "end_frame": "2295",
+        "start_time": "01:06.80",
+        "end_time": "01:16.47",
+        "duration_s": "9.7",
+        "n_appearances": "2",
+        "min_gap_s": "4.53",
+        "max_gap_s": "4.53",
+        "appearances": "[2005-2078]; [2215-2295]",
+        "center_range_px": "194",
+        "mean_bbox_h_px": "435",
+        "is_moving": "False"
+      },
+      "n_sampled_cells": 58,
+      "n_target_cells": 31,
+      "target_cells_per_cam": {
+        "camera_4": 31
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": [],
+      "appearances": [
+        [
+          2005,
+          2078
+        ],
+        [
+          2215,
+          2295
+        ]
+      ],
+      "gaps_s": [
+        4.567
+      ],
+      "gap_band": "within_buffer"
+    },
+    {
+      "clip_id": "L2-seq_026-c4-10-005820",
+      "level": "L2",
+      "rule": "L2",
+      "seq": "seq_026",
+      "cameras": [
+        "camera_4"
+      ],
+      "gt_id": 10,
+      "start_frame": 5821,
+      "end_frame": 6111,
+      "start_fid": 5820,
+      "end_fid": 6110,
+      "t_start_s": 194.0,
+      "t_end_s": 203.667,
+      "duration_s": 9.667,
+      "csv_start_frame": 5818,
+      "csv_end_frame": 6111,
+      "shift_start": 3,
+      "shift_end": 0,
+      "n_loops": {
+        "1": 291,
+        "5": 59
+      },
+      "videos": {
+        "camera_4": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_026/camera_4_2023-12-05-12_12_13.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_026",
+      "csv_row": {
+        "level": "L2",
+        "index": 15,
+        "seq": "seq_026",
+        "camera": "camera_4",
+        "person_id": "10",
+        "start_frame": "5818",
+        "end_frame": "6111",
+        "start_time": "03:13.90",
+        "end_time": "03:23.67",
+        "duration_s": "9.8",
+        "n_appearances": "2",
+        "min_gap_s": "4.87",
+        "max_gap_s": "4.87",
+        "appearances": "[5818-5866]; [6013-6111]",
+        "center_range_px": "545",
+        "mean_bbox_h_px": "468",
+        "is_moving": "True"
+      },
+      "n_sampled_cells": 59,
+      "n_target_cells": 30,
+      "target_cells_per_cam": {
+        "camera_4": 30
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 0,
+      "links_in_subset": [],
+      "overlapping_in_subset": [],
+      "appearances": [
+        [
+          5818,
+          5866
+        ],
+        [
+          6013,
+          6111
+        ]
+      ],
+      "gaps_s": [
+        4.9
+      ],
+      "gap_band": "within_buffer"
+    },
+    {
+      "clip_id": "L3S-seq_000-c6+c7-9-004450",
+      "level": "L3",
+      "rule": "L3S",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_6",
+        "camera_7"
+      ],
+      "gt_id": 9,
+      "start_frame": 4451,
+      "end_frame": 4621,
+      "start_fid": 4450,
+      "end_fid": 4620,
+      "t_start_s": 148.333,
+      "t_end_s": 154.0,
+      "duration_s": 5.667,
+      "csv_start_frame": 4449,
+      "csv_end_frame": 4622,
+      "shift_start": 2,
+      "shift_end": 1,
+      "n_loops": {
+        "1": 171,
+        "5": 35
+      },
+      "videos": {
+        "camera_6": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_000/camera_6_2023-06-02-11_14_26.avi",
+        "camera_7": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_000/camera_7_2023-06-02-11_14_26.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_000",
+      "csv_row": {
+        "level": "L3",
+        "index": 0,
+        "seq": "seq_000",
+        "person_id": "9",
+        "start_frame": "4449",
+        "end_frame": "4622",
+        "start_time": "02:28.27",
+        "end_time": "02:34.03",
+        "duration_s": "5.8",
+        "n_cameras": "2",
+        "camera_order": "c6>c7",
+        "handoff_type": "overlapping",
+        "brief_cams": "",
+        "others_elsewhere": "6",
+        "segments": "c7[4449-4498]; c6[4449-4622]"
+      },
+      "n_sampled_cells": 70,
+      "n_target_cells": 45,
+      "target_cells_per_cam": {
+        "camera_6": 35,
+        "camera_7": 10
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 1,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 1,
+      "links_in_subset": [
+        [
+          "camera_6",
+          "camera_7"
+        ]
+      ],
+      "overlapping_in_subset": [],
+      "segments": [
+        [
+          "camera_7",
+          4449,
+          4498
+        ],
+        [
+          "camera_6",
+          4449,
+          4622
+        ]
+      ],
+      "camera_order": "c6>c7",
+      "brief_cams": "",
+      "handoff_type": "overlapping"
+    },
+    {
+      "clip_id": "L3S-seq_000-c6+c7-10-001710",
+      "level": "L3",
+      "rule": "L3S",
+      "seq": "seq_000",
+      "cameras": [
+        "camera_6",
+        "camera_7"
+      ],
+      "gt_id": 10,
+      "start_frame": 1711,
+      "end_frame": 2066,
+      "start_fid": 1710,
+      "end_fid": 2065,
+      "t_start_s": 57.0,
+      "t_end_s": 68.833,
+      "duration_s": 11.833,
+      "csv_start_frame": 1708,
+      "csv_end_frame": 2068,
+      "shift_start": 3,
+      "shift_end": 2,
+      "n_loops": {
+        "1": 356,
+        "5": 72
+      },
+      "videos": {
+        "camera_6": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_000/camera_6_2023-06-02-11_14_26.avi",
+        "camera_7": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_000/camera_7_2023-06-02-11_14_26.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_000",
+      "csv_row": {
+        "level": "L3",
+        "index": 1,
+        "seq": "seq_000",
+        "person_id": "10",
+        "start_frame": "1708",
+        "end_frame": "2068",
+        "start_time": "00:56.90",
+        "end_time": "01:08.90",
+        "duration_s": "12.03",
+        "n_cameras": "2",
+        "camera_order": "c6>c7",
+        "handoff_type": "overlapping",
+        "brief_cams": "",
+        "others_elsewhere": "6",
+        "segments": "c7[1708-1783]; c6[1708-2068]; c7[1909-1946]"
+      },
+      "n_sampled_cells": 144,
+      "n_target_cells": 95,
+      "target_cells_per_cam": {
+        "camera_6": 72,
+        "camera_7": 23
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 1,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 1,
+      "links_in_subset": [
+        [
+          "camera_6",
+          "camera_7"
+        ]
+      ],
+      "overlapping_in_subset": [],
+      "segments": [
+        [
+          "camera_7",
+          1708,
+          1783
+        ],
+        [
+          "camera_6",
+          1708,
+          2068
+        ],
+        [
+          "camera_7",
+          1909,
+          1946
+        ]
+      ],
+      "camera_order": "c6>c7",
+      "brief_cams": "",
+      "handoff_type": "overlapping"
+    },
+    {
+      "clip_id": "L3T-seq_004-c6+c7-7-004590",
+      "level": "L3",
+      "rule": "L3T",
+      "seq": "seq_004",
+      "cameras": [
+        "camera_6",
+        "camera_7"
+      ],
+      "gt_id": 7,
+      "start_frame": 4591,
+      "end_frame": 4886,
+      "start_fid": 4590,
+      "end_fid": 4885,
+      "t_start_s": 153.0,
+      "t_end_s": 162.833,
+      "duration_s": 9.833,
+      "csv_start_frame": 4590,
+      "csv_end_frame": 4889,
+      "shift_start": 1,
+      "shift_end": 3,
+      "n_loops": {
+        "1": 296,
+        "5": 60
+      },
+      "videos": {
+        "camera_6": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_004/camera_6_2023-06-08-12_29_08.avi",
+        "camera_7": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_004/camera_7_2023-06-08-12_29_08.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_004",
+      "csv_row": {
+        "level": "L3",
+        "index": 2,
+        "seq": "seq_004",
+        "person_id": "7",
+        "start_frame": "4590",
+        "end_frame": "4889",
+        "start_time": "02:32.97",
+        "end_time": "02:42.93",
+        "duration_s": "10.0",
+        "n_cameras": "2",
+        "camera_order": "c6>c7",
+        "handoff_type": "sequential",
+        "brief_cams": "",
+        "others_elsewhere": "6",
+        "segments": "c6[4590-4672]; c7[4772-4889]"
+      },
+      "n_sampled_cells": 120,
+      "n_target_cells": 40,
+      "target_cells_per_cam": {
+        "camera_6": 17,
+        "camera_7": 23
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 1,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 1,
+      "links_in_subset": [
+        [
+          "camera_6",
+          "camera_7"
+        ]
+      ],
+      "overlapping_in_subset": [],
+      "segments": [
+        [
+          "camera_6",
+          4590,
+          4672
+        ],
+        [
+          "camera_7",
+          4772,
+          4889
+        ]
+      ],
+      "camera_order": "c6>c7",
+      "brief_cams": "",
+      "handoff_type": "sequential"
+    },
+    {
+      "clip_id": "L3S-seq_004-c4+c6-8-007880",
+      "level": "L3",
+      "rule": "L3S",
+      "seq": "seq_004",
+      "cameras": [
+        "camera_4",
+        "camera_6"
+      ],
+      "gt_id": 8,
+      "start_frame": 7881,
+      "end_frame": 7966,
+      "start_fid": 7880,
+      "end_fid": 7965,
+      "t_start_s": 262.667,
+      "t_end_s": 265.5,
+      "duration_s": 2.833,
+      "csv_start_frame": 7879,
+      "csv_end_frame": 7969,
+      "shift_start": 2,
+      "shift_end": 3,
+      "n_loops": {
+        "1": 86,
+        "5": 18
+      },
+      "videos": {
+        "camera_4": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_004/camera_4_2023-06-08-12_29_08.avi",
+        "camera_6": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_004/camera_6_2023-06-08-12_29_08.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_004",
+      "csv_row": {
+        "level": "L3",
+        "index": 3,
+        "seq": "seq_004",
+        "person_id": "8",
+        "start_frame": "7879",
+        "end_frame": "7969",
+        "start_time": "04:22.60",
+        "end_time": "04:25.60",
+        "duration_s": "3.03",
+        "n_cameras": "2",
+        "camera_order": "c4>c6",
+        "handoff_type": "overlapping",
+        "brief_cams": "",
+        "others_elsewhere": "6",
+        "segments": "c4[7879-7915]; c6[7879-7969]"
+      },
+      "n_sampled_cells": 36,
+      "n_target_cells": 25,
+      "target_cells_per_cam": {
+        "camera_4": 7,
+        "camera_6": 18
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 1,
+      "links_in_subset": [],
+      "overlapping_in_subset": [],
+      "segments": [
+        [
+          "camera_4",
+          7879,
+          7915
+        ],
+        [
+          "camera_6",
+          7879,
+          7969
+        ]
+      ],
+      "camera_order": "c4>c6",
+      "brief_cams": "",
+      "handoff_type": "overlapping"
+    },
+    {
+      "clip_id": "L3S-seq_004-c6+c7-8-008115",
+      "level": "L3",
+      "rule": "L3S",
+      "seq": "seq_004",
+      "cameras": [
+        "camera_6",
+        "camera_7"
+      ],
+      "gt_id": 8,
+      "start_frame": 8116,
+      "end_frame": 8541,
+      "start_fid": 8115,
+      "end_fid": 8540,
+      "t_start_s": 270.5,
+      "t_end_s": 284.667,
+      "duration_s": 14.167,
+      "csv_start_frame": 8113,
+      "csv_end_frame": 8545,
+      "shift_start": 3,
+      "shift_end": 4,
+      "n_loops": {
+        "1": 426,
+        "5": 86
+      },
+      "videos": {
+        "camera_6": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_004/camera_6_2023-06-08-12_29_08.avi",
+        "camera_7": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_004/camera_7_2023-06-08-12_29_08.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_004",
+      "csv_row": {
+        "level": "L3",
+        "index": 4,
+        "seq": "seq_004",
+        "person_id": "8",
+        "start_frame": "8113",
+        "end_frame": "8545",
+        "start_time": "04:30.40",
+        "end_time": "04:44.80",
+        "duration_s": "14.43",
+        "n_cameras": "2",
+        "camera_order": "c7>c6",
+        "handoff_type": "overlapping",
+        "brief_cams": "c5",
+        "others_elsewhere": "7",
+        "segments": "c7[8113-8507]; c6[8324-8545]"
+      },
+      "n_sampled_cells": 172,
+      "n_target_cells": 123,
+      "target_cells_per_cam": {
+        "camera_6": 44,
+        "camera_7": 79
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 1,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 1,
+      "links_in_subset": [
+        [
+          "camera_6",
+          "camera_7"
+        ]
+      ],
+      "overlapping_in_subset": [],
+      "segments": [
+        [
+          "camera_7",
+          8113,
+          8507
+        ],
+        [
+          "camera_6",
+          8324,
+          8545
+        ]
+      ],
+      "camera_order": "c7>c6",
+      "brief_cams": "c5",
+      "handoff_type": "overlapping"
+    },
+    {
+      "clip_id": "L3T-seq_020-c5+c6-10-000385",
+      "level": "L3",
+      "rule": "L3T",
+      "seq": "seq_020",
+      "cameras": [
+        "camera_5",
+        "camera_6"
+      ],
+      "gt_id": 10,
+      "start_frame": 386,
+      "end_frame": 596,
+      "start_fid": 385,
+      "end_fid": 595,
+      "t_start_s": 12.833,
+      "t_end_s": 19.833,
+      "duration_s": 7.0,
+      "csv_start_frame": 386,
+      "csv_end_frame": 600,
+      "shift_start": 0,
+      "shift_end": 4,
+      "n_loops": {
+        "1": 211,
+        "5": 43
+      },
+      "videos": {
+        "camera_5": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_020/camera_5_2023-07-26-13_21_40.avi",
+        "camera_6": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_020/camera_6_2023-07-26-13_21_40.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_020",
+      "csv_row": {
+        "level": "L3",
+        "index": 5,
+        "seq": "seq_020",
+        "person_id": "10",
+        "start_frame": "386",
+        "end_frame": "600",
+        "start_time": "00:12.83",
+        "end_time": "00:19.97",
+        "duration_s": "7.17",
+        "n_cameras": "2",
+        "camera_order": "c5>c6",
+        "handoff_type": "sequential",
+        "brief_cams": "c2 c7",
+        "others_elsewhere": "10",
+        "segments": "c5[386-453]; c6[486-600]"
+      },
+      "n_sampled_cells": 86,
+      "n_target_cells": 37,
+      "target_cells_per_cam": {
+        "camera_5": 14,
+        "camera_6": 23
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 1,
+      "n_pairs": 1,
+      "links_in_subset": [],
+      "overlapping_in_subset": [
+        [
+          "camera_5",
+          "camera_6"
+        ]
+      ],
+      "segments": [
+        [
+          "camera_5",
+          386,
+          453
+        ],
+        [
+          "camera_6",
+          486,
+          600
+        ]
+      ],
+      "camera_order": "c5>c6",
+      "brief_cams": "c2 c7",
+      "handoff_type": "sequential"
+    },
+    {
+      "clip_id": "L3T-seq_024-c5+c6-2-014825",
+      "level": "L3",
+      "rule": "L3T",
+      "seq": "seq_024",
+      "cameras": [
+        "camera_5",
+        "camera_6"
+      ],
+      "gt_id": 2,
+      "start_frame": 14826,
+      "end_frame": 14961,
+      "start_fid": 14825,
+      "end_fid": 14960,
+      "t_start_s": 494.167,
+      "t_end_s": 498.667,
+      "duration_s": 4.5,
+      "csv_start_frame": 14823,
+      "csv_end_frame": 14963,
+      "shift_start": 3,
+      "shift_end": 2,
+      "n_loops": {
+        "1": 136,
+        "5": 28
+      },
+      "videos": {
+        "camera_5": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_024/camera_5_2023-12-01-11_05_52.avi",
+        "camera_6": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_024/camera_6_2023-12-01-11_05_52.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_024",
+      "csv_row": {
+        "level": "L3",
+        "index": 6,
+        "seq": "seq_024",
+        "person_id": "2",
+        "start_frame": "14823",
+        "end_frame": "14963",
+        "start_time": "08:14.07",
+        "end_time": "08:18.73",
+        "duration_s": "4.7",
+        "n_cameras": "2",
+        "camera_order": "c6>c5",
+        "handoff_type": "sequential",
+        "brief_cams": "c1 c2 c7",
+        "others_elsewhere": "4",
+        "segments": "c6[14823-14889]; c5[14914-14963]"
+      },
+      "n_sampled_cells": 56,
+      "n_target_cells": 23,
+      "target_cells_per_cam": {
+        "camera_5": 10,
+        "camera_6": 13
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 1,
+      "n_pairs": 1,
+      "links_in_subset": [],
+      "overlapping_in_subset": [
+        [
+          "camera_5",
+          "camera_6"
+        ]
+      ],
+      "segments": [
+        [
+          "camera_6",
+          14823,
+          14889
+        ],
+        [
+          "camera_5",
+          14914,
+          14963
+        ]
+      ],
+      "camera_order": "c6>c5",
+      "brief_cams": "c1 c2 c7",
+      "handoff_type": "sequential"
+    },
+    {
+      "clip_id": "L3T-seq_024-c5+c6-6-013975",
+      "level": "L3",
+      "rule": "L3T",
+      "seq": "seq_024",
+      "cameras": [
+        "camera_5",
+        "camera_6"
+      ],
+      "gt_id": 6,
+      "start_frame": 13976,
+      "end_frame": 14116,
+      "start_fid": 13975,
+      "end_fid": 14115,
+      "t_start_s": 465.833,
+      "t_end_s": 470.5,
+      "duration_s": 4.667,
+      "csv_start_frame": 13976,
+      "csv_end_frame": 14120,
+      "shift_start": 0,
+      "shift_end": 4,
+      "n_loops": {
+        "1": 141,
+        "5": 29
+      },
+      "videos": {
+        "camera_5": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_024/camera_5_2023-12-01-11_05_52.avi",
+        "camera_6": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_024/camera_6_2023-12-01-11_05_52.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_024",
+      "csv_row": {
+        "level": "L3",
+        "index": 7,
+        "seq": "seq_024",
+        "person_id": "6",
+        "start_frame": "13976",
+        "end_frame": "14120",
+        "start_time": "07:45.83",
+        "end_time": "07:50.63",
+        "duration_s": "4.83",
+        "n_cameras": "2",
+        "camera_order": "c5>c6",
+        "handoff_type": "sequential",
+        "brief_cams": "c1 c2 c7",
+        "others_elsewhere": "4",
+        "segments": "c5[13976-14025]; c6[14053-14120]"
+      },
+      "n_sampled_cells": 58,
+      "n_target_cells": 23,
+      "target_cells_per_cam": {
+        "camera_5": 10,
+        "camera_6": 13
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 1,
+      "n_pairs": 1,
+      "links_in_subset": [],
+      "overlapping_in_subset": [
+        [
+          "camera_5",
+          "camera_6"
+        ]
+      ],
+      "segments": [
+        [
+          "camera_5",
+          13976,
+          14025
+        ],
+        [
+          "camera_6",
+          14053,
+          14120
+        ]
+      ],
+      "camera_order": "c5>c6",
+      "brief_cams": "c1 c2 c7",
+      "handoff_type": "sequential"
+    },
+    {
+      "clip_id": "L3S-seq_024-c6+c7-6-016490",
+      "level": "L3",
+      "rule": "L3S",
+      "seq": "seq_024",
+      "cameras": [
+        "camera_6",
+        "camera_7"
+      ],
+      "gt_id": 6,
+      "start_frame": 16491,
+      "end_frame": 16611,
+      "start_fid": 16490,
+      "end_fid": 16610,
+      "t_start_s": 549.667,
+      "t_end_s": 553.667,
+      "duration_s": 4.0,
+      "csv_start_frame": 16491,
+      "csv_end_frame": 16611,
+      "shift_start": 0,
+      "shift_end": 0,
+      "n_loops": {
+        "1": 121,
+        "5": 25
+      },
+      "videos": {
+        "camera_6": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_024/camera_6_2023-12-01-11_05_52.avi",
+        "camera_7": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_024/camera_7_2023-12-01-11_05_52.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_024",
+      "csv_row": {
+        "level": "L3",
+        "index": 8,
+        "seq": "seq_024",
+        "person_id": "6",
+        "start_frame": "16491",
+        "end_frame": "16611",
+        "start_time": "09:09.67",
+        "end_time": "09:13.67",
+        "duration_s": "4.03",
+        "n_cameras": "2",
+        "camera_order": "c6>c7",
+        "handoff_type": "overlapping",
+        "brief_cams": "",
+        "others_elsewhere": "6",
+        "segments": "c6[16491-16507]; c7[16491-16545]; c6[16535-16611]"
+      },
+      "n_sampled_cells": 50,
+      "n_target_cells": 31,
+      "target_cells_per_cam": {
+        "camera_6": 20,
+        "camera_7": 11
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 1,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 1,
+      "links_in_subset": [
+        [
+          "camera_6",
+          "camera_7"
+        ]
+      ],
+      "overlapping_in_subset": [],
+      "segments": [
+        [
+          "camera_6",
+          16491,
+          16507
+        ],
+        [
+          "camera_7",
+          16491,
+          16545
+        ],
+        [
+          "camera_6",
+          16535,
+          16611
+        ]
+      ],
+      "camera_order": "c6>c7",
+      "brief_cams": "",
+      "handoff_type": "overlapping"
+    },
+    {
+      "clip_id": "L3S-seq_024-c6+c7-7-010250",
+      "level": "L3",
+      "rule": "L3S",
+      "seq": "seq_024",
+      "cameras": [
+        "camera_6",
+        "camera_7"
+      ],
+      "gt_id": 7,
+      "start_frame": 10251,
+      "end_frame": 10621,
+      "start_fid": 10250,
+      "end_fid": 10620,
+      "t_start_s": 341.667,
+      "t_end_s": 354.0,
+      "duration_s": 12.333,
+      "csv_start_frame": 10249,
+      "csv_end_frame": 10623,
+      "shift_start": 2,
+      "shift_end": 2,
+      "n_loops": {
+        "1": 371,
+        "5": 75
+      },
+      "videos": {
+        "camera_6": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_024/camera_6_2023-12-01-11_05_52.avi",
+        "camera_7": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_024/camera_7_2023-12-01-11_05_52.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_024",
+      "csv_row": {
+        "level": "L3",
+        "index": 9,
+        "seq": "seq_024",
+        "person_id": "7",
+        "start_frame": "10249",
+        "end_frame": "10623",
+        "start_time": "05:41.60",
+        "end_time": "05:54.07",
+        "duration_s": "12.5",
+        "n_cameras": "2",
+        "camera_order": "c6>c7",
+        "handoff_type": "overlapping",
+        "brief_cams": "",
+        "others_elsewhere": "5",
+        "segments": "c6[10249-10316]; c7[10307-10554]; c6[10550-10623]"
+      },
+      "n_sampled_cells": 150,
+      "n_target_cells": 78,
+      "target_cells_per_cam": {
+        "camera_6": 29,
+        "camera_7": 49
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 1,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 1,
+      "links_in_subset": [
+        [
+          "camera_6",
+          "camera_7"
+        ]
+      ],
+      "overlapping_in_subset": [],
+      "segments": [
+        [
+          "camera_6",
+          10249,
+          10316
+        ],
+        [
+          "camera_7",
+          10307,
+          10554
+        ],
+        [
+          "camera_6",
+          10550,
+          10623
+        ]
+      ],
+      "camera_order": "c6>c7",
+      "brief_cams": "",
+      "handoff_type": "overlapping"
+    },
+    {
+      "clip_id": "L3T-seq_024-c5+c6-10-000625",
+      "level": "L3",
+      "rule": "L3T",
+      "seq": "seq_024",
+      "cameras": [
+        "camera_5",
+        "camera_6"
+      ],
+      "gt_id": 10,
+      "start_frame": 626,
+      "end_frame": 771,
+      "start_fid": 625,
+      "end_fid": 770,
+      "t_start_s": 20.833,
+      "t_end_s": 25.667,
+      "duration_s": 4.833,
+      "csv_start_frame": 626,
+      "csv_end_frame": 774,
+      "shift_start": 0,
+      "shift_end": 3,
+      "n_loops": {
+        "1": 146,
+        "5": 30
+      },
+      "videos": {
+        "camera_5": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_024/camera_5_2023-12-01-11_05_52.avi",
+        "camera_6": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_024/camera_6_2023-12-01-11_05_52.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_024",
+      "csv_row": {
+        "level": "L3",
+        "index": 10,
+        "seq": "seq_024",
+        "person_id": "10",
+        "start_frame": "626",
+        "end_frame": "774",
+        "start_time": "00:20.83",
+        "end_time": "00:25.77",
+        "duration_s": "4.97",
+        "n_cameras": "2",
+        "camera_order": "c6>c5",
+        "handoff_type": "sequential",
+        "brief_cams": "c1 c2 c7",
+        "others_elsewhere": "7",
+        "segments": "c6[626-694]; c5[719-774]"
+      },
+      "n_sampled_cells": 60,
+      "n_target_cells": 25,
+      "target_cells_per_cam": {
+        "camera_5": 11,
+        "camera_6": 14
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 1,
+      "n_pairs": 1,
+      "links_in_subset": [],
+      "overlapping_in_subset": [
+        [
+          "camera_5",
+          "camera_6"
+        ]
+      ],
+      "segments": [
+        [
+          "camera_6",
+          626,
+          694
+        ],
+        [
+          "camera_5",
+          719,
+          774
+        ]
+      ],
+      "camera_order": "c6>c5",
+      "brief_cams": "c1 c2 c7",
+      "handoff_type": "sequential"
+    },
+    {
+      "clip_id": "L3S-seq_024-c6+c7-14-012745",
+      "level": "L3",
+      "rule": "L3S",
+      "seq": "seq_024",
+      "cameras": [
+        "camera_6",
+        "camera_7"
+      ],
+      "gt_id": 14,
+      "start_frame": 12746,
+      "end_frame": 13161,
+      "start_fid": 12745,
+      "end_fid": 13160,
+      "t_start_s": 424.833,
+      "t_end_s": 438.667,
+      "duration_s": 13.833,
+      "csv_start_frame": 12744,
+      "csv_end_frame": 13161,
+      "shift_start": 2,
+      "shift_end": 0,
+      "n_loops": {
+        "1": 416,
+        "5": 84
+      },
+      "videos": {
+        "camera_6": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_024/camera_6_2023-12-01-11_05_52.avi",
+        "camera_7": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_024/camera_7_2023-12-01-11_05_52.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_024",
+      "csv_row": {
+        "level": "L3",
+        "index": 11,
+        "seq": "seq_024",
+        "person_id": "14",
+        "start_frame": "12744",
+        "end_frame": "13161",
+        "start_time": "07:04.77",
+        "end_time": "07:18.67",
+        "duration_s": "13.93",
+        "n_cameras": "2",
+        "camera_order": "c6>c7",
+        "handoff_type": "overlapping",
+        "brief_cams": "",
+        "others_elsewhere": "6",
+        "segments": "c6[12744-12830]; c7[12818-13084]; c6[13067-13161]"
+      },
+      "n_sampled_cells": 168,
+      "n_target_cells": 89,
+      "target_cells_per_cam": {
+        "camera_6": 36,
+        "camera_7": 53
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 1,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 1,
+      "links_in_subset": [
+        [
+          "camera_6",
+          "camera_7"
+        ]
+      ],
+      "overlapping_in_subset": [],
+      "segments": [
+        [
+          "camera_6",
+          12744,
+          12830
+        ],
+        [
+          "camera_7",
+          12818,
+          13084
+        ],
+        [
+          "camera_6",
+          13067,
+          13161
+        ]
+      ],
+      "camera_order": "c6>c7",
+      "brief_cams": "",
+      "handoff_type": "overlapping"
+    },
+    {
+      "clip_id": "L3S-seq_025-c2+c3+c4-6-004395",
+      "level": "L3",
+      "rule": "L3S",
+      "seq": "seq_025",
+      "cameras": [
+        "camera_2",
+        "camera_3",
+        "camera_4"
+      ],
+      "gt_id": 6,
+      "start_frame": 4396,
+      "end_frame": 4516,
+      "start_fid": 4395,
+      "end_fid": 4515,
+      "t_start_s": 146.5,
+      "t_end_s": 150.5,
+      "duration_s": 4.0,
+      "csv_start_frame": 4395,
+      "csv_end_frame": 4518,
+      "shift_start": 1,
+      "shift_end": 2,
+      "n_loops": {
+        "1": 121,
+        "5": 25
+      },
+      "videos": {
+        "camera_2": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_025/camera_2_2023-12-04-12_11_17.avi",
+        "camera_3": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_025/camera_3_2023-12-04-12_11_17.avi",
+        "camera_4": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_025/camera_4_2023-12-04-12_11_17.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_025",
+      "csv_row": {
+        "level": "L3",
+        "index": 12,
+        "seq": "seq_025",
+        "person_id": "6",
+        "start_frame": "4395",
+        "end_frame": "4518",
+        "start_time": "02:26.47",
+        "end_time": "02:30.57",
+        "duration_s": "4.13",
+        "n_cameras": "3",
+        "camera_order": "c2>c3>c4",
+        "handoff_type": "overlapping",
+        "brief_cams": "c1 c5",
+        "others_elsewhere": "5",
+        "segments": "c2[4395-4434]; c3[4395-4454]; c4[4442-4518]"
+      },
+      "n_sampled_cells": 75,
+      "n_target_cells": 35,
+      "target_cells_per_cam": {
+        "camera_2": 8,
+        "camera_3": 12,
+        "camera_4": 15
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 3,
+      "n_pairs": 3,
+      "links_in_subset": [],
+      "overlapping_in_subset": [
+        [
+          "camera_2",
+          "camera_3"
+        ],
+        [
+          "camera_2",
+          "camera_4"
+        ],
+        [
+          "camera_3",
+          "camera_4"
+        ]
+      ],
+      "segments": [
+        [
+          "camera_2",
+          4395,
+          4434
+        ],
+        [
+          "camera_3",
+          4395,
+          4454
+        ],
+        [
+          "camera_4",
+          4442,
+          4518
+        ]
+      ],
+      "camera_order": "c2>c3>c4",
+      "brief_cams": "c1 c5",
+      "handoff_type": "overlapping"
+    },
+    {
+      "clip_id": "L3S-seq_025-c1+c2+c3-7-001780",
+      "level": "L3",
+      "rule": "L3S",
+      "seq": "seq_025",
+      "cameras": [
+        "camera_1",
+        "camera_2",
+        "camera_3"
+      ],
+      "gt_id": 7,
+      "start_frame": 1781,
+      "end_frame": 1891,
+      "start_fid": 1780,
+      "end_fid": 1890,
+      "t_start_s": 59.333,
+      "t_end_s": 63.0,
+      "duration_s": 3.667,
+      "csv_start_frame": 1778,
+      "csv_end_frame": 1895,
+      "shift_start": 3,
+      "shift_end": 4,
+      "n_loops": {
+        "1": 111,
+        "5": 23
+      },
+      "videos": {
+        "camera_1": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_025/camera_1_2023-12-04-12_11_17.avi",
+        "camera_2": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_025/camera_2_2023-12-04-12_11_17.avi",
+        "camera_3": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_025/camera_3_2023-12-04-12_11_17.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_025",
+      "csv_row": {
+        "level": "L3",
+        "index": 13,
+        "seq": "seq_025",
+        "person_id": "7",
+        "start_frame": "1778",
+        "end_frame": "1895",
+        "start_time": "00:59.23",
+        "end_time": "01:03.13",
+        "duration_s": "3.93",
+        "n_cameras": "3",
+        "camera_order": "c1>c2>c3",
+        "handoff_type": "overlapping",
+        "brief_cams": "c4 c5",
+        "others_elsewhere": "6",
+        "segments": "c1[1778-1858]; c2[1781-1879]; c3[1822-1895]"
+      },
+      "n_sampled_cells": 69,
+      "n_target_cells": 50,
+      "target_cells_per_cam": {
+        "camera_1": 16,
+        "camera_2": 20,
+        "camera_3": 14
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 1,
+      "n_pairs": 3,
+      "links_in_subset": [],
+      "overlapping_in_subset": [
+        [
+          "camera_2",
+          "camera_3"
+        ]
+      ],
+      "segments": [
+        [
+          "camera_1",
+          1778,
+          1858
+        ],
+        [
+          "camera_2",
+          1781,
+          1879
+        ],
+        [
+          "camera_3",
+          1822,
+          1895
+        ]
+      ],
+      "camera_order": "c1>c2>c3",
+      "brief_cams": "c4 c5",
+      "handoff_type": "overlapping"
+    },
+    {
+      "clip_id": "L3S-seq_025-c1+c2+c3-7-002520",
+      "level": "L3",
+      "rule": "L3S",
+      "seq": "seq_025",
+      "cameras": [
+        "camera_1",
+        "camera_2",
+        "camera_3"
+      ],
+      "gt_id": 7,
+      "start_frame": 2521,
+      "end_frame": 2606,
+      "start_fid": 2520,
+      "end_fid": 2605,
+      "t_start_s": 84.0,
+      "t_end_s": 86.833,
+      "duration_s": 2.833,
+      "csv_start_frame": 2520,
+      "csv_end_frame": 2609,
+      "shift_start": 1,
+      "shift_end": 3,
+      "n_loops": {
+        "1": 86,
+        "5": 18
+      },
+      "videos": {
+        "camera_1": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_025/camera_1_2023-12-04-12_11_17.avi",
+        "camera_2": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_025/camera_2_2023-12-04-12_11_17.avi",
+        "camera_3": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_025/camera_3_2023-12-04-12_11_17.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_025",
+      "csv_row": {
+        "level": "L3",
+        "index": 14,
+        "seq": "seq_025",
+        "person_id": "7",
+        "start_frame": "2520",
+        "end_frame": "2609",
+        "start_time": "01:23.97",
+        "end_time": "01:26.93",
+        "duration_s": "3.0",
+        "n_cameras": "3",
+        "camera_order": "c3>c2>c1",
+        "handoff_type": "overlapping",
+        "brief_cams": "c4",
+        "others_elsewhere": "6",
+        "segments": "c3[2520-2609]; c2[2553-2609]; c1[2572-2609]"
+      },
+      "n_sampled_cells": 54,
+      "n_target_cells": 36,
+      "target_cells_per_cam": {
+        "camera_1": 7,
+        "camera_2": 11,
+        "camera_3": 18
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 0,
+      "n_overlapping_pairs_in_subset": 1,
+      "n_pairs": 3,
+      "links_in_subset": [],
+      "overlapping_in_subset": [
+        [
+          "camera_2",
+          "camera_3"
+        ]
+      ],
+      "segments": [
+        [
+          "camera_3",
+          2520,
+          2609
+        ],
+        [
+          "camera_2",
+          2553,
+          2609
+        ],
+        [
+          "camera_1",
+          2572,
+          2609
+        ]
+      ],
+      "camera_order": "c3>c2>c1",
+      "brief_cams": "c4",
+      "handoff_type": "overlapping"
+    },
+    {
+      "clip_id": "L3S-seq_025-c6+c7-10-004360",
+      "level": "L3",
+      "rule": "L3S",
+      "seq": "seq_025",
+      "cameras": [
+        "camera_6",
+        "camera_7"
+      ],
+      "gt_id": 10,
+      "start_frame": 4361,
+      "end_frame": 4736,
+      "start_fid": 4360,
+      "end_fid": 4735,
+      "t_start_s": 145.333,
+      "t_end_s": 157.833,
+      "duration_s": 12.5,
+      "csv_start_frame": 4359,
+      "csv_end_frame": 4740,
+      "shift_start": 2,
+      "shift_end": 4,
+      "n_loops": {
+        "1": 376,
+        "5": 76
+      },
+      "videos": {
+        "camera_6": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_025/camera_6_2023-12-04-12_11_17.avi",
+        "camera_7": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_025/camera_7_2023-12-04-12_11_17.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_025",
+      "csv_row": {
+        "level": "L3",
+        "index": 15,
+        "seq": "seq_025",
+        "person_id": "10",
+        "start_frame": "4359",
+        "end_frame": "4740",
+        "start_time": "02:25.27",
+        "end_time": "02:37.97",
+        "duration_s": "12.73",
+        "n_cameras": "2",
+        "camera_order": "c6>c7",
+        "handoff_type": "overlapping",
+        "brief_cams": "",
+        "others_elsewhere": "6",
+        "segments": "c6[4359-4449]; c7[4434-4648]; c6[4642-4740]"
+      },
+      "n_sampled_cells": 152,
+      "n_target_cells": 80,
+      "target_cells_per_cam": {
+        "camera_6": 37,
+        "camera_7": 43
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 1,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 1,
+      "links_in_subset": [
+        [
+          "camera_6",
+          "camera_7"
+        ]
+      ],
+      "overlapping_in_subset": [],
+      "segments": [
+        [
+          "camera_6",
+          4359,
+          4449
+        ],
+        [
+          "camera_7",
+          4434,
+          4648
+        ],
+        [
+          "camera_6",
+          4642,
+          4740
+        ]
+      ],
+      "camera_order": "c6>c7",
+      "brief_cams": "",
+      "handoff_type": "overlapping"
+    },
+    {
+      "clip_id": "L3S-seq_026-c6+c7-3-005890",
+      "level": "L3",
+      "rule": "L3S",
+      "seq": "seq_026",
+      "cameras": [
+        "camera_6",
+        "camera_7"
+      ],
+      "gt_id": 3,
+      "start_frame": 5891,
+      "end_frame": 6186,
+      "start_fid": 5890,
+      "end_fid": 6185,
+      "t_start_s": 196.333,
+      "t_end_s": 206.167,
+      "duration_s": 9.833,
+      "csv_start_frame": 5889,
+      "csv_end_frame": 6187,
+      "shift_start": 2,
+      "shift_end": 1,
+      "n_loops": {
+        "1": 296,
+        "5": 60
+      },
+      "videos": {
+        "camera_6": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_026/camera_6_2023-12-05-12_12_13.avi",
+        "camera_7": "D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA/videos/seq_026/camera_7_2023-12-05-12_12_13.avi"
+      },
+      "det_cache": "results/det_cache/coco_nano/seq_026",
+      "csv_row": {
+        "level": "L3",
+        "index": 16,
+        "seq": "seq_026",
+        "person_id": "3",
+        "start_frame": "5889",
+        "end_frame": "6187",
+        "start_time": "03:16.27",
+        "end_time": "03:26.20",
+        "duration_s": "9.97",
+        "n_cameras": "2",
+        "camera_order": "c6>c7",
+        "handoff_type": "overlapping",
+        "brief_cams": "",
+        "others_elsewhere": "9",
+        "segments": "c6[5889-6187]; c7[6002-6030]; c7[6130-6187]"
+      },
+      "n_sampled_cells": 120,
+      "n_target_cells": 77,
+      "target_cells_per_cam": {
+        "camera_6": 60,
+        "camera_7": 17
+      },
+      "exclusive": true,
+      "n_other_ids": 0,
+      "other_ids": [],
+      "n_links_in_subset": 1,
+      "n_overlapping_pairs_in_subset": 0,
+      "n_pairs": 1,
+      "links_in_subset": [
+        [
+          "camera_6",
+          "camera_7"
+        ]
+      ],
+      "overlapping_in_subset": [],
+      "segments": [
+        [
+          "camera_6",
+          5889,
+          6187
+        ],
+        [
+          "camera_7",
+          6002,
+          6030
+        ],
+        [
+          "camera_7",
+          6130,
+          6187
+        ]
+      ],
+      "camera_order": "c6>c7",
+      "brief_cams": "",
+      "handoff_type": "overlapping"
+    }
+  ]
+}

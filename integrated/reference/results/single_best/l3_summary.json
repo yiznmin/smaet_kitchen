@@ -1,0 +1,180 @@
+{
+  "L3S": {
+    "n_clips": 12,
+    "cells": {
+      "A": {
+        "handoff": "5/16",
+        "handoff_rate": 0.3125,
+        "handoff_ci": [
+          0.1416,
+          0.556
+        ],
+        "pairs_dropped": 2,
+        "simul": "22/136",
+        "simul_rate": 0.1618,
+        "simul_ci": [
+          0.1093,
+          0.2328
+        ],
+        "continuity": 0.5204,
+        "continuity_n": "382/734",
+        "continuity_ci": [
+          0.4843,
+          0.5564
+        ],
+        "recall": 0.9607,
+        "recall_n": "734/764",
+        "iou": 0.937,
+        "ghost": 0.2099,
+        "ghost_n": "195/929",
+        "switches": 5,
+        "n_ids": 27
+      },
+      "B": {
+        "handoff": "12/16",
+        "handoff_rate": 0.75,
+        "handoff_ci": [
+          0.505,
+          0.8982
+        ],
+        "pairs_dropped": 2,
+        "simul": "101/136",
+        "simul_rate": 0.7426,
+        "simul_ci": [
+          0.6632,
+          0.8087
+        ],
+        "continuity": 0.6553,
+        "continuity_n": "481/734",
+        "continuity_ci": [
+          0.6202,
+          0.6888
+        ],
+        "recall": 0.9607,
+        "recall_n": "734/764",
+        "iou": 0.937,
+        "ghost": 0.2099,
+        "ghost_n": "195/929",
+        "switches": 5,
+        "n_ids": 20
+      },
+      "C": {
+        "handoff": "14/16",
+        "handoff_rate": 0.875,
+        "handoff_ci": [
+          0.6398,
+          0.965
+        ],
+        "pairs_dropped": 2,
+        "simul": "127/136",
+        "simul_rate": 0.9338,
+        "simul_ci": [
+          0.879,
+          0.9648
+        ],
+        "continuity": 0.6907,
+        "continuity_n": "507/734",
+        "continuity_ci": [
+          0.6564,
+          0.7231
+        ],
+        "recall": 0.9607,
+        "recall_n": "734/764",
+        "iou": 0.937,
+        "ghost": 0.2099,
+        "ghost_n": "195/929",
+        "switches": 5,
+        "n_ids": 18
+      }
+    }
+  },
+  "L3T": {
+    "n_clips": 5,
+    "cells": {
+      "A": {
+        "handoff": "0/5",
+        "handoff_rate": 0.0,
+        "handoff_ci": [
+          0,
+          0.4345
+        ],
+        "pairs_dropped": 0,
+        "simul": "0/0",
+        "simul_rate": null,
+        "simul_ci": [
+          0,
+          0
+        ],
+        "continuity": 0.4964,
+        "continuity_n": "68/137",
+        "continuity_ci": [
+          0.4139,
+          0.579
+        ],
+        "recall": 0.9257,
+        "recall_n": "137/148",
+        "iou": 0.9446,
+        "ghost": 0.1218,
+        "ghost_n": "19/156",
+        "switches": 0,
+        "n_ids": 10
+      },
+      "B": {
+        "handoff": "0/5",
+        "handoff_rate": 0.0,
+        "handoff_ci": [
+          0,
+          0.4345
+        ],
+        "pairs_dropped": 0,
+        "simul": "0/0",
+        "simul_rate": null,
+        "simul_ci": [
+          0,
+          0
+        ],
+        "continuity": 0.4964,
+        "continuity_n": "68/137",
+        "continuity_ci": [
+          0.4139,
+          0.579
+        ],
+        "recall": 0.9257,
+        "recall_n": "137/148",
+        "iou": 0.9446,
+        "ghost": 0.1218,
+        "ghost_n": "19/156",
+        "switches": 0,
+        "n_ids": 10
+      },
+      "C": {
+        "handoff": "2/5",
+        "handoff_rate": 0.4,
+        "handoff_ci": [
+          0.1176,
+          0.7693
+        ],
+        "pairs_dropped": 0,
+        "simul": "0/0",
+        "simul_rate": null,
+        "simul_ci": [
+          0,
+          0
+        ],
+        "continuity": 0.6423,
+        "continuity_n": "88/137",
+        "continuity_ci": [
+          0.5592,
+          0.7177
+        ],
+        "recall": 0.9257,
+        "recall_n": "137/148",
+        "iou": 0.9446,
+        "ghost": 0.1218,
+        "ghost_n": "19/156",
+        "switches": 0,
+        "n_ids": 8
+      }
+    }
+  }
+}

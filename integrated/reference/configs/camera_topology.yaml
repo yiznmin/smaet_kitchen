@@ -1,0 +1,125 @@
+# M5 v3 相機拓撲(Camera Link Model)——跨鏡頭「同一位廚師」關聯的時空依據。
+# ⚠ links 的 mean_s / std_s 是「示例值」;真實佈署後要用實測填入。
+#   最低成本作法:量平面圖上兩鏡頭視野邊界之間的**步行路徑距離**(繞過障礙,非直線),
+#   mean_s = 距離 / 0.9(廚房內步速 m/s)、std_s = 0.35 × mean_s。
+#   之後可用 scripts/calibrate_topology.py 從實際影片無監督重估,取代估算值。
+#
+# 讀取方式:CameraTopology.from_yaml(path) —— 它會剝掉下面這層 `camera_topology:`。
+# (直接把整份檔案餵給 from_config 會靜默得到空拓撲,所有轉場都被拒。)
+camera_topology:
+
+  fusion:
+    # ── 融合模式 ───────────────────────────────────────────────────────
+    # llr          = v3 對數勝算比(預設)。時間與外觀轉成同一尺度的證據相加。
+    # weighted_sum = v2 加權和。保留供消融對照,不建議用於出貨。
+    #
+    # 為什麼換掉 v2:同一個 combined_threshold 同時控制「時間窗多寬」與
+    # 「外觀能不能單獨過門」,兩個需求互相拉扯,三個約束無法各自獨立滿足。
+    # 實測 v2 在最有利假設下碎裂率 11.6%(預算 5%),v3 為 0.2%。
+    # 量化證據:python scripts/analyze_gate_capacity.py
+    mode: llr
+
+    # ── v3 參數 ────────────────────────────────────────────────────────
+    # 「真正的新人」在單一鏡頭出現的速率(次/秒)。取代 v2 那個沒有物理意義的
+    # 魔數 0.35 —— 這個量是可觀測的:數一小時內有幾個不屬於任何已追蹤廚師的人入鏡。
+    # 值越小 = 系統越相信「新出現的人是某位剛離場的廚師」= 時間窗越寬。
+    background_arrival_hz: 0.00167      # ≈ 每 600 秒 1 位真新人
+
+    # 誤併(綁錯人)比碎裂(同一人拆成兩個 chef_id)嚴重幾倍 → 換算成 LLR 門檻。
+    # 誤併會替沒洗手的人偽造洗手紀錄 → 靜默漏報,下游 M7/M8 都驗不出來;
+    # 碎裂則可被「chef_id 數 > 排班人數」自動偵測。這個不對稱就是門檻偏保守的理由。
+    cost_false_merge_over_break: 5.0
+
+    # 轉場時間分布:loiter = 直走 + 逗留長尾(建議,廚房不是走廊,廚師會中途停下來
+    # 做事);gaussian = 單高斯(逗留會被判成不同人 → 碎裂)。
+    transit_model: loiter
+    p_loiter: 0.15                      # 中途停下來做事的比例
+    tau_loiter_s: 20.0                  # 停留時間尺度(秒)
+
+    # 外觀證據用哪組實測分布。鑑別力越差,LLR 自動越接近 0 → 發言權自動變小,
+    # 不需要人工指定權重。dinov2 最大證據約 1.31 nats(< 門檻 1.61,單獨過不了門);
+    # osnet 約 4.99 nats(> 門檻,可單獨推翻中等時間證據 → 屆時要設 appearance_clip)。
+    appearance_profile: dinov2
+    appearance_clip: null               # 夾住外觀 LLR 上下限(null = 不夾)
+
+    overlap_llr: 5.0                    # 重疊鏡頭同時觀測的幾何證據強度(nats)
+    max_z: 6.0                          # 轉場分布遠尾截斷(省算用,不是決策門)
+
+    # ── v2 參數(mode: weighted_sum 時才生效)────────────────────────
+    # ⚠ k_sigma 在 v2 中其實是死參數:只有外觀 cos ≥ 0.851 時它才是實際生效的門,
+    #   而 DINOv2(0.490)/ OSNet(0.618)都達不到。真正淘汰候選的是 combined_threshold。
+    w_st: 0.7
+    w_app: 0.3
+    k_sigma: 2.0
+    combined_threshold: 0.35
+
+    # ── 共用 ───────────────────────────────────────────────────────────
+    overlap_window_s: 0.5               # 重疊相機「同時刻」容許誤差(秒)
+
+    # 方向證據(出入口 zone)。與轉場時間正交:走對門的人不管走了多久都更可能是
+    # 同一人;走錯門的人時間再吻合也會被扣分。q = 走連結時使用「對應 zone」的機率。
+    direction: { enabled: false, q: 0.85, n_zones: 3, clip: 6.0 }
+
+  # 有向連結 + 轉場時間(秒)。雙向請各寫一條(A→B 與 B→A 可不同)。
+  # ⚠ 隱含約束:min(μ) 必須大於 M4 的 lost_track_buffer / fps(預設 30/30 = 1.0 秒),
+  #   否則走得快的廚師在進入 gone gallery 之前就抵達下一鏡頭 → 必定開新 chef_id。
+  #   這條約束目前沒有任何地方自動檢查,見 analyze_gate_capacity.py §3。
+  links:
+    # exit_zone / entry_zone:方向證據用。指「從哪個出入口離開/進入」。
+    # 這是 CLM 四線索裡的「移動方向」,與轉場時間正交 —— 走對門的人不管走了
+    # 多久都更可能是同一人,走錯門的人時間再吻合也會被扣分。
+    - { from: cam1, to: cam2, mean_s: 4.0, std_s: 1.5, exit_zone: 1, entry_zone: 0 }
+    - { from: cam2, to: cam1, mean_s: 4.5, std_s: 1.6, exit_zone: 0, entry_zone: 1 }
+
+  # 重疊相機對(同一時刻可用幾何關聯,不需靠轉場時間)
+  overlapping:
+    - [cam1, cam3]
+
+  # ── 時鐘同步(出貨阻斷項)───────────────────────────────────────────
+  # 整套 CLM 建立在「t_exit 與 t_enter 同一時基」上。NVR 若沒跑 NTP,鏡頭間
+  # 漂移 1~2 秒是常態,而 σ=1.5s 時 2 秒漂移 = 1.33σ,足以把幾乎所有真實轉場
+  # 推出時間窗 —— 症狀是「chef_id 一直開新的」,看起來像模型爛,實際是時鐘問題。
+  # 量化見 analyze_gate_capacity.py §4;自檢用 scripts/audit_m5_config.py。
+  #
+  # 部署需求:所有相機必須 NTP 同步,鏡頭間殘餘 skew ≤ max_skew_s。
+  # 若無法做到,用 audit_m5_config.py --estimate-skew 從重疊鏡頭的同時觀測反推
+  # 每台的殘餘偏移,填進下面的 clock_offset_s(校正後時間 = 原始時間 − offset)。
+  clock:
+    max_skew_s: 0.2
+
+  # ── 每台相機:時鐘偏移 + 地面校正(homography)────────────────────────
+  #
+  # homography 讓系統能比對「兩台鏡頭看到的是不是地面上同一個點」,而不只是
+  # 「那台鏡頭裡有人」。多人同時在場時,這是唯一能分辨「是哪一個」的證據。
+  #
+  # 怎麼填:在地面上挑 ≥4 個**不共線**的可辨識點(磁磚角、設備腳、貼標記),
+  #   image_points 填它們在該鏡頭畫面中的像素座標
+  #   world_points 填它們在廚房平面圖上的座標(公尺,各鏡頭共用同一原點)
+  #
+  # ⚠ 系統會自動算標定殘差,並用它當 GroundPlaneLR 的 σ ——**不用人填 σ**。
+  #   第六輪 R8:證據上限 = log(A / 2πσ²),σ≤0.2m 可用、≥0.8m 完全無用。
+  #   實測即使點位隨便標(±15px)殘差也只有 0.155m,所以這不是瓶頸。
+  # ⚠ 沒填 homography 的鏡頭 → world_xy=None → 重疊路徑退回常數證據
+  #   (overlap_llr=5.0,已知過度自信)。
+  #
+  # 下面是**範例值**,真實佈署必須重標。
+  cameras:
+    cam1:
+      clock_offset_s: 0.0
+      # homography:
+      #   image_points: [[120, 700], [1150, 690], [980, 400], [300, 405]]
+      #   world_points: [[0.0, 0.0], [6.0, 0.0], [6.0, 4.0], [0.0, 4.0]]
+    cam2: { clock_offset_s: 0.0 }
+    cam3: { clock_offset_s: 0.0 }
+
+# ── 方向證據的歷史 ────────────────────────────────────────────────────
+# 2026-08-24:原本有 `cameras.*.entry_zones/exit_zones`,但從未被任何程式讀取,
+#   且引用的 zone 名與 configs/zones.json 實際存在的完全對不上 → 當作死設定移除。
+#   當時的理由是「沒有實測資料,無從驗證它有沒有幫助」。
+# 2026-08-25:蒙地卡羅證明時間軸的資訊量已用盡(見 docs/M5_模擬預先登記_逗留_*),
+#   方向是 CLM 四線索裡唯一還沒動用的 → 以 links 的 exit_zone/entry_zone 重新實作,
+#   這次**真的被讀**(CameraTopology.link_zones → direction_llr)。
+#
+# 真實部署時 zone 要從 bbox 經 src/m5_reid/spatiotemporal.py 的 which_zone() 判定,
+# 需要業主逐鏡頭標出入口多邊形。值不值得付這個標註成本,由模擬的
+# zone_error_rate 掃描決定 —— 見 docs/M5_模擬預先登記_方向_20260825.md。

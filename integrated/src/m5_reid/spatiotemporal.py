@@ -1,0 +1,568 @@
+"""M5 v2 空間+時序(Camera Link Model)核心:相機拓撲 + 轉場時間門 + zone 判定。
+
+跨鏡頭關聯「同一人」的四線索,外觀只是其一:
+  相機拓撲(哪台接哪台)、轉場時間(高斯窗)、移動方向(有向連結)、外觀相似度(輔助)。
+物理約束:同一人不可能同時出現在兩個不重疊鏡頭;不能比離開更早抵達。
+
+純函式/純邏輯,可單測;point_in_zone 用 cv2(zones.py 無此 helper)。
+"""
+import numpy as np
+
+
+def point_in_zone(pt, polygon):
+    """點是否在多邊形內(含邊界)。polygon = [[x,y],...]。"""
+    import cv2
+    poly = np.asarray(polygon, dtype=np.int32)
+    return cv2.pointPolygonTest(poly, (float(pt[0]), float(pt[1])), False) >= 0
+
+
+def foot_point(bbox):
+    """人的「腳點」(框底中點)當地面位置,判所在 zone 較準。"""
+    x1, y1, x2, y2 = bbox
+    return ((x1 + x2) / 2.0, float(y2))
+
+
+def which_zone(bbox, zones):
+    """回傳 bbox 腳點所在的 zone 名稱(zones = [{name, points}]),無則 None。"""
+    pt = foot_point(bbox)
+    for z in zones:
+        if point_in_zone(pt, z["points"]):
+            return z["name"]
+    return None
+
+
+def st_prob(dt, mean, std):
+    """轉場時間高斯,normalize 到峰值 1(dt=mean 時為 1)。"""
+    if std <= 0:
+        return 1.0 if dt == mean else 0.0
+    return float(np.exp(-0.5 * ((dt - mean) / std) ** 2))
+
+
+_DEFAULT_FUSION = {
+    # 融合模式:llr = v3 對數勝算比(建議);weighted_sum = v2 加權和(保留供消融對照)
+    "mode": "llr",
+    # ── v3(mode=llr)參數 ────────────────────────────────────────────
+    "background_arrival_hz": 1.0 / 600.0,   # 「真正的新人」在單一鏡頭出現的速率
+    "cost_false_merge_over_break": 5.0,     # 誤併比碎裂嚴重幾倍 → 換算成 LLR 門檻
+    "transit_model": "loiter",              # loiter | gaussian
+    "p_loiter": 0.15,                       # 中途停下來做事的比例
+    "tau_loiter_s": 20.0,                   # 停留時間尺度
+    "loiter_dist": "exp",                   # exp | lognormal(重尾)
+    "loiter_log_sigma": 1.0,                # loiter_dist=lognormal 時的 logσ
+    "appearance_profile": "dinov2",         # 外觀 LR 用哪組實測分布
+    "appearance_clip": None,                # 外觀 LLR 上下限(None=不夾)
+    "overlap_llr": 5.0,                     # 重疊鏡頭同時觀測的幾何證據強度(nats)
+    # F1 未建模路徑(繞路)、F3 同鏡頭重關聯(M4 斷軌)。
+    # ⚠ 兩者**預設關閉** —— 2026-08-25 依預先登記判準實測後的決定,不是尚未啟用。
+    #   F1 幾乎無效(碎裂 25.2%→25.0%,在雜訊內);
+    #   F3 降碎裂 4.3pp 但誤併率翻倍(4.8%→10.2%),依「誤併比碎裂嚴重 5 倍」的
+    #   成本比,加權成本從 49.2 惡化到 71.9。根因:同鏡頭斷軌只用時間無法分辨
+    #   「同一台鏡頭裡的哪一位廚師」,需要位置證據(bbox)才收得緊。
+    #   詳見 docs/M5_模擬預先登記_20260825.md 與 results/m5_reid/sim_after_fixes.txt。
+    "unknown_path": {"enabled": False, "median_multiplier": 2.0,
+                     "log_sigma": 0.8, "logprior": -2.0},
+    # F3 於 2026-08-25 接上位置證據後改為**預設開啟**:含位置時誤併率回到基準
+    # (9.5%→4.5%)且保留碎裂改善(24.4%→19.8%),加權成本 46.9→42.3。
+    "same_camera": {"enabled": True, "tau_break_s": 2.0, "max_gap_s": 15.0},
+    # 方向證據(出入口 zone)。CLM 四線索裡最後一個;與 Δt 正交,見 DirectionLR。
+    "direction": {"enabled": False, "q": 0.85, "n_zones": 3, "clip": 6.0},
+    # 跨鏡頭地面校正(homography)。開啟後取代 overlap_llr 常數 —— 它能回答
+    # 「重疊視野裡的是哪一個人」,而 overlap_llr 只能說「那裡有人」。
+    "ground_plane": {"enabled": False, "sigma_m": 0.4, "area_m2": 30.0, "clip": 8.0},
+    # 速度證據:專解「兩人站在同一位置」—— 位置分不出,但他們從不同方向走來。
+    # window_s 是觀測窗:越長證據越強但綁定延遲越久(事後查詢系統可接受)。
+    "velocity": {"enabled": False, "window_s": 0.5, "max_speed_mps": 1.5, "clip": 6.0},
+    # 位置證據(僅同鏡頭適用)。F3 只用時間時誤併率翻倍,位置是收緊它的關鍵。
+    "position": {"enabled": True, "speed_bh_per_s": 0.5, "noise_bh": 0.3,
+                 "frame_span_bh": 6.0, "clip": 8.0},
+    # ── 2026-09-05 新增的兩個修法。**兩者預設關閉**,開啟前請看預先登記 ──
+    #    docs/M5_修復_預先登記_20260905.md。關閉時行為與 2026-09-04 的基線逐位相同。
+    #
+    # F1 margin test:最佳與次佳的差距不足時,**開新身份而不是賭一個**。
+    #   病灶:CHIRLA 上重疊路徑正確率 16.49%,而同時在場的其他身份中位是 7 人
+    #   (1/7=14.3%、1/6=16.7%)—— 統計上與「隨機挑一個」無法區分。
+    #   6~7 個候選全部過門檻後,max() 的排序差異只來自外觀的 +0.03 nats(d'=0.25)。
+    #   ⚠ 成本比是誤併:碎裂 = 5:1(誤併靜默不可回復)。所以「分不出來」的正確
+    #     處置是碎裂,而現行架構一律轉成誤併 —— 方向剛好相反。
+    #   min_nats=None 時取 log(cost_false_merge_over_break),與 llr_threshold 同源。
+    "margin": {"enabled": False, "min_nats": None},
+    # F2 同鏡頭互斥:一個人不可能同時是同一台鏡頭上的兩條 track。
+    #   現行 identity_st.py 收集重疊候選時只排除 `c != camera_id`,沒有檢查該 chef
+    #   是否**已經**在本鏡頭上綁著另一條 track。track_ids 會在 removed 時剪除,
+    #   所以它確實代表「目前還看得到的」,這個檢查是安全的。
+    # F2 的 IoU 豁免(2026-09-18)。同鏡頭互斥會誤傷「偵測器把一個人切成兩塊」
+    #   (遮擋、反光、半身框 + 全身框)的情況 —— 那兩條 track 其實是同一個人,
+    #   擋掉第二條就是把靜默的誤併換成看得見的碎裂。
+    #   兩個框若高度重疊,它們幾乎不可能是兩個並排站著的人 → 放行。
+    # ⚠ iou_exempt = None 時**完全不做這個檢查**,與 2026-09-05 的 F2 逐位相同 ——
+    #   已經發給遠端的 f2.yaml 沒有這個鍵,它的行為不得因為本次新增而改變。
+    # ⚠ 門檻只能從**推導集**估(預先登記 20260903 §4.3),不得回頭用評估集校準。
+    "same_camera_exclusive": {"enabled": False, "iou_exempt": None},
+    # F6 跨鏡頭互斥(2026-09-18)。pairs 列出**在真值裡從未同時看到同一個人**的
+    #   鏡頭對;一個編號同時出現在這樣的一對上,物理上不可能 → 直接排除該候選。
+    # ⚠ 這與 overlapping 是兩回事,混用會出大錯:overlapping 的判準是
+    #   「兩邊的框都 ≥50×120」(適不適合做幾何比對),不是「看不看得到」。
+    #   CHIRLA 的 camera_1 不在任何 overlapping 對裡,卻與 camera_3 共現
+    #   116,224 次(透過縫隙望進去)—— 把它當互斥對會製造大量碎裂。
+    #   2026-09-18 我就是這樣誤判的,見 docs/CHIRLA_鏡頭佈局實測_20260903.md。
+    # ⚠ pairs 必須寫在拓撲 yaml,**不得寫死在程式碼** —— 它是某個場地的機位事實,
+    #   換一個場地就完全不同。
+    "cross_camera_exclusive": {"enabled": False, "pairs": []},
+    # F4 跨鏡頭腳點一致性(CrossViewLR)。**取代**重疊路徑的 overlap_llr 常數。
+    #   pairs 由 scripts/chirla_build_crossview.py 從**推導集**估出後寫進拓撲 yaml:
+    #     {"cam_a|cam_b": {"H": [[...]], "sigma_px": .., "area_px2": ..}}
+    #   H 的方向是 a→b(a、b 依字典序),反向自動用反矩陣。
+    # ⚠ 沒有某一對的 H 時,那一對**自動退回舊的常數路徑** —— 不是報錯也不是跳過。
+    #   CHIRLA 有 21 對相機而真正共現夠多的只有一部分,硬要求全有會直接不能跑。
+    "cross_view": {"enabled": False, "clip": 8.0, "speed_px_per_s": 0.0, "pairs": {}},
+    # F5 轉場的出入口位置(TransitPlaceLR)。**加在** transit_llr 之上,不是取代 ——
+    #   它與轉場時間正交(一個問「多久」,一個問「從哪個門」)。
+    #   links 由 scripts/chirla_build_crossview.py --transit-place 從推導集估:
+    #     {"cam_a>cam_b": {"mu_exit": [..], "cov_exit": [[..]], "area_from": ..,
+    #                      "mu_enter": [..], "cov_enter": [[..]], "area_to": ..}}
+    #   ⚠ 方向性的(a>b 與 b>a 不同),與 cross_view 的 "a|b" 記法刻意不同以免混淆。
+    # ⚠ 不得與 direction 同時開啟 —— DirectionLR 是同一份資訊的離散粗糙版。
+    "transit_place": {"enabled": False, "clip": 6.0, "links": {}},
+    # P1 累積投票(2026-09-13)。**預設關閉**,關閉時與 9/12 的 base 逐位相同。
+    #
+    # 病灶:M5 在 track 出現那一瞬間決定一次身份,之後不再重評。實測(EPFL 九台)
+    #   一條 track 中位活 31 個迴圈、p90 活 4663 個 —— **丟掉了 96% 的機會**。
+    #   單幀證據很弱(外觀 0.062 nats、位置 1.12 nats),但弱證據 + 多次投票
+    #   會比弱證據 + 單次決策可靠得多。冠軍法(AI City Track1,IDF1 95.36)
+    #   用的正是滑動窗多數決。
+    #
+    # ⚠ stride_loops 必須**從資料量**不得用猜的 —— 連續幀高度相關,直接累加
+    #   26 幀 × 1.12 nats = 29 nats 是假的自信(與 VelocityLR 第七輪 OU 去相關、
+    #   GroundPlaneLR 第六輪 √2 同一類的坑)。所以:
+    #     (a) 用**多數決**而不是 LLR 相加
+    #     (b) 取樣間隔取自 scripts/measure_evidence_decorrelation.py
+    #   EPFL 九台實測建議 ≥ 8 個迴圈(1.33 秒),該值使位移中位超過多數 σ。
+    #
+    # window:滑動窗保留最近幾票。min_votes:票數不足就不改判(短 track 保持原判)。
+    # switch_margin:要改判,新的領先者必須比現任多這麼多票 —— 防止 5:4 這種
+    #   幾乎平手就把身份改掉,那會製造新的 ID switch。
+    # assignment:同一台鏡頭、同一取樣輪的所有 track 怎麼分配候選。
+    #   "greedy"    每條 track 各自搶分數最高的 —— 兩條可能搶到同一位(物理上不可能)
+    #   "hungarian" P2:全域一對一最佳指派。專案內的 MTMCT PDF 與 AI City 冠軍法
+    #               都用這個。F2(同鏡頭互斥)是它的粗糙版:F2 只能說「不准選」,
+    #               Hungarian 會**重新安排整組配對**。
+    # ⚠ 它只作用在**投票路徑**上 —— on_new_track 是逐條事件進來的,同一幀同時
+    #   出現多條新 track 很罕見,在那裡做批次指派收益極小而複雜度高。
+    "revote": {"enabled": False, "stride_loops": 8, "window": 15,
+               "min_votes": 3, "switch_margin": 2, "assignment": "greedy"},
+    # 身份訊號(2026-09-16 上限實驗)。**預設關閉**,關閉時 cue_lr 為 None,
+    # identity_st 完全跳過該項,與 9/15 的結果逐位相同。
+    #
+    # 它假設「每次偵測都能讀到一個準確率 accuracy 的身份標記」,用來量這套架構的**上限**:
+    # 訊號要多準,誤併率才會 ≤ 1%?這個答案直接決定要不要在廚師身上加可辨識標記。
+    # ⚠ 實驗用的訊號是從真值合成的(scripts/m5_track_video.py --oracle-cue),
+    #   所以只有那支腳本明確給旗標時才會有 token 進來;正式評估路徑拿不到訊號。
+    # n_ids = 讀取器的字彙大小(有幾個不同的標記)。null = 由 runner 依真值表決定。
+    "cue": {"enabled": False, "accuracy": None, "n_ids": None, "clip": 8.0},
+    # ── 2026-10-13 平面圖幾何接入。**兩者預設關閉**,關閉時與 10/06 的結果逐位相同 ──
+    #    docs/M5_平面圖幾何接入_預先登記_20261013.md
+    #
+    # floorplan:場地平面圖上的距離(牆是障礙物)。開啟後 ground_plane 與 plan_transit
+    #   的距離都改走它;關閉時是兩點直線距離(原行為)。
+    #   distance: rooms(房間 + 出入口連通圖)| grid(可行走網格,grid 給 npz 路徑)
+    # ⚠ rooms / doors / grid 是某個場地的事實,必須寫在拓撲 yaml,不得寫死在程式碼。
+    "floorplan": {"enabled": False, "distance": "rooms", "rooms": {}, "doors": {},
+                  "grid": None},
+    # plan_transit:轉場路徑的位置證據 ——「離開點到進入點,這段時間走得到嗎?」
+    #   病灶:轉場路徑只有時間證據,天花板 1.484 < 門檻 1.609(L3T 5 段過 2 段)。
+    #   數學與 ground_plane 完全相同(同一個 GroundPlaneLR、同一組 σ / 速度 / 面積),
+    #   只是比的是「離場點 vs 入場點」而且 dt > 0,所以不確定度隨時間放寬。
+    # ⚠ 需要 ground_plane 生效(有 homography 才有平面圖座標),否則自動不生效。
+    # ⚠ 不得與 transit_place 同時開啟 —— 兩者都在問「從哪個位置離開」,會重複計分。
+    "plan_transit": {"enabled": False},
+    "max_z": 6.0,                          # 轉場分布的遠尾截斷(省算,非決策門)
+    # ── v2(mode=weighted_sum)參數 ──────────────────────────────────
+    "w_st": 0.7, "w_app": 0.3, "k_sigma": 2.0, "combined_threshold": 0.35,
+    # ── 共用 ─────────────────────────────────────────────────────────
+    "overlap_window_s": 0.5,
+}
+
+
+class CameraTopology:
+    def __init__(self, links, overlapping, fusion=None, cameras=None, clock=None):
+        self.links = {(l["from"], l["to"]): (float(l["mean_s"]), float(l["std_s"])) for l in links}
+        # 每條連結對應的出入口 zone(方向證據用)。沒填就是 None → 不提供證據。
+        self.link_zones = {(l["from"], l["to"]): (l.get("exit_zone"), l.get("entry_zone"))
+                           for l in links}
+        self.overlapping = set(frozenset(p) for p in overlapping)
+        self.fusion = {**_DEFAULT_FUSION, **(fusion or {})}
+        # 每台相機的時鐘偏移(秒)。整套 CLM 建立在 t_exit 與 t_enter 同一時基上;
+        # NVR 若無 NTP,鏡頭間漂移 1~2 秒是常態,而 σ=1.5s 時 2 秒漂移 = 1.33σ,
+        # 足以把幾乎所有真實轉場推出門外 —— 症狀是「chef_id 一直開新的」,
+        # 看起來像模型爛,實際是時鐘問題。量化見 analyze_gate_capacity.py §4。
+        self.cameras = dict(cameras or {})
+        self.clock_offset = {c: float(v.get("clock_offset_s", 0.0) or 0.0)
+                             for c, v in self.cameras.items()}
+        self.clock = {"max_skew_s": 0.2, **(clock or {})}
+        # 地面校正:有填點對應的鏡頭才有 homography。σ 由**實測殘差**決定,
+        # 不用人填 —— 第六輪 R8 證明 σ 直接決定這條證據有沒有用,讓系統自己量
+        # 比讓人猜可靠。
+        from m5_reid.calibration import load_homographies, suggest_sigma
+        self.homographies = load_homographies(self.cameras)
+        self.calib_sigma_m = suggest_sigma(self.homographies)
+
+        self._build_evidence()
+
+    def world_xy(self, camera_id, bbox):
+        """影像 bbox → 世界座標(公尺)。該鏡頭沒校正就回 None。"""
+        h = self.homographies.get(camera_id)
+        return h.foot_to_world(bbox) if h is not None else None
+
+    def ground_dist(self, xy_a, xy_b):
+        """兩個世界座標之間的距離。有平面圖時走平面圖(牆是障礙物),否則直線。"""
+        if xy_a is None or xy_b is None:
+            return None
+        if self.plan_map is not None:
+            return self.plan_map.distance(xy_a, xy_b)
+        import math
+        return math.hypot(xy_a[0] - xy_b[0], xy_a[1] - xy_b[1])
+
+    def offset(self, camera_id):
+        """該相機時鐘相對基準的偏移(秒)。校正後時間 = 原始時間 − offset。"""
+        return self.clock_offset.get(camera_id, 0.0)
+
+    def corrected(self, camera_id, t_sec):
+        return t_sec - self.offset(camera_id)
+
+    def all_cameras(self):
+        """config 中出現過的所有 camera_id(links + overlapping + cameras)。"""
+        seen = set(self.cameras)
+        for a, b in self.links:
+            seen |= {a, b}
+        for pair in self.overlapping:
+            seen |= set(pair)
+        return seen
+
+    def _build_evidence(self):
+        """建 v3 需要的轉場模型與外觀 LR。mode=weighted_sum 時不會被用到。"""
+        from m5_reid.evidence import (AppearanceLR, CrossViewLR, DirectionLR, GroundPlaneLR,
+                                      PositionLR, SameCameraTransit, TransitPlaceLR,
+                                      UnknownPathTransit, VelocityLR, decision_threshold,
+                                      make_transit)
+        f = self.fusion
+        kw = {}
+        if f["transit_model"] == "loiter":
+            kw = dict(p_loiter=f["p_loiter"], tau_loiter_s=f["tau_loiter_s"],
+                      loiter_dist=f["loiter_dist"], loiter_log_sigma=f["loiter_log_sigma"])
+        elif f["transit_model"] == "gaussian":
+            kw = dict(max_z=f["max_z"])
+        self.transits = {k: make_transit(mu, sd, kind=f["transit_model"], **kw)
+                         for k, (mu, sd) in self.links.items()}
+
+        # F1 未建模路徑(繞路):中位數取「典型直達時間 × 倍率」
+        up = f.get("unknown_path") or {}
+        if up.get("enabled"):
+            typical = float(np.median([mu for mu, _ in self.links.values()])) if self.links else 4.0
+            self.unknown_path = UnknownPathTransit(
+                median_s=typical * float(up.get("median_multiplier", 2.0)),
+                log_sigma=float(up.get("log_sigma", 0.8)),
+                logprior=float(up.get("logprior", -2.0)))
+        else:
+            self.unknown_path = None
+
+        # F3 同鏡頭重關聯(M4 斷軌)
+        sc = f.get("same_camera") or {}
+        self.same_cam = SameCameraTransit(
+            tau_break_s=float(sc.get("tau_break_s", 2.0)),
+            max_gap_s=float(sc.get("max_gap_s", 15.0))) if sc.get("enabled") else None
+        d = f.get("direction") or {}
+        self.dir_lr = DirectionLR(q=float(d.get("q", 0.85)),
+                                  n_zones=int(d.get("n_zones", 3)),
+                                  clip=float(d.get("clip", 6.0))) if d.get("enabled") else None
+        g = f.get("ground_plane") or {}
+        # σ 優先用實測殘差;config 的 sigma_m 只在沒有 homography 時當退路。
+        # ⚠ `sigma_m: null` 是產生器的預設(意思是「自動從標定殘差推算」),
+        #   所以這裡不能用 dict.get 的預設值 —— 鍵存在但值是 None 會炸。
+        sigma = self.calib_sigma_m or (g.get("sigma_m") if g.get("sigma_m") else None)
+        enabled = g.get("enabled", bool(self.homographies))
+        # ⚠ 不可以在「沒標定、也沒填 σ」時偷偷套一個預設 σ。
+        #   舊版套 0.4 m —— 那個 σ 下這條證據幾乎沒有鑑別力,但**看起來是開著的**,
+        #   業主會以為地面校正生效了。寧可明確停用並記下原因,讓自檢報出來。
+        self.calib_warning = None
+        if enabled and sigma is None:
+            self.calib_warning = (
+                "ground_plane 已啟用但沒有 homography、也沒填 sigma_m → 停用。"
+                "請完成地面校正(手冊步驟二);沒有它多人同時在場會被併成一個身份。")
+            enabled = False
+        sigma = float(sigma) if sigma is not None else None
+        # speed:兩次觀測之間人可能走多遠。原本沒有從設定傳入(寫死 0.9 m/s),
+        #   公尺制下沒問題,但平面圖單位不是公尺時必須可設。預設值 0.9 = 原行為。
+        _gp_kw = dict(sigma_m=sigma, area_m2=float(g.get("area_m2", 30.0)),
+                      clip=float(g.get("clip", 8.0)), speed_mps=float(g.get("speed", 0.9)))
+        self.ground_lr = GroundPlaneLR(**_gp_kw) if enabled else None
+        # 逐鏡頭對的 σ(2026-10-13 第 2 輪)。第 1 輪用單一全域 σ,被樣本最多的那一對主導,
+        # 投影誤差較大的鏡頭對把真配對全擋掉(單人 L3S 14/16 → 4/16)。
+        # 與 CrossViewLR 同一個原則:逐對估,品質差的那對自己弱。
+        #   pairs: {"cam_a|cam_b": 單台 σ}(內部乘 √2,與 sigma_m 同一個慣例)
+        #   mode:  absolute = 位置證據自己要過門檻;
+        #          share    = 把「那台鏡頭裡有 k 個人」的均勻稀釋 −log k 換成依位置分配
+        # ⚠ 沒列在 pairs 的鏡頭對**退回常數路徑**,不是用全域 σ 硬算。
+        self.ground_pairs = {}
+        if enabled:
+            for key, sig in (g.get("pairs") or {}).items():
+                a, b = key.split("|")
+                self.ground_pairs[frozenset((a, b))] = GroundPlaneLR(
+                    **{**_gp_kw, "sigma_m": float(sig)})
+        self.ground_mode = str(g.get("mode", "absolute"))
+        if self.ground_mode not in ("absolute", "share"):
+            raise ValueError(f"ground_plane.mode 只能是 absolute 或 share,收到 {self.ground_mode!r}")
+        self.ground_share_eps = float(g.get("share_eps", 0.05))
+
+        # 平面圖距離(2026-10-13)。關閉時 plan_map 為 None,ground_dist 回直線距離。
+        fp = f.get("floorplan") or {}
+        self.plan_map = None
+        if fp.get("enabled", False):
+            from m5_reid.floorplan import PlanMap
+            self.plan_map = PlanMap.from_config(fp)
+        pt = f.get("plan_transit") or {}
+        # ⚠ 另建一個實例而不是共用 ground_lr:兩者之後若要分別調整(例如轉場的 σ
+        #   要含離場點外推誤差)不必再拆;目前參數完全相同。
+        self.plan_transit_lr = (GroundPlaneLR(**_gp_kw)
+                                if (pt.get("enabled", False) and enabled) else None)
+        if pt.get("enabled", False) and (f.get("transit_place") or {}).get("enabled", False):
+            raise ValueError(
+                "plan_transit 與 transit_place 不可同時開啟 —— "
+                "兩者都在問「從哪個位置離開」,同時開會重複計算證據。")
+        vc = f.get("velocity") or {}
+        # 速度是從地面座標差分而來,所以它繼承標定誤差,也繼承「沒標定就不能用」。
+        self.vel_lr = VelocityLR(
+            sigma_pos_m=sigma,
+            window_s=float(vc.get("window_s", 0.5)),
+            max_speed_mps=float(vc.get("max_speed_mps", 1.5)),
+            clip=float(vc.get("clip", 6.0))) if (vc.get("enabled") and enabled) else None
+        pos = f.get("position") or {}
+        self.pos_lr = PositionLR(
+            speed_bh_per_s=float(pos.get("speed_bh_per_s", 0.5)),
+            noise_bh=float(pos.get("noise_bh", 0.3)),
+            frame_span_bh=float(pos.get("frame_span_bh", 6.0)),
+            clip=float(pos.get("clip", 8.0))) if pos.get("enabled", True) else None
+        self.app_lr = AppearanceLR.measured(f["appearance_profile"], clip=f["appearance_clip"])
+        self.log_lambda_bg = np.log(float(f["background_arrival_hz"]))
+        self.llr_threshold = decision_threshold(f["cost_false_merge_over_break"])
+
+        # F1/F2(2026-09-05)。兩者預設關閉 → margin_nats=None、same_cam_exclusive=False,
+        # 此時 identity_st 走的路徑與 2026-09-04 的基線逐位相同。
+        mg = f.get("margin") or {}
+        self.margin_nats = None
+        if mg.get("enabled", False):
+            # 預設與 llr_threshold 同源:兩者都是「誤併比碎裂貴幾倍」換算出來的門檻。
+            # 差距小於它,表示區分兩個假設的證據還不足以承擔誤併的成本。
+            m = mg.get("min_nats")
+            self.margin_nats = (self.llr_threshold if m is None else float(m))
+        sce = f.get("same_camera_exclusive") or {}
+        self.same_cam_exclusive = bool(sce.get("enabled", False))
+        # None → 不做豁免檢查(與 2026-09-05 的 F2 逐位相同),不是 0.0。
+        # 0.0 會讓「完全沒有交集的兩個框」也被豁免,等於把 F2 整條關掉。
+        _iou_x = sce.get("iou_exempt")
+        self.same_cam_iou_exempt = None if _iou_x is None else float(_iou_x)
+        # F6:與 self.overlapping 用同一種表示法(frozenset),查詢方式也一致。
+        cce = f.get("cross_camera_exclusive") or {}
+        self.cross_cam_exclusive = bool(cce.get("enabled", False))
+        self.exclusive_pairs = {frozenset(p) for p in (cce.get("pairs") or [])}
+        # 一對鏡頭不可能既「重疊」又「從未共現」—— 設定寫錯時要當場炸,
+        # 不要安靜地讓其中一條規則贏。這類「開了但語意互斥」的組合本專案踩過多次。
+        _both = self.exclusive_pairs & self.overlapping
+        if _both:
+            raise ValueError(
+                "同一對鏡頭同時列在 overlapping 與 cross_camera_exclusive.pairs:"
+                + ", ".join("+".join(sorted(p)) for p in sorted(map(sorted, _both))))
+
+        # P1 累積投票。關閉時 revote 為 None,identity_st 據此完全跳過該路徑。
+        rv = f.get("revote") or {}
+        asg = str(rv.get("assignment", "greedy")).lower()
+        if asg not in ("greedy", "hungarian"):
+            raise ValueError(f"revote.assignment 只能是 greedy 或 hungarian,收到 {asg!r}")
+        self.revote = (dict(stride_loops=int(rv.get("stride_loops", 8)),
+                            window=int(rv.get("window", 15)),
+                            min_votes=int(rv.get("min_votes", 3)),
+                            switch_margin=int(rv.get("switch_margin", 2)),
+                            assignment=asg)
+                       if rv.get("enabled", False) else None)
+
+        # 身份訊號(2026-09-16 上限實驗)。關閉時為 None,identity_st 完全跳過。
+        # ⚠ n_ids 可以留 null,由 runner 依真值表算出後呼叫 set_cue_n_ids() ——
+        #   讀取器的字彙大小是**跑的時候**才知道的(每個序列的身份數不同),
+        #   寫死在拓撲裡會讓同一份設定檔在不同序列上代表不同的證據強度。
+        cu = f.get("cue") or {}
+        self.cue_lr = None
+        if cu.get("enabled", False):
+            from m5_reid.cue import CueLR
+            if cu.get("accuracy") is None:
+                raise ValueError("cue.enabled 為 true 時必須指定 accuracy")
+            self._cue_cfg = dict(accuracy=float(cu["accuracy"]),
+                                 clip=cu.get("clip", 8.0))
+            if cu.get("n_ids") is not None:
+                self.cue_lr = CueLR(n_ids=int(cu["n_ids"]), **self._cue_cfg)
+
+        # F4:建 {目標鏡頭: {來源鏡頭: CrossViewLR}}。
+        # 查詢方向是「來源鏡頭的 bbox → 目標鏡頭的 bbox」,所以存進來時
+        # 兩個方向都要建 —— 反向用 H 的反矩陣。
+        self._cross_view = {}
+        cvc = f.get("cross_view") or {}
+        if cvc.get("enabled", False):
+            clip = float(cvc.get("clip", 8.0))
+            spd = float(cvc.get("speed_px_per_s", 0.0))
+            for key, m in (cvc.get("pairs") or {}).items():
+                a, b = key.split("|")
+                H = np.asarray(m["H"], dtype=float).reshape(3, 3)
+                sig, area = float(m["sigma_px"]), float(m["area_px2"])
+                self._cross_view.setdefault(b, {})[a] = CrossViewLR(
+                    H, sig, area, clip=clip, speed_px_per_s=spd)
+                # ⚠ 反向的 σ/area 沿用同一組。嚴格說反向的像素尺度不同,
+                #   但兩者都是同一組對應點量出來的,而且 area 只進 log ——
+                #   誤差落在 log 尺度上遠小於 d²/2σ² 那一項。
+                #   若之後發現方向性偏差,應該**分別估**而不是在這裡湊係數。
+                try:
+                    self._cross_view.setdefault(a, {})[b] = CrossViewLR(
+                        np.linalg.inv(H), sig, area, clip=clip, speed_px_per_s=spd)
+                except np.linalg.LinAlgError:
+                    pass                      # H 退化 → 只留單向,不讓整份拓撲掛掉
+
+        # F5:{(cam_from, cam_to): TransitPlaceLR}。方向性的,不建反向。
+        self._transit_place = {}
+        tpc = f.get("transit_place") or {}
+        if tpc.get("enabled", False):
+            clip = float(tpc.get("clip", 6.0))
+            for key, m in (tpc.get("links") or {}).items():
+                a, b = key.split(">")
+                self._transit_place[(a, b)] = TransitPlaceLR(
+                    m["mu_exit"], m["cov_exit"], m["area_from"],
+                    m["mu_enter"], m["cov_enter"], m["area_to"], clip=clip)
+            # ⚠ 兩者是同一份資訊(離開時往哪個方向 / 從哪個位置離開),
+            #   同時開會把它算兩次。寧可在建構時就吵,也不要靜默雙計。
+            if (f.get("direction") or {}).get("enabled", False):
+                raise ValueError(
+                    "transit_place 與 direction 不可同時開啟 —— "
+                    "DirectionLR 是同一份資訊的離散粗糙版,同時開會重複計算證據。")
+
+    def set_cue_n_ids(self, n_ids):
+        """補上讀取器的字彙大小(有幾個不同的標記)。cue 沒開就是 no-op。
+
+        ⚠ 這個值是**跑的時候**才知道的(每個序列的身份數不同),寫死在拓撲裡會讓
+          同一份設定檔在不同序列上代表不同的證據強度 —— 而那種差異不會報錯,
+          只會讓各序列的結果不可比。所以由 runner 依真值表算出後呼叫這裡。
+        """
+        from m5_reid.cue import CueLR
+
+        if not (self.fusion.get("cue") or {}).get("enabled", False):
+            return None
+        self.cue_lr = CueLR(n_ids=int(n_ids), **self._cue_cfg)
+        return self.cue_lr
+
+    def transit_place(self, cam_from, cam_to):
+        """回傳該連結的 TransitPlaceLR;沒有就 None(呼叫端加 0)。"""
+        return self._transit_place.get((cam_from, cam_to))
+
+    def cross_view(self, camera_to):
+        """回傳 {來源鏡頭: CrossViewLR},把來源的 bbox 投到 camera_to 比對。
+
+        沒有任何單應性時回 None（而不是空 dict）——
+        呼叫端據此退回舊的 overlap_llr 常數路徑。
+        """
+        return self._cross_view.get(camera_to) or None
+
+    def set_transit(self, cam_from, cam_to, model):
+        """用實測資料校準後,把某條連結的轉場模型換掉(見 scripts/calibrate_topology.py)。"""
+        self.transits[(cam_from, cam_to)] = model
+
+    @classmethod
+    def from_config(cls, cfg):
+        """cfg = camera_topology 的『內層』dict(links/overlapping/fusion/cameras/clock)。"""
+        return cls(cfg.get("links", []), cfg.get("overlapping", []), cfg.get("fusion"),
+                   cameras=cfg.get("cameras"), clock=cfg.get("clock"))
+
+    @classmethod
+    def from_yaml(cls, path):
+        """讀 configs/camera_topology.yaml。
+
+        該檔最外層包了一層 `camera_topology:`,from_config 期望的是內層 dict
+        ——直接把整份檔案餵進 from_config 會靜默得到空拓撲(所有轉場都被拒),
+        所以在這裡剝掉外層。
+        """
+        import yaml
+        with open(path, encoding="utf-8") as f:
+            raw = yaml.safe_load(f) or {}
+        cfg = raw.get("camera_topology", raw)
+        # 這個守衛是為了擋「忘了填 links」的靜默失效。但**全部鏡頭兩兩重疊**時
+        # links 本來就該是空的(重疊路徑不需要轉場時間),所以只在同時也沒有
+        # overlapping 時才算設定錯誤。
+        if not cfg.get("links") and not cfg.get("overlapping"):
+            raise ValueError(
+                f"{path} 既沒有 links 也沒有 overlapping → 所有跨鏡頭關聯都會被拒絕")
+        return cls.from_config(cfg)
+
+    def is_overlapping(self, a, b):
+        return frozenset((a, b)) in self.overlapping
+
+    def is_mutually_exclusive(self, a, b):
+        """這兩台在真值裡從未同時看到同一個人 → 同一瞬間不可能是同一個人。
+
+        ⚠ 不是 `not is_overlapping(a, b)`。「不重疊」只表示不適合做幾何比對,
+          兩台仍可能隔著門口互看得到(CHIRLA 的 camera_1+camera_3 共現 116,224 次)。
+        """
+        return frozenset((a, b)) in self.exclusive_pairs
+
+    def transition_gate(self, cam_from, t_exit, cam_to, t_enter):
+        """v2 加權和用的硬門。回傳 (是否通過, st_prob)。
+
+        ⚠ 實測發現 k_sigma 這道門在真實運作中幾乎從不觸發:只有外觀 cosine ≥ 0.851
+          時它才是實際生效的限制,而 DINOv2(0.490)/OSNet(0.618)都達不到。
+          真正淘汰候選的一直是 combined_threshold。詳見 analyze_gate_capacity.py §1。
+        """
+        if cam_from == cam_to:
+            return (False, 0.0)
+        key = (cam_from, cam_to)
+        if key not in self.links:
+            return (False, 0.0)
+        mean, std = self.links[key]
+        dt = t_enter - t_exit
+        if dt <= 0:                                       # 不能比離開更早抵達
+            return (False, 0.0)
+        if abs(dt - mean) > self.fusion["k_sigma"] * std:  # 超出時間窗
+            return (False, 0.0)
+        return (True, st_prob(dt, mean, std))
+
+    def direction_llr(self, cam_from, cam_to, exit_zone, enter_zone):
+        """走對門沒有?只在有拓撲連結、且該連結有標 zone 時提供證據。"""
+        if self.dir_lr is None:
+            return 0.0
+        want = self.link_zones.get((cam_from, cam_to))
+        if want is None:
+            return 0.0
+        return self.dir_lr.llr(exit_zone, want[0], enter_zone, want[1])
+
+    def transit_llr(self, cam_from, t_exit, cam_to, t_enter):
+        """v3:轉場時間的對數勝算比 log p(Δt|同一人) − log λ_bg。
+
+        三條路徑(依序嘗試,取第一條適用的):
+          1. 同鏡頭極短間隔  → M4 軌跡中斷(SameCameraTransit)
+          2. 有拓撲連結      → 正常轉場(config 的 μ/σ)
+          3. 無拓撲連結      → 未建模路徑(UnknownPathTransit,帶負先驗)
+
+        回傳 (是否物理可能, llr)。Δt ≤ 0 一律拒絕(不能比離開更早抵達)。
+        """
+        from m5_reid.evidence import NEG_INF
+        dt = t_enter - t_exit
+        if dt <= 0:
+            return (False, NEG_INF)
+
+        if cam_from == cam_to:
+            if self.same_cam is None:
+                return (False, NEG_INF)
+            model = self.same_cam
+        elif (cam_from, cam_to) in self.transits:
+            model = self.transits[(cam_from, cam_to)]
+        elif self.unknown_path is not None:
+            model = self.unknown_path
+        else:
+            return (False, NEG_INF)
+
+        lp = model.logpdf(dt)
+        if lp <= NEG_INF:
+            return (False, NEG_INF)
+        return (True, lp - self.log_lambda_bg)

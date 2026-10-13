@@ -1,0 +1,219 @@
+# 智慧廚房 M1~M5 整合管線的單一設定檔
+#
+# 由 run_pipeline.py 讀取。原本分散在以下各檔的定案參數全部彙整到這裡
+# (原檔的副本放在 reference/configs/,僅供對照,程式不會讀):
+#   M2  benchmark.yaml(m2_motion / m2_branch_b / m2_static_line)
+#   M3  m3_thresholds.json(舊值)、2026-10-13 重掃的門檻
+#   M4  tracker_rf_cbiou.yaml、tracker_clip_app_dino_w0.7.yaml
+#   M5  fix_grid/base.yaml、fix_grid/base_overlapfix.yaml
+#
+# 主體區塊 = 「交付格」(profile: delivery),也就是多人場景目前成本最低的那一組。
+# 檔尾 profiles 區塊列出其他組合相對於主體的差異,用 --profile 切換。
+# 每個數值的來源與適用範圍見 交接說明.md 第 4 節。
+# 相對路徑一律相對於本資料夾。
+
+profile: delivery            # delivery | single_person(見檔尾 profiles)
+
+# ── M1 影像擷取 ───────────────────────────────────────────────────────
+# 目前只有離線讀檔(src/common/video_io.py)。RTSP 串流與斷線重連尚未實作。
+m1:
+  sources: {}                # camera_id: 影片路徑;也可改用命令列 --videos / --cameras
+  stride: 5                  # 每 5 幀取 1 幀(30 fps 影片 = 6 fps)。所有 M4/M5 數字都在這個取樣率下量得
+  fps: 30.0                  # 影片幀率,用來把迴圈數換成秒
+  max_loops: -1              # 最多處理幾個迴圈(1 迴圈 = stride 幀);-1 = 跑到影片結束
+  start_fid: 0               # 起始影片幀(含),必須是 stride 的倍數
+  end_fid: -1                # 結束影片幀(含);-1 = 到影片結束
+
+# ── M2 動態偵測 ───────────────────────────────────────────────────────
+m2:
+  branch_a:                  # 分支 A:全域 frame-diff,M3 的省電開關
+    enabled: true
+    diff_threshold: 25       # absdiff 後二值化門檻
+    min_motion_ratio: 0.002  # 變動像素佔比超過此值判定有動態
+    blur_ksize: 5            # 前處理高斯模糊核
+    use_reference_frame: false   # false = 與前一張取樣幀比
+    # gate_m3 = true 時,無動態的幀不跑 M3,沿用該鏡頭上一次的偵測結果。
+    # 注意:這個串接方式沒有在 M4/M5 的任何評估裡驗證過,預設關閉。
+    # 關閉時 M2 只記錄 has_motion 與可節省比例,M3/M4/M5 的輸出與完整 repo 的 scripts/m5_track_video.py 逐位相同。
+    gate_m3: false
+    gate_max_hold_loops: 30  # 閘門開啟時,最多連續沿用幾個迴圈就強制重跑一次 M3
+  dynamic_line:              # 分支 B 動態線:MOG2 找移動小目標(老鼠)
+    enabled: false           # 每幀每鏡頭都要跑 MOG2,預設關;需要時再開
+    min_blob_area: 8
+    large_blob_area: 2000
+    exclusion_margin: 24
+    density_radius: 120
+    density_max_neighbors: 3
+    crop_size: 256
+    max_crops_per_frame: 32
+    mog2_history: 500
+    mog2_var_threshold: 16
+    warmup_frames: 30
+    persistence_frames: 3
+    match_max_dist: 60
+    track_max_miss: 2
+  static_line:               # 分支 B 靜態線:慢速基準比對找靜止新增物(水漬)
+    enabled: false
+    baseline_alpha: 0.002
+    baseline_diff_thresh: 30
+    motion_thresh: 25
+    blur_ksize: 5
+    min_blob_area: 60
+    max_blob_area: 120000
+    crop_size: 256
+    warmup_frames: 30
+    motion_exclusion_margin: 61
+    max_aspect_ratio: 2.0
+    persistence_frames: 8
+    match_max_dist: 40
+    track_max_miss: 3
+    density_radius: 120
+    density_max_neighbors: 4
+    freeze_confirmed: true
+    # 地板 ROI。reference/configs/zones.json 是在 EPFL Boutput0(1280x720)上標的,只適用那一台。
+    # 多鏡頭時請用 floor_zone_by_camera 逐台給多邊形;都沒給 = 全畫面。
+    floor_zone_file: null
+    floor_zone_name: 地板
+    floor_zone: null
+    floor_zone_by_camera: {}   # camera_id: [[x, y], ...]
+  classifier:                # 分支 B 的確認分類器。目前沒有訓練好的權重,缺檔時候選一律標「待確認」
+    onnx: weights/branch_b_classifier.onnx   # 尚不存在
+    input_size: 224
+    target_index: 1
+    threshold: 0.5
+
+# ── M3 物件偵測(RF-DETR)────────────────────────────────────────────
+m3:
+  variant: nano              # nano | small | medium
+  # weights = null 用 COCO 預訓權重(人的 class_id = 1),M4/M5 在 CHIRLA 上的所有數字都是這個設定。
+  # 廚房 11 類請填微調權重(人的 class_id = 0)。建議用 2026-10-13 本機重訓的 Arm A:
+  #   weights/m3_nano_r2_armA/checkpoint_best_total.pth   (round2 test F1 0.922 @ 704)
+  # 完整 repo 裡舊的 model_result/nano 是早期小資料權重(同條件 F1 0.590),沒有帶進本資料夾。
+  weights: null
+  # 推論解析度。auto = 微調權重用權重檔記錄的訓練解析度(目前兩顆都是 704),COCO 預訓用變體預設(nano 384)。
+  # 也可填整數(須為 32 的倍數)或 null(一律用變體預設)。
+  # 2026-10-13 實測 nano 微調權重:384 → 704,test F1 0.531 → 0.597、食安類 recall 0.495 → 0.615。
+  resolution: auto
+  thr: 0.10                 # 送進 M4 的「人」的信心門檻。0.10 才餵得到追蹤器第二輪低分關聯
+  person_cls: null           # null = 依有無 weights 自動判斷(COCO = 1、微調 = 0)
+  det_cache: null            # 偵測快取目錄(內含 <camera_id>.npz);給了就不載入 RF-DETR
+  # 微調 11 類的逐類門檻。只在有 weights 時生效,用於 detections.csv 的物件輸出;
+  # 送進 M4 的人一律用上面的 thr。
+  # 這組是 2026-10-13 用 weights/m3_nano_r2_armA/checkpoint_best_total.pth、解析度 704,
+  # 在 m3_finetune_r2 的 valid 90 張上依 scripts/sweep_thresholds.py 的規則掃出來的
+  # (食安類:precision >= 0.6 下取最大 recall;其餘取最大 F1)。test:P 0.884 / R 0.929 / F1 0.906。
+  # 這個規則偏向 recall;若要整體 F1 最高,全部改成 0.3 即可(test F1 0.922)。
+  # 換權重、換變體或換解析度都要重掃。reference/configs/m3_thresholds.json 是舊值,僅供對照。
+  class_thresholds:
+    人: 0.3
+    刀具: 0.3
+    砧板: 0.2
+    食材: 0.25
+    鍋鏟: 0.65
+    鍋子: 0.35
+    手: 0.1
+    容器: 0.65
+    抹布: 0.3
+    夾子: 0.3      # 訓練與 valid 都沒有樣本,預設值;模型等於沒學過這一類
+    手套: 0.3      # 同上
+# ── M4 單鏡頭追蹤 ─────────────────────────────────────────────────────
+# 這一段的格式與 reference/configs/tracker*.yaml 的 tracker 區段相同,直接交給 KitchenTracker.from_config。
+m4:
+  backend: rf_cbiou          # 交付格:C-BIoU(Roboflow trackers 套件,Apache 2.0)
+  track_activation_threshold: 0.25
+  minimum_matching_threshold: 0.8
+  lost_track_buffer: 30      # 單位是更新次數;stride 5 @ 30 fps 時 = 5 秒
+  frame_rate: 30
+  minimum_consecutive_frames: 1
+  history_len: 30
+  backend_params:            # 只會讀與 backend 同名的那一段
+    rf_cbiou:
+      buffer_ratio_first: 0.3
+      buffer_ratio_second: 0.5
+    rf_mcbyte_nomask_app:    # single_person 用:外觀特徵進關聯成本
+      appearance_w: 0.7
+      embedder: dinov2
+      ema_momentum: 0.9
+
+# ── M5 跨鏡頭身份 ─────────────────────────────────────────────────────
+m5:
+  embedder: none             # none | color | dinov2 | chirla:<checkpoint 路徑>
+  ttl_loops: 600             # 離場後保留幾個迴圈;stride 5 @ 30 fps 時 = 100 秒
+  # 給了外部拓撲檔就用它,忽略下方的 camera_topology 區塊(例如 reference/configs/camera_topology.epfl9.yaml)。
+  topology_file: null
+
+# 相機拓撲。這一份是 CHIRLA 七鏡頭(reference/configs/fix_grid/base.yaml),換場地必須重建。
+# 時間參數只從推導集 seq_000 / 001 / 002 估;overlapping 清單來自全部 10 個序列(有洩漏,視為場地事實)。
+camera_topology:
+  fusion:
+    mode: llr
+    background_arrival_hz: 0.04820     # 26 個身份 / 539 秒
+    cost_false_merge_over_break: 5.0   # 綁定門檻 = ln(5.0) = 1.6094 nats
+    transit_model: loiter
+    p_loiter: 0.1798
+    tau_loiter_s: 8.51
+    appearance_profile: dinov2
+    appearance_clip: null
+    overlap_llr: 5.0
+    overlap_window_s: 0.5
+    same_camera: { enabled: true, tau_break_s: 2.0, max_gap_s: 15.0 }
+    unknown_path: { enabled: true, median_multiplier: 2.0, log_sigma: 0.8, logprior: -2.0 }
+    direction: { enabled: false }
+  links:
+    - { from: camera_2, to: camera_6, mean_s: 3.261, std_s: 1.845 }
+    - { from: camera_6, to: camera_7, mean_s: 0.617, std_s: 0.481 }
+    - { from: camera_7, to: camera_5, mean_s: 10.542, std_s: 4.278 }
+  overlapping:
+    - [camera_2, camera_3]
+    - [camera_2, camera_4]
+    - [camera_2, camera_5]
+    - [camera_3, camera_4]
+    - [camera_3, camera_5]
+    - [camera_4, camera_5]
+    - [camera_5, camera_6]
+  clock:
+    max_skew_s: 0.2
+  cameras:
+    camera_1: { clock_offset_s: 0.0 }
+    camera_2: { clock_offset_s: 0.0 }
+    camera_3: { clock_offset_s: 0.0 }
+    camera_4: { clock_offset_s: 0.0 }
+    camera_5: { clock_offset_s: 0.0 }
+    camera_6: { clock_offset_s: 0.0 }
+    camera_7: { clock_offset_s: 0.0 }
+
+# ── 輸出 ──────────────────────────────────────────────────────────────
+output:
+  dir: outputs/run
+  resident_every: 50         # 每幾個迴圈取樣一次常駐狀態與記憶體
+  save_frames: false         # 存跨鏡頭標註幀(同一 chef_id 各鏡頭同色)到 <dir>/frames
+  save_frames_every: 0       # 每 N 迴圈存一張;0 = 只在開新 chef_id 時存
+
+# ── 設定組合 ──────────────────────────────────────────────────────────
+# 每個組合只寫與主體不同的鍵;dict 逐層合併,list 整段取代。
+profiles:
+  # 交付格:C-BIoU + 原拓撲 + M5 不用外觀。多人 7 序列的基準(加權成本 325.5)。
+  delivery: {}
+
+  # 單人最佳:M4 外觀關聯 DINOv2 w=0.7 + 修正拓撲 + M5 DINOv2。
+  # 只在「畫面裡只有一個人」時成立(L3S 跨鏡頭一致 14/16)。
+  # 同一組設定在多人全長序列上誤併率 59.5% -> 83.0%,不可用於多人場景。
+  # w=0.7 與修正拓撲都是看過結果後選的,不是預先登記的驗證結果。
+  single_person:
+    m4:
+      backend: rf_mcbyte_nomask_app
+    m5:
+      embedder: dinov2
+    camera_topology:
+      overlapping:
+        - [camera_1, camera_2]   # 實測共現 58,333 次,原清單漏列
+        - [camera_1, camera_3]   # 116,224 次
+        - [camera_1, camera_5]   # 5,109 次
+        - [camera_6, camera_7]   # 6,870 次
+        - [camera_2, camera_3]
+        - [camera_2, camera_4]
+        - [camera_2, camera_5]
+        - [camera_3, camera_4]
+        - [camera_3, camera_5]
+        - [camera_4, camera_5]
+        - [camera_5, camera_6]

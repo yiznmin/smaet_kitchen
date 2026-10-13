@@ -1,0 +1,14 @@
+{
+  "dataset": "..\\m3_fintune_data\\m3_finetune_r2",
+  "out": "model_result\\nano_r2_armA",
+  "variant": "nano",
+  "epochs": 60,
+  "batch_size": 4,
+  "grad_accum_steps": 4,
+  "lr": 0.0001,
+  "resolution": 704,
+  "num_workers": 2,
+  "wall_minutes": 25.3,
+  "start_weights": "COCO 預訓(rfdetr 內建)",
+  "license_note": "訓練資料含 EPFL(CC BY-NC),不可出貨"
+}

@@ -1,0 +1,59 @@
+# CHIRLA 七鏡頭的相機拓撲(2026-09-04 由 scripts/chirla_build_topology.py 產生)
+#
+# ⚠ 時間參數**只從推導集 seq_000/001/002 估**,評估集
+#   (seq_004/006/007/020/024/025/026)完全沒有參與。
+#   理由見 docs/CHIRLA_M4M5驗證_預先登記_20260903.md §3。
+#
+# ⚠ **重疊關係有資訊洩漏,照實揭露**:overlapping 清單來自
+#   scripts/chirla_overlap_stats.py 在**全部 10 個序列**上的結果。
+#   處置:相機固定、10 個序列間機位沒動過 → 視為物理事實。
+#   但報告必須寫明「重疊拓撲有洩漏,時間參數沒有」。
+#
+# ⚠ 論文說 CHIRLA 是「7 台非重疊」,實測不成立 ——
+#   見 docs/CHIRLA_鏡頭佈局實測_20260903.md。這裡是混合佈局。
+#
+# 推導依據:89 次轉場、26 個身份到達、539 秒推導集影像
+camera_topology:
+
+  fusion:
+    mode: llr
+    background_arrival_hz: 0.04820   # 實測:26 個身份 / 539s(EPFL 用的是 0.00167)
+    cost_false_merge_over_break: 5.0
+    transit_model: loiter
+    p_loiter: 0.1798
+    tau_loiter_s: 8.51
+    appearance_profile: dinov2
+    appearance_clip: null
+    overlap_llr: 5.0
+    overlap_window_s: 0.5
+    same_camera: { enabled: true, tau_break_s: 2.0, max_gap_s: 15.0 }
+    unknown_path: { enabled: true, median_multiplier: 2.0, log_sigma: 0.8, logprior: -2.0 }
+    direction: { enabled: false }
+    # ⚠ ground_plane 不啟用:CHIRLA 沒有提供相機標定參數,
+    #   與 EPFL 同樣的限制(預先登記 §8 第 2 條)。
+
+  links:
+    - { from: camera_2, to: camera_6, mean_s: 3.261, std_s: 1.845 }   # 觀察到 11 次
+    - { from: camera_6, to: camera_7, mean_s: 0.617, std_s: 0.481 }   # 觀察到 6 次
+    - { from: camera_7, to: camera_5, mean_s: 10.542, std_s: 4.278 }   # 觀察到 4 次
+
+  overlapping:
+    - [camera_2, camera_3]
+    - [camera_2, camera_4]
+    - [camera_2, camera_5]
+    - [camera_3, camera_4]
+    - [camera_3, camera_5]
+    - [camera_4, camera_5]
+    - [camera_5, camera_6]
+
+  clock:
+    max_skew_s: 0.2   # 同序列七支影片起始時間戳相同、幀數差 10 幀內
+
+  cameras:
+    camera_1: { clock_offset_s: 0.0 }
+    camera_2: { clock_offset_s: 0.0 }
+    camera_3: { clock_offset_s: 0.0 }
+    camera_4: { clock_offset_s: 0.0 }
+    camera_5: { clock_offset_s: 0.0 }
+    camera_6: { clock_offset_s: 0.0 }
+    camera_7: { clock_offset_s: 0.0 }

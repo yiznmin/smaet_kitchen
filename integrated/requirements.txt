@@ -1,0 +1,28 @@
+# 智慧廚房 M1~M5 整合管線的相依套件(推論用)
+#
+# Python 用 3.11(3.10~3.12 可;不要用 3.13 以上)。
+#
+# torch / torchvision 不列在這裡,必須依機器的 CUDA 版本另外安裝,否則 pip 會裝到 CPU 版,
+# 症狀是「跑得動但慢數十倍」而且不報錯。例如 CUDA 12.8:
+#   pip install torch==2.11.0 torchvision==0.26.0 --index-url https://download.pytorch.org/whl/cu128
+# 裝完確認 python -c "import torch; print(torch.cuda.is_available())" 是 True。
+#
+# 版本是 2026-10-13 驗證時本機實際使用的版本。
+
+rfdetr==1.9.4               # M3。換版本前先確認微調權重仍能載入
+supervision>=0.24,<0.30     # M4 的 ByteTrack 後端;0.30 移除了 sv.ByteTrack(驗證時為 0.29.1)
+trackers==2.6.0             # M4 的 rf_cbiou / rf_mcbyte_* 後端;要求 numpy>=2.0.2
+numpy>=2.0.2                # 驗證時為 2.4.6
+opencv-python>=4.9
+scipy>=1.10
+pyyaml>=6.0
+pillow
+psutil
+
+# 只有訓練 M3 時才需要(scripts/train_m3_rfdetr.py)。建議裝在另一個虛擬環境:
+#   pip install "rfdetr[train,loggers]==1.9.4"
+# 它會把 supervision 升到 0.30 以上,與上面 M4 的限制衝突,所以不要裝在同一個環境。
+#
+# 選用:
+#   onnxruntime-gpu   M2 分支 B 的分類器(目前沒有權重,不裝也能跑)
+#   h5py、tqdm        scripts/train_reid_chirla.py(CHIRLA Re-ID 訓練)

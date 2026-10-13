@@ -147,3 +147,14 @@ results/m5_topofix/**/tracks.csv
 results/single_best/runs/**/tracks.csv
 results/single_best/videos/
 results/single_best/eval/**/per_frame.csv
+# 2026-10-13 M3 本機重訓(Arm A)的輸出:7 個 .ckpt 各 492 MB,超過 GitHub 單檔上限。
+# 採用的權重與訓練紀錄另有一份在 integrated/weights/m3_nano_r2_armA/。
+model_result/nano_r2_armA/
+# 2026-10-13 整合交接資料夾:自帶的預訓練權重(RF-DETR COCO 349 MB、DINOv2 的 torch hub 快取)
+# 是第三方檔案的副本,不入庫;交付時整個資料夾直接複製。
+# ⚠ 微調權重 integrated/weights/m3_nano_r2_armA/*.pth(117 MB)已被上面的 *.pth 排除,
+#   所以 **git clone 下來的 integrated/ 沒有權重,不能單獨執行** —— 要從原機器複製。
+integrated/weights/pretrained/
+integrated/outputs/
+# 整合管線的驗證輸出(拋棄式,可由 integrated/demo 重跑)
+results/integrated/
