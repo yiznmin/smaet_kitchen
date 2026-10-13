@@ -24,7 +24,7 @@ SEQS = ["seq_004", "seq_006", "seq_007", "seq_020", "seq_024", "seq_025", "seq_0
 CAMS = [f"camera_{i}" for i in range(1, 8)]
 
 
-def run_one(profile, seq, out_root, data_root):
+def run_one(profile, seq, out_root, data_root, weights=None, det_root="results/det_cache/coco_nano"):
     out = out_root / profile / seq
     if (out / "run_meta.json").exists():
         return profile, seq, 0, 0.0
@@ -37,8 +37,10 @@ def run_one(profile, seq, out_root, data_root):
             cams.append(c)
     cmd = [PY, str(ROOT / "integrated" / "run_pipeline.py"), "--profile", profile, "--seq", seq,
            "--videos", *vids, "--cameras", *cams,
-           "--det-cache", str(ROOT / "results" / "det_cache" / "coco_nano" / seq),
+           "--det-cache", str(ROOT / det_root / seq),
            "--out", str(out)]
+    if weights:
+        cmd += ["--weights", weights]
     t = time.time()
     r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace",
                        env={**__import__("os").environ, "PYTHONIOENCODING": "utf-8"})
@@ -54,12 +56,15 @@ def main():
     ap.add_argument("--data-root", default="D:/yizhen/CHIRLA/CHIRLA_data/CHIRLA")
     ap.add_argument("--eval-topology", default="configs/fix_grid/base_overlapfix.yaml")
     ap.add_argument("--workers", type=int, default=7)
+    ap.add_argument("--weights", default=None, help="M3 微調權重(相對於 integrated/)")
+    ap.add_argument("--det-cache-root", default="results/det_cache/coco_nano")
     args = ap.parse_args()
     out_root = ROOT / args.out_root
     jobs = [(p, s) for p in args.profiles for s in SEQS]
     bad = 0
     with ThreadPoolExecutor(args.workers) as ex:
-        for p, s, rc, sec in ex.map(lambda a: run_one(a[0], a[1], out_root, args.data_root), jobs):
+        for p, s, rc, sec in ex.map(lambda a: run_one(a[0], a[1], out_root, args.data_root, args.weights,
+                                                 args.det_cache_root), jobs):
             print(f"  {p} {s} {'完成' if rc == 0 else '失敗'} ({sec}s)", flush=True)
             bad += int(rc != 0)
     if bad:

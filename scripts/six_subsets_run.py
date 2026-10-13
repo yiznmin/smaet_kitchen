@@ -24,7 +24,7 @@ PY = str(ROOT / ".venv" / "Scripts" / "python.exe")
 PIPELINE = str(ROOT / "integrated" / "run_pipeline.py")
 
 
-def job(profile, run, out_root, force):
+def job(profile, run, out_root, force, weights=None, det_root=None):
     out = out_root / profile / "runs" / run["run_id"]
     if (out / "run_meta.json").exists() and not force:
         return dict(profile=profile, run_id=run["run_id"], returncode=0, wall_s=0.0, skipped=True)
@@ -32,9 +32,12 @@ def job(profile, run, out_root, force):
     cmd = [PY, PIPELINE, "--profile", profile, "--seq", run["seq"],
            "--videos", *[run["videos"][c] for c in run["cameras"]],
            "--cameras", *run["cameras"],
-           "--det-cache", str(ROOT / run["det_cache"]),
+           "--det-cache", str(ROOT / (f"{det_root}/{run['seq']}" if det_root
+                                      else run["det_cache"])),
            "--start-fid", str(run["start_fid"]), "--end-fid", str(run["end_fid"]),
            "--out", str(out)]
+    if weights:          # M3 微調權重(2026-10-13):偵測快取必須是同一顆權重建的,DetCache 會核對
+        cmd += ["--weights", weights]
     t = time.time()
     r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace",
                        env={**__import__("os").environ, "PYTHONIOENCODING": "utf-8"})
@@ -52,6 +55,10 @@ def main():
     ap.add_argument("--workers", type=int, default=6)
     ap.add_argument("--limit", type=int, default=0, help="只跑前 N 個窗(試跑用)")
     ap.add_argument("--force", action="store_true")
+    ap.add_argument("--weights", default=None,
+                    help="M3 微調權重(相對於 integrated/);不給 = COCO 預訓")
+    ap.add_argument("--det-cache-root", default=None,
+                    help="偵測快取根目錄(其下為 <seq>/<camera>.npz);不給 = 片段清單記的那一份")
     args = ap.parse_args()
 
     man = json.loads((ROOT / args.manifest).read_text(encoding="utf-8"))
@@ -69,7 +76,8 @@ def main():
 
     rows, t0 = [], time.time()
     with ThreadPoolExecutor(args.workers) as ex:
-        for i, res in enumerate(ex.map(lambda a: job(a[0], a[1], out_root, args.force), jobs), 1):
+        for i, res in enumerate(ex.map(lambda a: job(a[0], a[1], out_root, args.force, args.weights,
+                                                       args.det_cache_root), jobs), 1):
             rows.append(res)
             if res["returncode"]:
                 print(f"  失敗:{res['profile']} {res['run_id']}", flush=True)
