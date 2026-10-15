@@ -1,0 +1,514 @@
+{
+ "sL1-seq_007-c2-5-000000": {
+  "clip_id": "sL1-seq_007-c2-5-000000",
+  "stride": 5,
+  "frames": 1499,
+  "expected_frames": 1499,
+  "n_correct_cells": 1499,
+  "n_wrong_cells": 0,
+  "fps": 6.0,
+  "size": [
+   640,
+   460
+  ],
+  "codec": "h264",
+  "bytes": 3207681,
+  "path": "D:\\yizhen\\smart_kitchen\\integrated\\ok_clips\\single_L1\\sL1-seq_007-c2-5-000000_s5.mp4"
+ },
+ "sL1-seq_020-c7-10-000590": {
+  "clip_id": "sL1-seq_020-c7-10-000590",
+  "stride": 5,
+  "frames": 371,
+  "expected_frames": 371,
+  "n_correct_cells": 371,
+  "n_wrong_cells": 0,
+  "fps": 6.0,
+  "size": [
+   640,
+   460
+  ],
+  "codec": "h264",
+  "bytes": 888288,
+  "path": "D:\\yizhen\\smart_kitchen\\integrated\\ok_clips\\single_L1\\sL1-seq_020-c7-10-000590_s5.mp4"
+ },
+ "sL1-seq_002-c1-9-002100": {
+  "clip_id": "sL1-seq_002-c1-9-002100",
+  "stride": 5,
+  "frames": 251,
+  "expected_frames": 251,
+  "n_correct_cells": 251,
+  "n_wrong_cells": 0,
+  "fps": 6.0,
+  "size": [
+   640,
+   460
+  ],
+  "codec": "h264",
+  "bytes": 569300,
+  "path": "D:\\yizhen\\smart_kitchen\\integrated\\ok_clips\\single_L1\\sL1-seq_002-c1-9-002100_s5.mp4"
+ },
+ "sL1-seq_004-c4-8-000000": {
+  "clip_id": "sL1-seq_004-c4-8-000000",
+  "stride": 5,
+  "frames": 214,
+  "expected_frames": 214,
+  "n_correct_cells": 214,
+  "n_wrong_cells": 0,
+  "fps": 6.0,
+  "size": [
+   640,
+   460
+  ],
+  "codec": "h264",
+  "bytes": 379649,
+  "path": "D:\\yizhen\\smart_kitchen\\integrated\\ok_clips\\single_L1\\sL1-seq_004-c4-8-000000_s5.mp4"
+ },
+ "sL1-seq_000-c3-18-002060": {
+  "clip_id": "sL1-seq_000-c3-18-002060",
+  "stride": 5,
+  "frames": 194,
+  "expected_frames": 194,
+  "n_correct_cells": 194,
+  "n_wrong_cells": 0,
+  "fps": 6.0,
+  "size": [
+   640,
+   460
+  ],
+  "codec": "h264",
+  "bytes": 487231,
+  "path": "D:\\yizhen\\smart_kitchen\\integrated\\ok_clips\\single_L1\\sL1-seq_000-c3-18-002060_s5.mp4"
+ },
+ "sL2-seq_000-c1-3-003910": {
+  "clip_id": "sL2-seq_000-c1-3-003910",
+  "stride": 5,
+  "frames": 178,
+  "expected_frames": 178,
+  "n_correct_cells": 142,
+  "n_wrong_cells": 0,
+  "fps": 6.0,
+  "size": [
+   640,
+   460
+  ],
+  "codec": "h264",
+  "bytes": 772310,
+  "path": "D:\\yizhen\\smart_kitchen\\integrated\\ok_clips\\single_L2\\sL2-seq_000-c1-3-003910_s5.mp4"
+ },
+ "sL2-seq_000-c7-10-001530": {
+  "clip_id": "sL2-seq_000-c7-10-001530",
+  "stride": 5,
+  "frames": 84,
+  "expected_frames": 84,
+  "n_correct_cells": 57,
+  "n_wrong_cells": 0,
+  "fps": 6.0,
+  "size": [
+   640,
+   460
+  ],
+  "codec": "h264",
+  "bytes": 263002,
+  "path": "D:\\yizhen\\smart_kitchen\\integrated\\ok_clips\\single_L2\\sL2-seq_000-c7-10-001530_s5.mp4"
+ },
+ "sL2-seq_025-c3-7-007115": {
+  "clip_id": "sL2-seq_025-c3-7-007115",
+  "stride": 5,
+  "frames": 88,
+  "expected_frames": 88,
+  "n_correct_cells": 56,
+  "n_wrong_cells": 2,
+  "fps": 6.0,
+  "size": [
+   640,
+   460
+  ],
+  "codec": "h264",
+  "bytes": 367154,
+  "path": "D:\\yizhen\\smart_kitchen\\integrated\\ok_clips\\single_L2\\sL2-seq_025-c3-7-007115_s5.mp4"
+ },
+ "sL2-seq_020-c1-12-007830": {
+  "clip_id": "sL2-seq_020-c1-12-007830",
+  "stride": 5,
+  "frames": 77,
+  "expected_frames": 77,
+  "n_correct_cells": 47,
+  "n_wrong_cells": 0,
+  "fps": 6.0,
+  "size": [
+   640,
+   460
+  ],
+  "codec": "h264",
+  "bytes": 238317,
+  "path": "D:\\yizhen\\smart_kitchen\\integrated\\ok_clips\\single_L2\\sL2-seq_020-c1-12-007830_s5.mp4"
+ },
+ "sL2-seq_004-c7-7-004775": {
+  "clip_id": "sL2-seq_004-c7-7-004775",
+  "stride": 5,
+  "frames": 64,
+  "expected_frames": 64,
+  "n_correct_cells": 45,
+  "n_wrong_cells": 0,
+  "fps": 6.0,
+  "size": [
+   640,
+   460
+  ],
+  "codec": "h264",
+  "bytes": 202088,
+  "path": "D:\\yizhen\\smart_kitchen\\integrated\\ok_clips\\single_L2\\sL2-seq_004-c7-7-004775_s5.mp4"
+ },
+ "sL3S-seq_004-c6+c7-8-008115": {
+  "clip_id": "sL3S-seq_004-c6+c7-8-008115",
+  "stride": 5,
+  "frames": 86,
+  "expected_frames": 86,
+  "n_correct_cells": 122,
+  "n_wrong_cells": 0,
+  "fps": 6.0,
+  "size": [
+   1280,
+   460
+  ],
+  "codec": "h264",
+  "bytes": 596368,
+  "path": "D:\\yizhen\\smart_kitchen\\integrated\\ok_clips\\single_L3S\\sL3S-seq_004-c6+c7-8-008115_s5.mp4"
+ },
+ "sL3S-seq_000-c6+c7-10-001710": {
+  "clip_id": "sL3S-seq_000-c6+c7-10-001710",
+  "stride": 5,
+  "frames": 72,
+  "expected_frames": 72,
+  "n_correct_cells": 94,
+  "n_wrong_cells": 0,
+  "fps": 6.0,
+  "size": [
+   1280,
+   460
+  ],
+  "codec": "h264",
+  "bytes": 470987,
+  "path": "D:\\yizhen\\smart_kitchen\\integrated\\ok_clips\\single_L3S\\sL3S-seq_000-c6+c7-10-001710_s5.mp4"
+ },
+ "sL3S-seq_026-c6+c7-3-005890": {
+  "clip_id": "sL3S-seq_026-c6+c7-3-005890",
+  "stride": 5,
+  "frames": 60,
+  "expected_frames": 60,
+  "n_correct_cells": 76,
+  "n_wrong_cells": 0,
+  "fps": 6.0,
+  "size": [
+   1280,
+   460
+  ],
+  "codec": "h264",
+  "bytes": 474379,
+  "path": "D:\\yizhen\\smart_kitchen\\integrated\\ok_clips\\single_L3S\\sL3S-seq_026-c6+c7-3-005890_s5.mp4"
+ },
+ "sL3S-seq_025-c1+c2+c3-7-001780": {
+  "clip_id": "sL3S-seq_025-c1+c2+c3-7-001780",
+  "stride": 5,
+  "frames": 23,
+  "expected_frames": 23,
+  "n_correct_cells": 50,
+  "n_wrong_cells": 0,
+  "fps": 6.0,
+  "size": [
+   1920,
+   460
+  ],
+  "codec": "h264",
+  "bytes": 310220,
+  "path": "D:\\yizhen\\smart_kitchen\\integrated\\ok_clips\\single_L3S\\sL3S-seq_025-c1+c2+c3-7-001780_s5.mp4"
+ },
+ "sL3S-seq_000-c6+c7-9-004450": {
+  "clip_id": "sL3S-seq_000-c6+c7-9-004450",
+  "stride": 5,
+  "frames": 35,
+  "expected_frames": 35,
+  "n_correct_cells": 45,
+  "n_wrong_cells": 0,
+  "fps": 6.0,
+  "size": [
+   1280,
+   460
+  ],
+  "codec": "h264",
+  "bytes": 277781,
+  "path": "D:\\yizhen\\smart_kitchen\\integrated\\ok_clips\\single_L3S\\sL3S-seq_000-c6+c7-9-004450_s5.mp4"
+ },
+ "sL3T-seq_024-c5+c6-10-000625": {
+  "clip_id": "sL3T-seq_024-c5+c6-10-000625",
+  "stride": 5,
+  "frames": 30,
+  "expected_frames": 30,
+  "n_correct_cells": 23,
+  "n_wrong_cells": 0,
+  "fps": 6.0,
+  "size": [
+   1280,
+   460
+  ],
+  "codec": "h264",
+  "bytes": 242023,
+  "path": "D:\\yizhen\\smart_kitchen\\integrated\\ok_clips\\single_L3T\\sL3T-seq_024-c5+c6-10-000625_s5.mp4"
+ },
+ "sL3T-seq_024-c5+c6-6-013975": {
+  "clip_id": "sL3T-seq_024-c5+c6-6-013975",
+  "stride": 5,
+  "frames": 29,
+  "expected_frames": 29,
+  "n_correct_cells": 21,
+  "n_wrong_cells": 0,
+  "fps": 6.0,
+  "size": [
+   1280,
+   460
+  ],
+  "codec": "h264",
+  "bytes": 254927,
+  "path": "D:\\yizhen\\smart_kitchen\\integrated\\ok_clips\\single_L3T\\sL3T-seq_024-c5+c6-6-013975_s5.mp4"
+ },
+ "mL1-seq_024-c2-10-000905": {
+  "clip_id": "mL1-seq_024-c2-10-000905",
+  "stride": 5,
+  "frames": 1575,
+  "expected_frames": 1575,
+  "n_correct_cells": 1575,
+  "n_wrong_cells": 0,
+  "fps": 6.0,
+  "size": [
+   640,
+   460
+  ],
+  "codec": "h264",
+  "bytes": 6377787,
+  "path": "D:\\yizhen\\smart_kitchen\\integrated\\ok_clips\\multi_L1\\mL1-seq_024-c2-10-000905_s5.mp4"
+ },
+ "mL1-seq_024-c2-11-000905": {
+  "clip_id": "mL1-seq_024-c2-11-000905",
+  "stride": 5,
+  "frames": 1575,
+  "expected_frames": 1575,
+  "n_correct_cells": 1565,
+  "n_wrong_cells": 8,
+  "fps": 6.0,
+  "size": [
+   640,
+   460
+  ],
+  "codec": "h264",
+  "bytes": 6646766,
+  "path": "D:\\yizhen\\smart_kitchen\\integrated\\ok_clips\\multi_L1\\mL1-seq_024-c2-11-000905_s5.mp4"
+ },
+ "mL1-seq_024-c2-14-000905": {
+  "clip_id": "mL1-seq_024-c2-14-000905",
+  "stride": 5,
+  "frames": 1575,
+  "expected_frames": 1575,
+  "n_correct_cells": 1570,
+  "n_wrong_cells": 1,
+  "fps": 6.0,
+  "size": [
+   640,
+   460
+  ],
+  "codec": "h264",
+  "bytes": 6453336,
+  "path": "D:\\yizhen\\smart_kitchen\\integrated\\ok_clips\\multi_L1\\mL1-seq_024-c2-14-000905_s5.mp4"
+ },
+ "mL1-seq_024-c2-2-000905": {
+  "clip_id": "mL1-seq_024-c2-2-000905",
+  "stride": 5,
+  "frames": 1575,
+  "expected_frames": 1575,
+  "n_correct_cells": 1569,
+  "n_wrong_cells": 4,
+  "fps": 6.0,
+  "size": [
+   640,
+   460
+  ],
+  "codec": "h264",
+  "bytes": 6447854,
+  "path": "D:\\yizhen\\smart_kitchen\\integrated\\ok_clips\\multi_L1\\mL1-seq_024-c2-2-000905_s5.mp4"
+ },
+ "mL1-seq_024-c3-11-000950": {
+  "clip_id": "mL1-seq_024-c3-11-000950",
+  "stride": 5,
+  "frames": 1459,
+  "expected_frames": 1459,
+  "n_correct_cells": 1358,
+  "n_wrong_cells": 90,
+  "fps": 6.0,
+  "size": [
+   640,
+   460
+  ],
+  "codec": "h264",
+  "bytes": 9044330,
+  "path": "D:\\yizhen\\smart_kitchen\\integrated\\ok_clips\\multi_L1\\mL1-seq_024-c3-11-000950_s5.mp4"
+ },
+ "mL2-seq_001-c4-19-000000": {
+  "clip_id": "mL2-seq_001-c4-19-000000",
+  "stride": 5,
+  "frames": 757,
+  "expected_frames": 757,
+  "n_correct_cells": 709,
+  "n_wrong_cells": 0,
+  "fps": 6.0,
+  "size": [
+   640,
+   460
+  ],
+  "codec": "h264",
+  "bytes": 1869583,
+  "path": "D:\\yizhen\\smart_kitchen\\integrated\\ok_clips\\multi_L2\\mL2-seq_001-c4-19-000000_s5.mp4"
+ },
+ "mL2-seq_006-c2-24-003430": {
+  "clip_id": "mL2-seq_006-c2-24-003430",
+  "stride": 5,
+  "frames": 191,
+  "expected_frames": 191,
+  "n_correct_cells": 180,
+  "n_wrong_cells": 0,
+  "fps": 6.0,
+  "size": [
+   640,
+   460
+  ],
+  "codec": "h264",
+  "bytes": 561226,
+  "path": "D:\\yizhen\\smart_kitchen\\integrated\\ok_clips\\multi_L2\\mL2-seq_006-c2-24-003430_s5.mp4"
+ },
+ "mL2-seq_020-c7-15-004945": {
+  "clip_id": "mL2-seq_020-c7-15-004945",
+  "stride": 5,
+  "frames": 80,
+  "expected_frames": 80,
+  "n_correct_cells": 49,
+  "n_wrong_cells": 3,
+  "fps": 6.0,
+  "size": [
+   640,
+   460
+  ],
+  "codec": "h264",
+  "bytes": 439163,
+  "path": "D:\\yizhen\\smart_kitchen\\integrated\\ok_clips\\multi_L2\\mL2-seq_020-c7-15-004945_s5.mp4"
+ },
+ "mL2-seq_020-c3-13-007810": {
+  "clip_id": "mL2-seq_020-c3-13-007810",
+  "stride": 5,
+  "frames": 34,
+  "expected_frames": 34,
+  "n_correct_cells": 26,
+  "n_wrong_cells": 0,
+  "fps": 6.0,
+  "size": [
+   640,
+   460
+  ],
+  "codec": "h264",
+  "bytes": 247316,
+  "path": "D:\\yizhen\\smart_kitchen\\integrated\\ok_clips\\multi_L2\\mL2-seq_020-c3-13-007810_s5.mp4"
+ },
+ "mL2-seq_024-c2-7-014710": {
+  "clip_id": "mL2-seq_024-c2-7-014710",
+  "stride": 5,
+  "frames": 39,
+  "expected_frames": 39,
+  "n_correct_cells": 25,
+  "n_wrong_cells": 0,
+  "fps": 6.0,
+  "size": [
+   640,
+   460
+  ],
+  "codec": "h264",
+  "bytes": 181342,
+  "path": "D:\\yizhen\\smart_kitchen\\integrated\\ok_clips\\multi_L2\\mL2-seq_024-c2-7-014710_s5.mp4"
+ },
+ "mL3S-seq_006-c2+c3-5-002735": {
+  "clip_id": "mL3S-seq_006-c2+c3-5-002735",
+  "stride": 5,
+  "frames": 60,
+  "expected_frames": 60,
+  "n_correct_cells": 66,
+  "n_wrong_cells": 0,
+  "fps": 6.0,
+  "size": [
+   1280,
+   460
+  ],
+  "codec": "h264",
+  "bytes": 462337,
+  "path": "D:\\yizhen\\smart_kitchen\\integrated\\ok_clips\\multi_L3S\\mL3S-seq_006-c2+c3-5-002735_s5.mp4"
+ },
+ "mL3S-seq_000-c6+c7-3-000470": {
+  "clip_id": "mL3S-seq_000-c6+c7-3-000470",
+  "stride": 5,
+  "frames": 59,
+  "expected_frames": 59,
+  "n_correct_cells": 60,
+  "n_wrong_cells": 0,
+  "fps": 6.0,
+  "size": [
+   1280,
+   460
+  ],
+  "codec": "h264",
+  "bytes": 450589,
+  "path": "D:\\yizhen\\smart_kitchen\\integrated\\ok_clips\\multi_L3S\\mL3S-seq_000-c6+c7-3-000470_s5.mp4"
+ },
+ "mL3S-seq_020-c3+c4-16-008600": {
+  "clip_id": "mL3S-seq_020-c3+c4-16-008600",
+  "stride": 5,
+  "frames": 54,
+  "expected_frames": 54,
+  "n_correct_cells": 55,
+  "n_wrong_cells": 0,
+  "fps": 6.0,
+  "size": [
+   1280,
+   460
+  ],
+  "codec": "h264",
+  "bytes": 880846,
+  "path": "D:\\yizhen\\smart_kitchen\\integrated\\ok_clips\\multi_L3S\\mL3S-seq_020-c3+c4-16-008600_s5.mp4"
+ },
+ "mL3S-seq_020-c4+c5-12-009495": {
+  "clip_id": "mL3S-seq_020-c4+c5-12-009495",
+  "stride": 5,
+  "frames": 31,
+  "expected_frames": 31,
+  "n_correct_cells": 34,
+  "n_wrong_cells": 0,
+  "fps": 6.0,
+  "size": [
+   1280,
+   460
+  ],
+  "codec": "h264",
+  "bytes": 363867,
+  "path": "D:\\yizhen\\smart_kitchen\\integrated\\ok_clips\\multi_L3S\\mL3S-seq_020-c4+c5-12-009495_s5.mp4"
+ },
+ "mL3T-seq_020-c5+c6-12-008645": {
+  "clip_id": "mL3T-seq_020-c5+c6-12-008645",
+  "stride": 5,
+  "frames": 46,
+  "expected_frames": 46,
+  "n_correct_cells": 36,
+  "n_wrong_cells": 0,
+  "fps": 6.0,
+  "size": [
+   1280,
+   460
+  ],
+  "codec": "h264",
+  "bytes": 619663,
+  "path": "D:\\yizhen\\smart_kitchen\\integrated\\ok_clips\\multi_L3T\\mL3T-seq_020-c5+c6-12-008645_s5.mp4"
+ }
+}
