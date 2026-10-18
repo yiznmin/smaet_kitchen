@@ -16,3 +16,5 @@ supervision>=0.24,<0.30
 # 只有 configs/tracker.yaml 設 backend: rf_* 才用到。
 # ⚠ 它要求 numpy>=2.0.2、pydeprecate>=0.8;官方支援 Python 3.10~3.13。
 trackers==2.6.0
+# M6 讀 EPFL 動作標註(actions_annotations.xlsx)
+openpyxl>=3.1
