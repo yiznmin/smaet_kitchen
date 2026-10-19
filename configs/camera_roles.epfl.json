@@ -1,0 +1,13 @@
+{
+  "_說明": "EPFL YH2040 九鏡頭角色。觀察紀錄見 docs/EPFL_鏡頭配置觀察_20261019.md",
+  "sides": {
+    "A": "備料檯 + 灶台",
+    "B": "水槽 + 瀝水架"
+  },
+  "close": {
+    "A": ["Aoutput1", "Aoutput2", "Aoutput3"],
+    "B": ["Boutput1", "Boutput2"]
+  },
+  "wide": ["Aoutput0", "Boutput0", "Boutput3", "output0"],
+  "locator": "output0"
+}
