@@ -100,3 +100,106 @@ def decide(feat, d, x_upper):
 
 
 EVIDENCE = {1: "hand", 2: "upper_body"}
+
+
+# ── 修正第 1 輪(2026-10-19):一手一物(N)、只算有在動的物件(V)──────────────
+# 起因:第一輪誤報約 90% 發生在人正在接觸「另一個」物件時 —— 手邊每個物件都被算進去
+# (docs/M6_人物關聯_預先登記_20261019.md §9.4)。
+
+def iou(a, b):
+    """IoU。a: [N,4], b: [M,4] → [N,M]。"""
+    if len(a) == 0 or len(b) == 0:
+        return np.zeros((len(a), len(b)))
+    x1 = np.maximum(a[:, None, 0], b[None, :, 0])
+    y1 = np.maximum(a[:, None, 1], b[None, :, 1])
+    x2 = np.minimum(a[:, None, 2], b[None, :, 2])
+    y2 = np.minimum(a[:, None, 3], b[None, :, 3])
+    inter = np.clip(x2 - x1, 0, None) * np.clip(y2 - y1, 0, None)
+    area_a = (a[:, 2] - a[:, 0]) * (a[:, 3] - a[:, 1])
+    area_b = (b[:, 2] - b[:, 0]) * (b[:, 3] - b[:, 1])
+    return inter / np.clip(area_a[:, None] + area_b[None, :] - inter, 1e-6, None)
+
+
+def motion_iou(objs, obj_cls, prev, prev_cls):
+    """每個物件與 Δ 步前同類框的最大 IoU;Δ 步前沒有同類框 → 0(視為在動)。"""
+    out = np.zeros(len(objs))
+    for i in range(len(objs)):
+        p = prev[prev_cls == obj_cls[i]]
+        if len(p):
+            out[i] = iou(objs[i:i + 1], p).max()
+    return out
+
+
+def _nearest_gap(objs, obj_cls, hands_of, heights, class_ids):
+    """一手一物:每隻手只配「框間距最小」的物件,同為最小時取與手 IoU 最大者。
+    回傳每個類別被某隻手選中時的最小正規化間距(沒有 → inf)。"""
+    out = np.full(len(class_ids), np.inf)
+    if not len(objs):
+        return out
+    pos = {c: i for i, c in enumerate(class_ids)}
+    for j, hands in hands_of.items():
+        g = gap(hands, objs)                       # [n_hand, n_obj]
+        u = iou(hands, objs)
+        for h in range(len(hands)):
+            best = np.flatnonzero(g[h] <= g[h].min() + 1e-6)
+            k = best[u[h, best].argmax()]
+            i = pos[obj_cls[k]]
+            out[i] = min(out[i], g[h, k] / heights[j])
+    return out
+
+
+def frame_features_r1(xyxy, conf, cls, prev_xyxy, prev_conf, prev_cls, class_ids,
+                      thr_person, thr_hand, thr_obj, hand_in_person, iou_moves):
+    """修正第 1 輪的單幀特徵。回傳 dict:
+
+    upper     [n_cls]          IoA(物件, 沒偵測到手的人的上半身框)最大值(退路,四組共用)
+    gap       [n_cls]          原規則:物件與手的最小正規化間距
+    nn_gap    [n_cls]          N:一手一物
+    mv_gap    [n_move, n_cls]  V:只看「在動」的物件(motion IoU < iou_move)
+    nnmv_gap  [n_move, n_cls]  N+V:先濾掉靜止物件,再一手一物
+    """
+    xyxy = np.asarray(xyxy, dtype=np.float64).reshape(-1, 4)
+    prev_xyxy = np.asarray(prev_xyxy, dtype=np.float64).reshape(-1, 4)
+    persons = xyxy[(cls == PERSON) & _above(conf, thr_person)]
+    hands = xyxy[(cls == HAND) & _above(conf, thr_hand)]
+    owner = np.full(len(hands), -1)
+    if len(hands) and len(persons):
+        m = ioa(hands, persons)
+        best = m.argmax(1)
+        owner = np.where(m[np.arange(len(hands)), best] >= hand_in_person, best, -1)
+    heights = np.clip(persons[:, 3] - persons[:, 1], 1e-6, None)
+    hands_of = {j: hands[owner == j] for j in range(len(persons)) if (owner == j).any()}
+    no_hand = np.array([j not in hands_of for j in range(len(persons))], dtype=bool)
+    upper = persons[no_hand].copy()
+    if len(upper):
+        upper[:, 3] = upper[:, 1] + (upper[:, 3] - upper[:, 1]) / 2
+
+    n = len(class_ids)
+    obj_mask = np.isin(cls, class_ids) & _above(conf, thr_obj)
+    objs, obj_cls = xyxy[obj_mask], cls[obj_mask]
+    prev_mask = np.isin(prev_cls, class_ids) & _above(prev_conf, thr_obj)
+    m_iou = motion_iou(objs, obj_cls, prev_xyxy[prev_mask], prev_cls[prev_mask])
+
+    out = dict(upper=np.zeros(n), gap=np.full(n, np.inf), nn_gap=np.full(n, np.inf),
+               mv_gap=np.full((len(iou_moves), n), np.inf),
+               nnmv_gap=np.full((len(iou_moves), n), np.inf))
+    if not len(objs):
+        return out
+    for i, c in enumerate(class_ids):
+        sel = obj_cls == c
+        if not sel.any():
+            continue
+        if len(upper):
+            out["upper"][i] = ioa(objs[sel], upper).max()
+        for j, hs in hands_of.items():
+            g = gap(objs[sel], hs).min(1) / heights[j]        # 每個物件到這個人的手
+            out["gap"][i] = min(out["gap"][i], g.min())
+            for q, thr_m in enumerate(iou_moves):
+                mv = m_iou[sel] < thr_m
+                if mv.any():
+                    out["mv_gap"][q, i] = min(out["mv_gap"][q, i], g[mv].min())
+    out["nn_gap"] = _nearest_gap(objs, obj_cls, hands_of, heights, class_ids)
+    for q, thr_m in enumerate(iou_moves):
+        mv = m_iou < thr_m
+        out["nnmv_gap"][q] = _nearest_gap(objs[mv], obj_cls[mv], hands_of, heights, class_ids)
+    return out
