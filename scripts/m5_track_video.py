@@ -61,12 +61,18 @@ def load_model(variant, weights, resolution="auto"):
 
 
 def detect_person(model, frame_bgr, thr, person_cls):
-    """回傳 supervision Detections,只留「人」。"""
+    """回傳 supervision Detections,只留「人」。
+
+    person_cls=None:不過濾類別、回傳全部(M6 全類別快取用)。
+    與只留人走同一個 predict 呼叫,前處理完全相同。
+    """
     import supervision as sv
     pil = Image.fromarray(frame_bgr[:, :, ::-1])
     det = model.predict(pil, threshold=thr)
     if len(det) == 0:
         return sv.Detections.empty()
+    if person_cls is None:
+        return sv.Detections(xyxy=det.xyxy, confidence=det.confidence, class_id=det.class_id)
     keep = np.array([int(c) == person_cls for c in det.class_id])
     if not keep.any():
         return sv.Detections.empty()

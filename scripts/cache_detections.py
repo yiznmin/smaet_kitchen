@@ -1,5 +1,7 @@
 """把 RF-DETR 的「人」偵測結果快取下來,之後換追蹤參數不必重跑偵測。
 
+`--all-classes` 改存全部類別(M6 人—物關聯用,2026-10-19 新增)。
+
 ## 為什麼
 
 層 0(追蹤碎裂)的受控網格要對**同一批偵測**換門檻、換 stride 重跑追蹤。
@@ -56,6 +58,9 @@ def cache_one(model, detect_person, video, out_path, *, variant, weights, person
               thr, stride, max_frames, spot_check, spot_thr, resolution=None):
     expect = dict(variant=variant, weights_id=weights_id(weights), person_cls=person_cls,
                   cache_thr=thr, cache_stride=stride, complete=max_frames < 0)
+    if person_cls is None:
+        # 全類別快取(M6)多一個欄位:只存人的舊快取沒有它,讀取時 expect 比對會拒絕
+        expect["classes"] = "all"
     if Path(out_path).exists():
         try:
             DetCache(out_path, expect=expect)
@@ -125,6 +130,8 @@ def main():
     ap.add_argument("--variant", default="nano")
     ap.add_argument("--weights", default=None)
     ap.add_argument("--person-cls", type=int, default=None)
+    ap.add_argument("--all-classes", action="store_true",
+                    help="快取全部類別(M6 人—物關聯用);meta 記 person_cls=None、classes=all")
     ap.add_argument("--resolution", default="auto",
                     help="M3 推論解析度:auto(微調權重用其訓練解析度、COCO 用變體預設)"
                          " | default(一律變體預設)| 整數。2026-10-13 前的行為等同 default")
@@ -140,6 +147,10 @@ def main():
                                 detect_person, load_model)
     person_cls = (args.person_cls if args.person_cls is not None
                   else (PERSON_CLS_FINETUNED if args.weights else PERSON_CLS_COCO))
+    if args.all_classes:
+        if args.person_cls is not None:
+            raise SystemExit("--all-classes 與 --person-cls 不可同時給")
+        person_cls = None
     if args.spot_thr < args.thr:
         raise SystemExit("--spot-thr 不可低於 --thr")
 
@@ -157,7 +168,7 @@ def main():
             jobs.append((cam, v, out_dir / f"{cam}.npz"))
 
     print(f"模型 {args.variant}{'/微調' if args.weights else '/COCO 預訓'},"
-          f"person_cls={person_cls},快取門檻 {args.thr},stride {args.stride},共 {len(jobs)} 支")
+          f"{'全類別' if person_cls is None else f'person_cls={person_cls}'},快取門檻 {args.thr},stride {args.stride},共 {len(jobs)} 支")
     from m3.model import model_resolution, parse_resolution
     model = load_model(args.variant, args.weights, parse_resolution(args.resolution))
     print(f"推論解析度 {model_resolution(model)}")
