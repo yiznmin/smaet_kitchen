@@ -158,3 +158,6 @@ integrated/weights/pretrained/
 integrated/outputs/
 # 整合管線的驗證輸出(拋棄式,可由 integrated/demo 重跑)
 results/integrated/
+
+# SAM 3 權重(facebook/sam3,gated,SAM License;不得再散布,不入庫)
+integrated/weights/sam3/
