@@ -11,6 +11,9 @@
   trash      :指派給人的手框中心落在固定 zone「垃圾桶區」(output0 / Aoutput1)
   trash_sam3 :zone 換成每支片段第一幀 SAM 3 "trash can" 框(外擴 10 像素;找不到退回 zone)
   eat        :指派給人的手框中心落在該人框頭部區域
+  第 2 輪(§9.2 補登):
+  trash 加 cams=both(output0 與 Aoutput1 ±0.5 秒內都成立)與 foot(手所屬人框底邊在垃圾桶附近)
+  eat_pose   :ViTPose 手腕與頭點距離 ≤ r × 肩寬(關鍵點先跑 scripts/m7_event_pose.py)
 事件:互動成立的步做遲滯平滑 (3, 2, k_off 5),連續 ≥ T 秒 → 片段被判有該類。
 
 用法:
@@ -56,11 +59,17 @@ GRID = {
     "cloth": dict(T=[0, 0.5, 1, 2]),
     "cloth_sam3": dict(T=[0, 0.5, 1, 2]),
     "cloth_sam3f": dict(T=[0, 0.5, 1, 2]),
-    "trash": dict(thr_hand=[0.2, 0.3], cams=["output0", "Aoutput1", "any"], T=[0, 0.3, 0.5, 1]),
+    "trash": dict(thr_hand=[0.2, 0.3], cams=["output0", "Aoutput1", "any", "both"], foot=[False, True],
+                  T=[0, 0.3, 0.5, 1]),
     "trash_sam3": dict(thr_hand=[0.2, 0.3], cams=["output0", "Aoutput1", "any"], T=[0, 0.3, 0.5, 1]),
     "eat": dict(thr_hand=[0.2, 0.3], head_frac=[0.15, 0.25], T=[0.3, 0.5, 1, 2]),
+    "eat_pose": dict(r=[0.5, 0.8, 1.2], cams=["all", "o0A1"], T=[0.3, 0.5, 1]),
 }
-ARM_CLASS = {"cloth": "抹布", "cloth_sam3": "抹布", "cloth_sam3f": "抹布", "trash": "垃圾桶", "trash_sam3": "垃圾桶", "eat": "吃東西"}
+ARM_CLASS = {"cloth": "抹布", "cloth_sam3": "抹布", "cloth_sam3f": "抹布", "trash": "垃圾桶", "trash_sam3": "垃圾桶", "eat": "吃東西",
+             "eat_pose": "吃東西"}
+POSE = ROOT / "results/m7/events/pose"
+KP_THR = 0.3
+FOOT_MARGIN, FOOT_CUT = 72, 710
 PERSON, HAND, CLOTH = NAME_TO_CLASS["人"], NAME_TO_CLASS["手"], NAME_TO_CLASS["抹布"]
 CONTAINER = NAME_TO_CLASS["容器"]
 
@@ -175,17 +184,22 @@ def cloth_raw(e, T_len, sam3=None, filt=False):
     return hysteresis(fused, cfg["win"][0], cfg["win"][1], cfg["k_off"])
 
 
-def zone_raw(e, T_len, view, thr_hand, poly_of):
+def zone_raw(e, T_len, view, thr_hand, poly_of, foot=False):
     c = DetCache(CACHE / f"{e['clips'][view]}.npz")
     _, lo, hi = steps(c)
     poly = poly_of(e, view)
     out = np.zeros(T_len, bool)
     for i in range(T_len):
         j = min(i, len(lo) - 1)
-        hands, _ = owned_hands(c._xyxy[lo[j]:hi[j]].astype(float), c._conf[lo[j]:hi[j]], c._cls[lo[j]:hi[j]], thr_hand)
+        hands, owner = owned_hands(c._xyxy[lo[j]:hi[j]].astype(float), c._conf[lo[j]:hi[j]], c._cls[lo[j]:hi[j]], thr_hand)
         if len(hands):
             ctr = np.stack([(hands[:, 0] + hands[:, 2]) / 2, (hands[:, 1] + hands[:, 3]) / 2], 1)
-            out[i] = in_poly(ctr, poly).any()
+            ok = in_poly(ctr, poly)
+            if foot:                                              # 人站在垃圾桶旁(腳點高度),不是擋在鏡頭前
+                ys = np.asarray(poly, float)[:, 1]
+                y2 = owner[:, 3]
+                ok &= (y2 >= ys.min()) & (y2 <= ys.max() + FOOT_MARGIN) & (y2 < FOOT_CUT)
+            out[i] = ok.any()
     return out
 
 
@@ -203,6 +217,31 @@ def eat_raw(e, T_len, thr_hand, head_frac):
             cx, cy = (hands[:, 0] + hands[:, 2]) / 2, (hands[:, 1] + hands[:, 3]) / 2
             top = owner[:, 1] + head_frac * (owner[:, 3] - owner[:, 1])
             out[i] |= bool(((cx >= owner[:, 0]) & (cx <= owner[:, 2]) & (cy <= top)).any())
+    return out
+
+
+def dilate(x, k):
+    """±k 步內有成立即成立。"""
+    return np.convolve(np.asarray(x, int), np.ones(2 * k + 1, int), "same") > 0
+
+
+def pose_raw(e, T_len, r, views):
+    """ViTPose:任一手腕與頭點(鼻/眼/耳平均)距離 ≤ r × 肩寬。0.2 秒一幀,之間沿用。"""
+    out = np.zeros(T_len, bool)
+    for v in views:
+        z = np.load(POSE / f"{e['clips'][v]}.npz")
+        hit = np.zeros(T_len, bool)
+        for s, kp in zip(z["step"], z["kp"]):
+            head = kp[:5][kp[:5, 2] >= KP_THR]
+            sh = kp[5:7]
+            if not len(head) or (sh[:, 2] < KP_THR).any():
+                continue
+            hp = head[:, :2].mean(0)
+            w = np.linalg.norm(sh[0, :2] - sh[1, :2])
+            wr = kp[9:11][kp[9:11, 2] >= KP_THR]
+            if w > 0 and len(wr) and (np.linalg.norm(wr[:, :2] - hp, axis=1) <= r * w).any() and s < T_len:
+                hit[s:min(s + 2, T_len)] = True
+        out |= hit
     return out
 
 
@@ -289,8 +328,13 @@ def main():
                         raw_cache[rk] = cloth_raw(e, T_len, sb, filt=arm == "cloth_sam3f")
                     elif arm.startswith("trash"):
                         pf = poly_sam3 if arm == "trash_sam3" else poly_fixed
-                        vs = ["output0", "Aoutput1"] if cfg["cams"] == "any" else [cfg["cams"]]
-                        raw_cache[rk] = np.any([zone_raw(e, T_len, v, cfg["thr_hand"], pf) for v in vs], 0)
+                        vs = ["output0", "Aoutput1"] if cfg["cams"] in ("any", "both") else [cfg["cams"]]
+                        rs = [zone_raw(e, T_len, v, cfg["thr_hand"], pf, cfg.get("foot", False)) for v in vs]
+                        raw_cache[rk] = (dilate(rs[0], 5) & dilate(rs[1], 5) if cfg["cams"] == "both"
+                                         else np.any(rs, 0))
+                    elif arm == "eat_pose":
+                        vs = VIEWS if cfg["cams"] == "all" else ["output0", "Aoutput1"]
+                        raw_cache[rk] = pose_raw(e, T_len, cfg["r"], vs)
                     else:
                         raw_cache[rk] = eat_raw(e, T_len, cfg["thr_hand"], cfg["head_frac"])
                 f, t1 = fires(raw_cache[rk], cfg["T"])
@@ -328,7 +372,7 @@ def main():
         for k, v in per_clip.items():
             w.writerow(dict(id=k, **v))
     # 混淆表:真實類別 × 被判類別(主組)
-    main_arms = [a for a in ("cloth", "trash", "eat") if a in args.arms]
+    main_arms = [a for a in ("cloth", "trash", "eat", "eat_pose") if a in args.arms]
     allcats = sorted(set(cats))
     with open(out / "confusion.csv", "w", newline="", encoding="utf-8-sig") as f:
         w = csv.writer(f)
