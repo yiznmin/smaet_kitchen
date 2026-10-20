@@ -38,6 +38,8 @@ M_GRID = [0.7, 0.8, 0.9]
 R_IDX = {0.0: 0, 0.01: 1, 0.02: 2}
 # 參考真值:只算 M3 學過的名詞(容器只算 Bowl、Salad_bowl;抹布只算 Towel)
 NOT_LEARNED = {"Plate", "Box", "Bottle", "Tissue", "Sponge"}
+# §10 按類別混用:這些類別走 AX(遮罩 + 互斥扣除),其餘走 V
+HYBRID = {"HY1": ["容器"], "HY3": ["容器", "刀具", "鍋鏟"]}
 
 
 def learned_gt(gt):
@@ -96,7 +98,7 @@ def main():
     arms = args.arms
     def feat_name(arm):
         kind, model = arm.split("-", 1)
-        return f"feat_{model}{'_x' if kind == 'AX' else ''}"
+        return f"feat_{model}{'_x' if kind in ('AX', *HYBRID) else ''}"
     feats = {feat_name(a): dict(np.load(Path(args.feat_dir) / f"{feat_name(a)}.npz")) for a in arms if a != "V"}
     side = next(iter(feats.values()))["side"]
     for m, f in feats.items():
@@ -108,15 +110,24 @@ def main():
             rows = []
             if arm == "V":
                 cfgs = [dict(c, role_k=k) for c in R1.arm_cfgs("V") for k in R1.ROLE_K]
+            elif arm.split("-")[0] in HYBRID:
+                cfgs = [dict(c, iou_move=q) for c in a_cfgs(with_r=False) for q in R1.IOU_MOVES]
             else:
                 cfgs = a_cfgs(with_r=arm.startswith("A-"))
             cache = {}
             for cfg in cfgs:
-                key = tuple(cfg[k] for k in ("thr_obj", "thr_hand", "d", "m", "r") if k in cfg) + \
-                    ((cfg["iou_move"],) if arm == "V" else ())
+                key = tuple(cfg[k] for k in ("thr_obj", "thr_hand", "d", "m", "r", "iou_move") if k in cfg)
                 if key not in cache:
                     if arm == "V":
                         raws = {c: R1.raw("V", F[R1.fkey(cfg)][c], cfg) for c in cams}
+                    elif arm.split("-")[0] in HYBRID:
+                        mr = mask_raws(feats[feat_name(arm)], cams, T, cfg)
+                        cols = [SCORED.index(x) for x in HYBRID[arm.split("-")[0]]]
+                        raws = {}
+                        for c in cams:
+                            r = R1.raw("V", F[R1.fkey(cfg)][c], cfg).copy()
+                            r[:, cols] = mr[c][:, cols] | (F[R1.fkey(cfg)][c]["upper"][:, cols] >= R1.X_UPPER)
+                            raws[c] = r
                     else:
                         mr = mask_raws(feats[feat_name(arm)], cams, T, cfg)
                         raws = {c: mr[c] | (F[R1.fkey(cfg)][c]["upper"] >= R1.X_UPPER) for c in cams}
