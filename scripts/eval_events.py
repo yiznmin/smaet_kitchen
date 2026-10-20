@@ -61,11 +61,12 @@ GRID = {
     "cloth_sam3f": dict(T=[0, 0.5, 1, 2]),
     "trash": dict(thr_hand=[0.2, 0.3], cams=["output0", "Aoutput1", "any", "both"], foot=[False, True],
                   T=[0, 0.3, 0.5, 1]),
+    "trash_body": dict(thr_hand=[0.2, 0.3], x=[0.2, 0.4], T=[0, 0.3, 0.5, 1]),      # 第 3 輪(§9.4)
     "trash_sam3": dict(thr_hand=[0.2, 0.3], cams=["output0", "Aoutput1", "any"], T=[0, 0.3, 0.5, 1]),
     "eat": dict(thr_hand=[0.2, 0.3], head_frac=[0.15, 0.25], T=[0.3, 0.5, 1, 2]),
     "eat_pose": dict(r=[0.5, 0.8, 1.2], cams=["all", "o0A1"], T=[0.3, 0.5, 1]),
 }
-ARM_CLASS = {"cloth": "抹布", "cloth_sam3": "抹布", "cloth_sam3f": "抹布", "trash": "垃圾桶", "trash_sam3": "垃圾桶", "eat": "吃東西",
+ARM_CLASS = {"cloth": "抹布", "cloth_sam3": "抹布", "cloth_sam3f": "抹布", "trash": "垃圾桶", "trash_sam3": "垃圾桶", "trash_body": "垃圾桶", "eat": "吃東西",
              "eat_pose": "吃東西"}
 POSE = ROOT / "results/m7/events/pose"
 KP_THR = 0.3
@@ -220,6 +221,21 @@ def eat_raw(e, T_len, thr_hand, head_frac):
     return out
 
 
+def body_raw(e, T_len, poly, x):
+    """output0:有人框蓋住垃圾桶 zone(zone 外接框落在人框內的比例 ≥ x)。"""
+    c = DetCache(CACHE / f"{e['clips']['output0']}.npz")
+    _, lo, hi = steps(c)
+    p = np.asarray(poly, float)
+    zb = np.array([[p[:, 0].min(), p[:, 1].min(), p[:, 0].max(), p[:, 1].max()]])
+    out = np.zeros(T_len, bool)
+    for i in range(T_len):
+        j = min(i, len(lo) - 1)
+        cl, cf, xy = c._cls[lo[j]:hi[j]], c._conf[lo[j]:hi[j]], c._xyxy[lo[j]:hi[j]].astype(float)
+        pb = xy[(cl == PERSON) & _above(cf, 0.3)]
+        out[i] = len(pb) > 0 and bool((ioa(zb, pb) >= x).any())
+    return out
+
+
 def dilate(x, k):
     """±k 步內有成立即成立。"""
     return np.convolve(np.asarray(x, int), np.ones(2 * k + 1, int), "same") > 0
@@ -326,12 +342,15 @@ def main():
                     if arm.startswith("cloth"):
                         sb = (sam3.get(e["id"]) or {}).get("cloth") if arm != "cloth" else None
                         raw_cache[rk] = cloth_raw(e, T_len, sb, filt=arm == "cloth_sam3f")
-                    elif arm.startswith("trash"):
+                    elif arm in ("trash", "trash_sam3"):
                         pf = poly_sam3 if arm == "trash_sam3" else poly_fixed
                         vs = ["output0", "Aoutput1"] if cfg["cams"] in ("any", "both") else [cfg["cams"]]
                         rs = [zone_raw(e, T_len, v, cfg["thr_hand"], pf, cfg.get("foot", False)) for v in vs]
                         raw_cache[rk] = (dilate(rs[0], 5) & dilate(rs[1], 5) if cfg["cams"] == "both"
                                          else np.any(rs, 0))
+                    elif arm == "trash_body":
+                        a1 = zone_raw(e, T_len, "Aoutput1", cfg["thr_hand"], poly_fixed)
+                        raw_cache[rk] = dilate(a1, 5) & dilate(body_raw(e, T_len, zones["output0"], cfg["x"]), 5)
                     elif arm == "eat_pose":
                         vs = VIEWS if cfg["cams"] == "all" else ["output0", "Aoutput1"]
                         raw_cache[rk] = pose_raw(e, T_len, cfg["r"], vs)
