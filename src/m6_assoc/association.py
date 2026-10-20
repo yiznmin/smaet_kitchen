@@ -149,7 +149,7 @@ def _nearest_gap(objs, obj_cls, hands_of, heights, class_ids):
 
 
 def frame_features_r1(xyxy, conf, cls, prev_xyxy, prev_conf, prev_cls, class_ids,
-                      thr_person, thr_hand, thr_obj, hand_in_person, iou_moves):
+                      thr_person, thr_hand, thr_obj, hand_in_person, iou_moves, motion=None):
     """修正第 1 輪的單幀特徵。回傳 dict:
 
     upper     [n_cls]          IoA(物件, 沒偵測到手的人的上半身框)最大值(退路,四組共用)
@@ -157,6 +157,8 @@ def frame_features_r1(xyxy, conf, cls, prev_xyxy, prev_conf, prev_cls, class_ids
     nn_gap    [n_cls]          N:一手一物
     mv_gap    [n_move, n_cls]  V:只看「在動」的物件(motion IoU < iou_move)
     nnmv_gap  [n_move, n_cls]  N+V:先濾掉靜止物件,再一手一物
+
+    motion:每個物件的 motion IoU(順序 = 通過 thr_obj 的計分類別物件在本幀的順序);None = 與任一同類框比
     """
     xyxy = np.asarray(xyxy, dtype=np.float64).reshape(-1, 4)
     prev_xyxy = np.asarray(prev_xyxy, dtype=np.float64).reshape(-1, 4)
@@ -178,7 +180,10 @@ def frame_features_r1(xyxy, conf, cls, prev_xyxy, prev_conf, prev_cls, class_ids
     obj_mask = np.isin(cls, class_ids) & _above(conf, thr_obj)
     objs, obj_cls = xyxy[obj_mask], cls[obj_mask]
     prev_mask = np.isin(prev_cls, class_ids) & _above(prev_conf, thr_obj)
-    m_iou = motion_iou(objs, obj_cls, prev_xyxy[prev_mask], prev_cls[prev_mask])
+    # motion:修正第 3 輪改由物件追蹤給「同一個物件」0.5 秒前的 IoU(順序對齊 obj_mask);
+    # 沒給時沿用修正第 1 輪的「與任一同類框比」
+    m_iou = (np.asarray(motion, dtype=np.float64) if motion is not None else
+             motion_iou(objs, obj_cls, prev_xyxy[prev_mask], prev_cls[prev_mask]))
 
     out = dict(upper=np.zeros(n), gap=np.full(n, np.inf), nn_gap=np.full(n, np.inf),
                mv_gap=np.full((len(iou_moves), n), np.inf),
@@ -202,4 +207,59 @@ def frame_features_r1(xyxy, conf, cls, prev_xyxy, prev_conf, prev_cls, class_ids
     for q, thr_m in enumerate(iou_moves):
         mv = m_iou < thr_m
         out["nnmv_gap"][q] = _nearest_gap(objs[mv], obj_cls[mv], hands_of, heights, class_ids)
+    return out
+
+
+# ── 修正第 3 輪(2026-10-20):同一個物件的前後對應 ─────────────────────────
+# 起因:修正第 2 輪 §6.2 —— 容器漏報 35% 是「在手邊但被判為靜止」,含 Carry Bottle。
+# 檯面上同類物件很多(一排調味瓶),拿「任一同類框」比會比到旁邊靜止的另一個。
+
+def track_motion(frames, class_ids, lag, link_iou=0.3, max_gap=3):
+    """逐類別貪婪 IoU 追蹤,回傳每幀每個物件與「自己」lag 步前的 IoU。
+
+    frames:每個時間步一筆 (xyxy [n,4], cls [n]),只含通過 thr_obj 的計分類別物件,順序即輸出順序
+    規則:與最近 max_gap 步內出現過的同類軌跡,依 IoU 由大到小貪婪配對(≥ link_iou);沒配到 → 新軌跡。
+    motion IoU:與同一軌跡在 lag 步前(或其後最早一次出現)的框比;軌跡比 lag 步還新 → 與軌跡第一個框比;
+    第一次出現 → 0(視為在動,與修正第 1 輪「找不到同類框」的處理一致)。
+    """
+    tracks = {}                      # id -> dict(cls, steps[list], boxes[list])
+    next_id, out = 0, []
+    for i, (xy, cl) in enumerate(frames):
+        res = np.zeros(len(xy))
+        ids = np.full(len(xy), -1)
+        for c in class_ids:
+            det = np.flatnonzero(cl == c)
+            cand = [k for k, tr in tracks.items() if tr["cls"] == c and i - tr["steps"][-1] <= max_gap]
+            if len(det) and cand:
+                m = iou(xy[det], np.array([tracks[k]["boxes"][-1] for k in cand]))
+                used_d, used_t = set(), set()
+                for flat in np.argsort(-m, axis=None):
+                    a, b = divmod(int(flat), m.shape[1])
+                    if m[a, b] < link_iou:
+                        break
+                    if a in used_d or b in used_t:
+                        continue
+                    used_d.add(a)
+                    used_t.add(b)
+                    ids[det[a]] = cand[b]
+            for j in det:
+                if ids[j] < 0:
+                    ids[j] = next_id
+                    tracks[next_id] = dict(cls=c, steps=[], boxes=[])
+                    next_id += 1
+        for j, k in enumerate(ids):
+            tr = tracks[k]
+            if tr["steps"]:
+                ref = next((b for s, b in zip(tr["steps"], tr["boxes"]) if s >= i - lag), tr["boxes"][-1])
+                res[j] = iou(xy[j:j + 1], np.asarray(ref)[None])[0, 0]
+            tr["steps"].append(i)
+            tr["boxes"].append(xy[j])
+        # 清掉用不到的:超過 max_gap 沒出現的軌跡不會再被配對;lag 步以前的框不會再被參考
+        for k in [k for k, tr in tracks.items() if i - tr["steps"][-1] > max_gap]:
+            del tracks[k]
+        for tr in tracks.values():
+            while len(tr["steps"]) > 1 and tr["steps"][1] <= i - lag:
+                tr["steps"].pop(0)
+                tr["boxes"].pop(0)
+        out.append(res)
     return out
