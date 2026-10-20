@@ -5,7 +5,8 @@
   垃圾桶:output0、Aoutput1 片段第一幀,提示 "trash can",取信心最高的框(信心 > 0.5)
 
 輸出 results/m7/events/sam3/<事件 id>.json(本機):
-  {"cloth": {片段檔名: {"<步>": [[x1,y1,x2,y2], ...]}}, "trash": {"output0": [x1,y1,x2,y2] 或 null, ...}}
+  {"cloth": {片段檔名: {"<步>": [[x1,y1,x2,y2,信心,提示序號], ...]}}, "trash": {"output0": [x1,y1,x2,y2] 或 null, ...}}
+  抹布框存信心與提示,供 eval_events.py 的過濾版(§9.0 補登)使用
   步 = 0.1 秒一步(與偵測快取 stride 3 對齊),取樣幀為 0、10、20…步
 
 用法:
@@ -64,7 +65,7 @@ def main():
                     break
                 if fid % EVERY == 0:
                     rgb = f[:, :, ::-1].copy()
-                    bb = [b for t in CLOTH_PROMPTS for b, _ in detect(m, p, rgb, t)]
+                    bb = [b + [round(s, 3), k] for k, t in enumerate(CLOTH_PROMPTS) for b, s in detect(m, p, rgb, t)]
                     if bb:
                         boxes[str(fid // 3)] = bb
                 fid += 1

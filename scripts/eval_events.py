@@ -6,6 +6,8 @@
 組別:
   cloth      :M6 V 規則 + 角色分工融合(HY3 中抹布走 V),參數凍結
   cloth_sam3 :cloth + SAM 3 "sponge" / "towel" 框(每 1 秒一幀)併入抹布框
+  cloth_sam3f:cloth_sam3 加過濾(§9.0 補登):與 M3 容器框(conf ≥ 0.4)IoU ≥ 0.5 的 SAM 3 框丟掉,
+               剩下的每鏡頭每幀只留信心最高的 1 個(一手只會拿一個海綿,另一手是正在洗的碗盤)
   trash      :指派給人的手框中心落在固定 zone「垃圾桶區」(output0 / Aoutput1)
   trash_sam3 :zone 換成每支片段第一幀 SAM 3 "trash can" 框(外擴 10 像素;找不到退回 zone)
   eat        :指派給人的手框中心落在該人框頭部區域
@@ -53,12 +55,36 @@ EV_SMOOTH = (3, 2, 5)
 GRID = {
     "cloth": dict(T=[0, 0.5, 1, 2]),
     "cloth_sam3": dict(T=[0, 0.5, 1, 2]),
+    "cloth_sam3f": dict(T=[0, 0.5, 1, 2]),
     "trash": dict(thr_hand=[0.2, 0.3], cams=["output0", "Aoutput1", "any"], T=[0, 0.3, 0.5, 1]),
     "trash_sam3": dict(thr_hand=[0.2, 0.3], cams=["output0", "Aoutput1", "any"], T=[0, 0.3, 0.5, 1]),
     "eat": dict(thr_hand=[0.2, 0.3], head_frac=[0.15, 0.25], T=[0.3, 0.5, 1, 2]),
 }
-ARM_CLASS = {"cloth": "抹布", "cloth_sam3": "抹布", "trash": "垃圾桶", "trash_sam3": "垃圾桶", "eat": "吃東西"}
+ARM_CLASS = {"cloth": "抹布", "cloth_sam3": "抹布", "cloth_sam3f": "抹布", "trash": "垃圾桶", "trash_sam3": "垃圾桶", "eat": "吃東西"}
 PERSON, HAND, CLOTH = NAME_TO_CLASS["人"], NAME_TO_CLASS["手"], NAME_TO_CLASS["抹布"]
+CONTAINER = NAME_TO_CLASS["容器"]
+
+
+def iou(a, b):
+    """a [N,4]、b [M,4] → [N,M]。"""
+    x1, y1 = np.maximum(a[:, None, 0], b[None, :, 0]), np.maximum(a[:, None, 1], b[None, :, 1])
+    x2, y2 = np.minimum(a[:, None, 2], b[None, :, 2]), np.minimum(a[:, None, 3], b[None, :, 3])
+    inter = np.clip(x2 - x1, 0, None) * np.clip(y2 - y1, 0, None)
+    area = lambda z: (z[:, 2] - z[:, 0]) * (z[:, 3] - z[:, 1])
+    return inter / np.maximum(area(a)[:, None] + area(b)[None, :] - inter, 1e-9)
+
+
+def sam3_cloth_boxes(rows, xy, cf, cl, filt):
+    """SAM 3 抹布框(列 = [x1,y1,x2,y2,信心,提示])→ 要併入的框 [K,4]。"""
+    if not rows:
+        return np.zeros((0, 4))
+    r = np.asarray(rows, float)
+    if filt:
+        cont = xy[(cl == CONTAINER) & (cf >= 0.4)].astype(float)
+        if len(cont):
+            r = r[iou(r[:, :4], cont).max(1) < 0.5]
+        r = r[np.argsort(-r[:, 4])[:1]]
+    return r[:, :4]
 P_FLOOR = 0.60
 
 
@@ -105,7 +131,7 @@ def in_poly(pts, poly):
 
 # ── 互動(逐步布林)────────────────────────────────────────────────
 
-def cloth_raw(e, T_len, sam3=None):
+def cloth_raw(e, T_len, sam3=None, filt=False):
     """抹布:各近拍鏡頭 V 規則 → 角色分工融合 → M6 平滑。sam3:{stem: {step: [[x1,y1,x2,y2],...]}}"""
     cfg = CLOTH_CFG
     ci = SCORED.index("抹布")
@@ -119,8 +145,8 @@ def cloth_raw(e, T_len, sam3=None):
         for i in range(T_len):
             def cut(j):
                 xy, cf, cl = c._xyxy[lo[j]:hi[j]], c._conf[lo[j]:hi[j]], c._cls[lo[j]:hi[j]]
-                extra = sb.get(str(j - j % 10))                     # SAM 3 每 1 秒一幀,之間沿用
-                if extra:
+                extra = sam3_cloth_boxes(sb.get(str(j - j % 10)), xy, cf, cl, filt)  # SAM 3 每 1 秒一幀,之間沿用
+                if len(extra):
                     xy = np.vstack([xy, np.asarray(extra, xy.dtype)])
                     cf = np.concatenate([cf, np.full(len(extra), 0.99, cf.dtype)])
                     cl = np.concatenate([cl, np.full(len(extra), CLOTH, cl.dtype)])
@@ -259,8 +285,8 @@ def main():
                 rk = (e["id"],) + tuple((k, cfg[k]) for k in keys if k != "T")
                 if rk not in raw_cache:
                     if arm.startswith("cloth"):
-                        sb = (sam3.get(e["id"]) or {}).get("cloth") if arm == "cloth_sam3" else None
-                        raw_cache[rk] = cloth_raw(e, T_len, sb)
+                        sb = (sam3.get(e["id"]) or {}).get("cloth") if arm != "cloth" else None
+                        raw_cache[rk] = cloth_raw(e, T_len, sb, filt=arm == "cloth_sam3f")
                     elif arm.startswith("trash"):
                         pf = poly_sam3 if arm == "trash_sam3" else poly_fixed
                         vs = ["output0", "Aoutput1"] if cfg["cams"] == "any" else [cfg["cams"]]
