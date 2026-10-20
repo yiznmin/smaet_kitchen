@@ -9,8 +9,10 @@
 
 輸出:results/m7/stage_a/feat_<model>.npz(本機,EPFL 衍生物不進 git)
 
+第 2 輪 --exclusive(AX):另切其他物件,框較小且 ≥ 50% 落在候選框內者從候選遮罩扣掉 → feat_<model>_x.npz
+
 用法:
-    python scripts/m7_stage_a_features.py --model sam2.1_b+
+    python scripts/m7_stage_a_features.py --model sam2.1_b+ [--exclusive]
 """
 import argparse
 import json
@@ -54,7 +56,23 @@ def owned_hands(xy, cf, cl):
     return hands[ok], hconf[ok], (persons[best, 3] - persons[best, 1])[ok]
 
 
-def run_cam(seg, c, video, active):
+def exclusive_subtract(objs, others, o_t, x_t, o_p, x_p, inside=0.5):
+    """每個候選物件:框面積較小、且框有 ≥ inside 落在候選框內的其他物件,遮罩從候選遮罩扣掉(兩幀都扣)。"""
+    allb = np.vstack([objs, others])
+    all_t, all_p = np.concatenate([o_t, x_t]), np.concatenate([o_p, x_p])
+    area = (allb[:, 2] - allb[:, 0]) * (allb[:, 3] - allb[:, 1])
+    inn = ioa(allb, objs)                                   # [n_all, n_obj]
+    o_t, o_p = o_t.copy(), o_p.copy()
+    for k in range(len(objs)):
+        sub = np.flatnonzero((area < area[k]) & (inn[:, k] >= inside))
+        sub = sub[sub != k]
+        if len(sub):
+            o_t[k] &= ~all_t[sub].any(0)
+            o_p[k] &= ~all_p[sub].any(0)
+    return o_t, o_p
+
+
+def run_cam(seg, c, video, active, exclusive=False):
     """active[i]:第 i 步這台鏡頭是否在該側近拍組。回傳候選與手配對的 list。"""
     stride = int(c.meta["cache_stride"])
     cap = cv2.VideoCapture(str(video))
@@ -86,17 +104,24 @@ def run_cam(seg, c, video, active):
         near = g.min(1) <= D_MAX
         if not near.any():
             continue
+        # 互斥扣除(第 2 輪 AX):其他物件也要切,之後從候選物件遮罩扣掉
+        others = objs if exclusive else np.zeros((0, 4))
         objs, ocls, oconf, g = objs[near], ocls[near], oconf[near], g[near]
+        if exclusive:
+            others = others[~near]
         prev = target - LAG * stride
         plo, phi = np.searchsorted(c._fid, prev, "left"), np.searchsorted(c._fid, prev, "right")
         phands, _, _ = owned_hands(c._xyxy[plo:phi].astype(np.float64), c._conf[plo:phi], c._cls[plo:phi])
         for f in (target, prev):
             if f not in embs:
                 embs[f] = seg.embed(frames[f][:, :, ::-1].copy())
-        m_t = seg.masks(embs[target], np.vstack([objs, hands]))
-        m_p = seg.masks(embs[prev], np.vstack([objs, phands]))
-        o_t, h_t = m_t[:len(objs)], m_t[len(objs):]
-        o_p, h_p = m_p[:len(objs)], m_p[len(objs):]
+        n_o, n_x = len(objs), len(others)
+        m_t = seg.masks(embs[target], np.vstack([objs, others, hands]))
+        m_p = seg.masks(embs[prev], np.vstack([objs, others, phands]))
+        o_t, x_t, h_t = m_t[:n_o], m_t[n_o:n_o + n_x], m_t[n_o + n_x:]
+        o_p, x_p, h_p = m_p[:n_o], m_p[n_o:n_o + n_x], m_p[n_o + n_x:]
+        if exclusive:
+            o_t, o_p = exclusive_subtract(objs, others, o_t, x_t, o_p, x_p)
         all_hands = h_t.any(0) | (h_p.any(0) if len(h_p) else np.zeros_like(h_t[0]))
         for k in range(len(objs)):
             cid = len(cands)
@@ -115,6 +140,7 @@ def main():
     ap.add_argument("--cache-dir", default=str(ROOT / "results/det_cache/epfl_allcls_armA_s3"))
     ap.add_argument("--roles-selected", default=str(ROOT / "results/m6/dev_yh2040_roles/selected_roles.json"))
     ap.add_argument("--out-dir", default=str(ROOT / "results/m7/stage_a"))
+    ap.add_argument("--exclusive", action="store_true", help="第 2 輪 AX:遮罩互斥扣除")
     args = ap.parse_args()
     out = Path(args.out_dir)
     out.mkdir(parents=True, exist_ok=True)
@@ -135,7 +161,7 @@ def main():
         t1 = time.time()
         c = DetCache(Path(args.cache_dir) / f"{cam}.npz", expect={"classes": "all", "complete": True})
         active = np.array([cam in (close[s] if s in ("A", "B") else cams) for s in side])
-        cands, pairs = run_cam(seg, c, ROOT / "data/epfl" / f"{cam}.mp4", active)
+        cands, pairs = run_cam(seg, c, ROOT / "data/epfl" / f"{cam}.mp4", active, args.exclusive)
         base = len(C)
         C += [(ci, *x) for x in cands]
         P += [(base + p[0], *p[1:]) for p in pairs]
@@ -143,15 +169,16 @@ def main():
         print(f"  {cam}:有效步 {active.sum():,}、候選 {len(cands):,}、{time.time() - t1:.0f} 秒", flush=True)
 
     C, P = np.array(C, dtype=np.float64), np.array(P, dtype=np.float64)
-    np.savez_compressed(out / f"feat_{args.model}.npz",
+    name = f"feat_{args.model}{'_x' if args.exclusive else ''}.npz"
+    np.savez_compressed(out / name,
                         cand=C, pair=P, t=t, side=side.astype("U1"),
-                        meta=json.dumps(dict(model=args.model, cams=cams, r_frac=R_FRAC, lag=LAG,
+                        meta=json.dumps(dict(model=args.model, exclusive=args.exclusive, cams=cams, r_frac=R_FRAC, lag=LAG,
                                              thr_obj_min=THR_OBJ_MIN, thr_hand_min=THR_HAND_MIN,
                                              d_max=D_MAX, timing=timing,
                                              cand_cols=["cam", "step", "cls", "obj_conf", "mask_iou"],
                                              pair_cols=["cand", "hand_conf", "gap"] +
                                                        [f"contact_r{r}" for r in R_FRAC])))
-    print(f"輸出 {out / ('feat_' + args.model + '.npz')},{time.time() - t0:.0f} 秒")
+    print(f"輸出 {out / name},{time.time() - t0:.0f} 秒")
 
 
 if __name__ == "__main__":

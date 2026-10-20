@@ -9,8 +9,11 @@
         膨脹 r 後與物件遮罩重疊 > 0;另加上半身退路(同 V)
 之後同 V:角色分工融合(role_k)→ 遲滯平滑 → 逐步 F1 最大 / Recall 優先點。
 
+第 2 輪(§9):AM-* = 接觸用框間距(同 V)、在動用遮罩;AX-* = AM + 遮罩互斥扣除(feat_<model>_x.npz)
+
 用法:
-    python scripts/eval_m7_stage_a.py --models edgetam sam2.1_b+
+    python scripts/eval_m7_stage_a.py --arms V A-edgetam A-sam2.1_b+
+    python scripts/eval_m7_stage_a.py --arms V AM-edgetam AM-sam2.1_b+ AX-edgetam AX-sam2.1_b+ --out-dir results/m7/stage_a2
 """
 import argparse
 import csv
@@ -50,8 +53,9 @@ def mask_raws(feat, cams, T, cfg):
     C, P = feat["cand"], feat["pair"]
     ok_c = (C[:, 3] > np.float64(np.float32(cfg["thr_obj"]))) & (C[:, 4] < cfg["m"])
     pc = P[:, 0].astype(int)
-    ok_p = (ok_c[pc] & (P[:, 1] > np.float64(np.float32(cfg["thr_hand"]))) & (P[:, 2] <= cfg["d"])
-            & (P[:, 3 + R_IDX[cfg["r"]]] > 0))
+    ok_p = ok_c[pc] & (P[:, 1] > np.float64(np.float32(cfg["thr_hand"]))) & (P[:, 2] <= cfg["d"])
+    if "r" in cfg:                                   # A:遮罩接觸;AM / AX(第 2 輪)不看遮罩接觸
+        ok_p &= P[:, 3 + R_IDX[cfg["r"]]] > 0
     hit = C[np.unique(pc[ok_p])]
     out = {c: np.zeros((T, len(SCORED)), bool) for c in cams}
     for ci, cam in enumerate(cams):
@@ -60,15 +64,18 @@ def mask_raws(feat, cams, T, cfg):
     return out
 
 
-def a_cfgs():
-    frame = E.product(dict(thr_obj=R1.FRAME_GRID["thr_obj"], thr_hand=R1.FRAME_GRID["thr_hand"],
-                           d=R1.D_GRID, m=M_GRID, r=list(R_IDX)))
+def a_cfgs(with_r=True):
+    grid = dict(thr_obj=R1.FRAME_GRID["thr_obj"], thr_hand=R1.FRAME_GRID["thr_hand"], d=R1.D_GRID, m=M_GRID)
+    if with_r:
+        grid["r"] = list(R_IDX)
+    frame = E.product(grid)
     return [dict(f, **sm, role_k=k) for f in frame for sm in R1.SMOOTH for k in R1.ROLE_K]
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--models", nargs="+", default=["edgetam", "sam2.1_b+"])
+    ap.add_argument("--arms", nargs="+", default=["V", "A-edgetam", "A-sam2.1_b+"],
+                    help="V;A-<model>(第 1 輪);AM-<model>、AX-<model>(第 2 輪)")
     ap.add_argument("--cache-dir", default=str(ROOT / "results/det_cache/epfl_allcls_armA_s3"))
     ap.add_argument("--ann", default=str(ROOT / "data/epfl_ann/YH2040/2023_09_12_09_50_41/annotations/actions_annotations.xlsx"))
     ap.add_argument("--feat-dir", default=str(ROOT / "results/m7/stage_a"))
@@ -86,20 +93,23 @@ def main():
     t, step, F = R1.load_r1(args.cache_dir, cams)
     T = len(t)
 
-    feats = {m: dict(np.load(Path(args.feat_dir) / f"feat_{m}.npz")) for m in args.models}
-    side = feats[args.models[0]]["side"]
+    arms = args.arms
+    def feat_name(arm):
+        kind, model = arm.split("-", 1)
+        return f"feat_{model}{'_x' if kind == 'AX' else ''}"
+    feats = {feat_name(a): dict(np.load(Path(args.feat_dir) / f"{feat_name(a)}.npz")) for a in arms if a != "V"}
+    side = next(iter(feats.values()))["side"]
     for m, f in feats.items():
         assert (f["side"] == side).all() and np.allclose(f["t"], t), f"{m} 的時間軸 / 定位與 M6 不一致"
 
     selected, detail, grid_rows = {}, {}, []
-    arms = ["V"] + [f"A-{m}" for m in args.models]
     for arm in arms:
         for gname, g in gts.items():
             rows = []
             if arm == "V":
                 cfgs = [dict(c, role_k=k) for c in R1.arm_cfgs("V") for k in R1.ROLE_K]
             else:
-                cfgs = a_cfgs()
+                cfgs = a_cfgs(with_r=arm.startswith("A-"))
             cache = {}
             for cfg in cfgs:
                 key = tuple(cfg[k] for k in ("thr_obj", "thr_hand", "d", "m", "r") if k in cfg) + \
@@ -108,7 +118,7 @@ def main():
                     if arm == "V":
                         raws = {c: R1.raw("V", F[R1.fkey(cfg)][c], cfg) for c in cams}
                     else:
-                        mr = mask_raws(feats[arm[2:]], cams, T, cfg)
+                        mr = mask_raws(feats[feat_name(arm)], cams, T, cfg)
                         raws = {c: mr[c] | (F[R1.fkey(cfg)][c]["upper"] >= R1.X_UPPER) for c in cams}
                     cache[key] = raws
                 fused = role_fuse(cache[key], side, close, cfg["role_k"])
