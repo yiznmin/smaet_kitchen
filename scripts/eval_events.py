@@ -65,9 +65,11 @@ GRID = {
     "trash_sam3": dict(thr_hand=[0.2, 0.3], cams=["output0", "Aoutput1", "any"], T=[0, 0.3, 0.5, 1]),
     "eat": dict(thr_hand=[0.2, 0.3], head_frac=[0.15, 0.25], T=[0.3, 0.5, 1, 2]),
     "eat_pose": dict(r=[0.5, 0.8, 1.2], cams=["all", "o0A1"], T=[0.3, 0.5, 1]),
+    "eat_vlm": dict(thr=[0.3, 0.5, 0.7], cams=["Aoutput1", "output0", "any"]),         # 第 3 輪(§9.7),片段層級
 }
 ARM_CLASS = {"cloth": "抹布", "cloth_sam3": "抹布", "cloth_sam3f": "抹布", "trash": "垃圾桶", "trash_sam3": "垃圾桶", "trash_body": "垃圾桶", "eat": "吃東西",
-             "eat_pose": "吃東西"}
+             "eat_pose": "吃東西", "eat_vlm": "吃東西"}
+VLM = ROOT / "results/m7/events/vlm"
 POSE = ROOT / "results/m7/events/pose"
 KP_THR = 0.3
 FOOT_MARGIN, FOOT_CUT = 72, 710
@@ -336,6 +338,12 @@ def main():
         for cfg in cfgs:
             flags, first = [], []
             for e in events:
+                if arm == "eat_vlm":                              # VLM 直接給片段分數,沒有時間軸
+                    sc = json.loads((VLM / f"{e['id']}.json").read_text(encoding="utf-8"))
+                    vs = ["Aoutput1", "output0"] if cfg["cams"] == "any" else [cfg["cams"]]
+                    flags.append(max(sc[v] for v in vs) >= cfg["thr"])
+                    first.append(None)
+                    continue
                 T_len = T_lens[e["id"]]
                 rk = (e["id"],) + tuple((k, cfg[k]) for k in keys if k != "T")
                 if rk not in raw_cache:
@@ -391,7 +399,7 @@ def main():
         for k, v in per_clip.items():
             w.writerow(dict(id=k, **v))
     # 混淆表:真實類別 × 被判類別(主組)
-    main_arms = [a for a in ("cloth", "trash", "eat", "eat_pose") if a in args.arms]
+    main_arms = [a for a in ("cloth", "trash", "trash_body", "eat", "eat_pose", "eat_vlm") if a in args.arms]
     allcats = sorted(set(cats))
     with open(out / "confusion.csv", "w", newline="", encoding="utf-8-sig") as f:
         w = csv.writer(f)
