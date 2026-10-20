@@ -30,7 +30,7 @@ import eval_m6_round1 as R1                                               # noqa
 import eval_m6_round2 as R2                                               # noqa: E402
 from m3.classes import NAME_TO_CLASS                                      # noqa: E402
 from m4_track.det_cache import DetCache                                   # noqa: E402
-from m6_assoc.association import _above, frame_features_r1, track_motion  # noqa: E402
+from m6_assoc.association import _above, frame_features, frame_features_r1, track_motion  # noqa: E402
 from m6_assoc.gt import SCORED, build_gt, load_actions                    # noqa: E402
 from m6_assoc.metrics import mask_from_intervals                          # noqa: E402
 from m6_assoc.roles import auto_side, load_roles, role_fuse               # noqa: E402
@@ -61,10 +61,14 @@ def load_tracked(cache_dir, cams):
                 rows = []
                 for i, (a, b) in enumerate(zip(lo, hi)):
                     pa, pb = (lo[i - R1.LAG], hi[i - R1.LAG]) if i >= R1.LAG else (a, a)
-                    rows.append(frame_features_r1(
+                    r = frame_features_r1(
                         c._xyxy[a:b], c._conf[a:b], c._cls[a:b],
                         c._xyxy[pa:pb], c._conf[pa:pb], c._cls[pa:pb], class_ids,
-                        thr_obj=to, thr_hand=th, iou_moves=R1.IOU_MOVES, motion=motion[i], **R1.FIXED))
+                        thr_obj=to, thr_hand=th, iou_moves=R1.IOU_MOVES, motion=motion[i], **R1.FIXED)
+                    base = frame_features(c._xyxy[a:b], c._conf[a:b], c._cls[a:b], class_ids,
+                                          thr_obj=to, thr_hand=th, **R1.FIXED)
+                    r["present"], r["person_ioa"] = base[:, 0], base[:, 1]
+                    rows.append(r)
                 F.setdefault((to, th), {})[cam] = {k: np.stack([r[k] for r in rows]) for k in rows[0]}
         print(f"  {cam}:{len(fids):,} 步")
     return t_ref, step, F
