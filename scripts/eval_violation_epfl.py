@@ -1,0 +1,157 @@
+"""M6 違規判定(單人)第 1 輪:EPFL「沒洗手」24 個事件片段。
+
+預先登記:docs/M6_違規判定_單人_預先登記_20261021.md
+使用 integrated/ 的模組(integrated/src/m6_events/violation.py)與設定(integrated/configs/violation_rules.yaml)。
+真值由標註備註判讀:備註含「有洗手」或「"有"洗手」= 合格,其餘 = 違規。
+
+L1:觸發時間 = 標註起點,髒手從起點 + D 秒開始;網格 wash_mode × wash_s × D
+L2:只限垃圾類觸發(8 個),觸發由垃圾桶事件自動偵測;用 L1 的 wash_s 2、body、設定檔其餘值
+
+用法:
+    python scripts/eval_violation_epfl.py
+"""
+import csv
+import itertools
+import json
+import sys
+import time
+from collections import Counter
+from pathlib import Path
+
+import numpy as np
+import yaml
+
+ROOT = Path(__file__).resolve().parent.parent
+INTEG = ROOT / "integrated"
+sys.path.insert(0, str(INTEG / "src"))                  # 只用 integrated/ 的模組
+
+from common.zones import get_zone                                         # noqa: E402
+from m4_track.det_cache import DetCache                                   # noqa: E402
+from m6_events.violation import (HandHygieneFSM, side_series, steps,       # noqa: E402
+                                 touch_series, trash_intervals, zone_body_series, zone_hand_series)
+
+CLIPS = Path("D:/yizhen/event_clips")
+CACHE = ROOT / "results/det_cache/event_clips_s3"
+OUT = ROOT / "results/m6/violation"
+TRASH_WORDS = ("丟", "垃圾", "廚餘", "果皮")
+GRID = dict(wash_mode=["hand", "body"], wash_s=[1.0, 2.0, 4.0], D=[1.0, 2.0])
+AMBIGUOUS = "洗鍋具"
+
+
+def load_events():
+    ev = {}
+    for r in csv.DictReader(open(CLIPS / "clips_index.csv", encoding="utf-8-sig")):
+        if r["event_category"] != "沒洗手":
+            continue
+        e = ev.setdefault(r["annotation_id"], dict(
+            id=r["annotation_id"], session=r["session_id"], note=r["note"],
+            a0=float(r["annot_start_sec"]) - float(r["clip_start_sec"]),
+            a1=float(r["annot_end_sec"]) - float(r["clip_start_sec"]), clips={}))
+        e["clips"][r["view"]] = Path(r["clip_file"]).stem
+    out = list(ev.values())
+    for e in out:
+        e["gt"] = "合格" if ("有洗手" in e["note"] or '"有"洗手' in e["note"]) else "違規"
+        e["trash_trigger"] = any(w in e["note"] for w in TRASH_WORDS)
+        e["ambiguous"] = AMBIGUOUS in e["note"]
+    return out
+
+
+def score(rows, key="pred"):
+    """違規 R、合格辨識率、正確率;「未解除」歸為違規。"""
+    pv = lambda r: "違規" if r[key] in ("違規", "未解除") else r[key]
+    v = [r for r in rows if r["gt"] == "違規"]
+    ok = [r for r in rows if r["gt"] == "合格"]
+    vr = sum(pv(r) == "違規" for r in v) / max(len(v), 1)
+    okr = sum(pv(r) == "合格" for r in ok) / max(len(ok), 1)
+    acc = sum(pv(r) == r["gt"] for r in rows) / max(len(rows), 1)
+    return dict(n=len(rows), violation_R=round(vr, 3), compliant_rate=round(okr, 3), acc=round(acc, 3),
+                unresolved=sum(r[key] == "未解除" for r in rows))
+
+
+def main():
+    t0 = time.time()
+    OUT.mkdir(parents=True, exist_ok=True)
+    cfg = yaml.safe_load((INTEG / "configs/violation_rules.yaml").read_text(encoding="utf-8"))
+    step, cams, hh = cfg["step_s"], cfg["cameras"], cfg["hand_hygiene"]
+    close = cams["close"]
+    zp = {v: INTEG / p for v, p in cfg["zones"].items()}
+    sink = get_zone(zp[hh["wash_cam"]], hh["sink_zone"])
+    tz = {v: get_zone(zp[v], cfg["trash_event"]["zone"]) for v in ("output0", "Aoutput1")}
+    events = load_events()
+    print(f"{len(events)} 個事件:合格 {sum(e['gt'] == '合格' for e in events)}、違規 {sum(e['gt'] == '違規' for e in events)};"
+          f"垃圾類觸發 {sum(e['trash_trigger'] for e in events)}", flush=True)
+
+    # 每個事件的零件序列(與網格無關,只算一次)
+    parts = {}
+    for e in events:
+        cs = {v: DetCache(CACHE / f"{e['clips'][v]}.npz") for v in ["output0"] + close["A"] + close["B"]}
+        T = len(steps(cs["output0"])[0])
+        side = side_series(cs[cams["overview"]], T, **cams["side_x"])
+        touch = touch_series(cs, T, side, close, cfg["touch_classes"], cfg["association"])
+        wash = dict(hand=zone_hand_series(cs[hh["wash_cam"]], T, sink, hh["thr_hand"]),
+                    body=zone_body_series(cs[hh["wash_cam"]], T, sink, hh["body_ioa"]))
+        trash = trash_intervals(cs["Aoutput1"], cs["output0"], T, tz["Aoutput1"], tz["output0"],
+                                cfg["trash_event"], step) if e["trash_trigger"] else []
+        parts[e["id"]] = dict(T=T, touch=touch, wash=wash, trash=trash, side=Counter(side))
+    print(f"零件序列完成 {time.time() - t0:.0f} 秒", flush=True)
+
+    # L1 網格
+    grid_rows, per_clip = [], []
+    for wm, ws, D in itertools.product(*GRID.values()):
+        fsm = HandHygieneFSM(ws, step, cfg["touch_classes"])
+        rows = []
+        for e in events:
+            p = parts[e["id"]]
+            v = fsm.run(int(round((max(e["a0"], 0) + D) / step)), p["wash"][wm], p["touch"])
+            rows.append(dict(id=e["id"], session=e["session"], note=e["note"], gt=e["gt"], pred=v.result,
+                             at_s=None if v.at is None else round(v.at * step, 1),
+                             touched="、".join(v.touched), wash_s=round(v.wash_steps * step, 1),
+                             ambiguous=int(e["ambiguous"])))
+        s_all = score(rows)
+        s_amb = score([r for r in rows if not r["ambiguous"]])
+        grid_rows.append(dict(wash_mode=wm, wash_s=ws, D=D, **s_all,
+                              **{f"excl_amb_{k}": v for k, v in s_amb.items() if k != "n"}))
+        for r in rows:
+            per_clip.append(dict(wash_mode=wm, wash_s_cfg=ws, D=D, **r))
+        print(f"  L1 {wm:4s} wash {ws} D {D}:違規 R {s_all['violation_R']:.2f}  合格辨識 {s_all['compliant_rate']:.2f}"
+              f"  正確 {s_all['acc']:.2f}  未解除 {s_all['unresolved']}", flush=True)
+
+    # 零件診斷(與網格無關)
+    diag = []
+    for e in events:
+        p = parts[e["id"]]
+        d0 = int(round((max(e["a0"], 0) + 1) / step))
+        diag.append(dict(id=e["id"], gt=e["gt"], note=e["note"],
+                         wash_hand_s=round(p["wash"]["hand"][d0:].sum() * step, 1),
+                         wash_body_s=round(p["wash"]["body"][d0:].sum() * step, 1),
+                         touch_any_s=round(p["touch"][d0:].any(1).sum() * step, 1),
+                         side=dict(p["side"])))
+
+    # L2:垃圾類觸發,觸發自動偵測(body、wash 2 秒、設定檔其餘值)
+    fsm = HandHygieneFSM(hh["wash_s"], step, cfg["touch_classes"])
+    l2 = []
+    for e in [e for e in events if e["trash_trigger"]]:
+        p = parts[e["id"]]
+        if not p["trash"]:
+            l2.append(dict(id=e["id"], note=e["note"], gt=e["gt"], pred="無觸發", trigger_s=None, at_s=None))
+            continue
+        s, en = p["trash"][0]
+        v = fsm.run(en + int(round(hh["grace_s"] / step)), p["wash"][hh["wash_mode"]], p["touch"])
+        l2.append(dict(id=e["id"], note=e["note"], gt=e["gt"], pred=v.result, trigger_s=round(s * step, 1),
+                       at_s=None if v.at is None else round(v.at * step, 1)))
+    l2_ok = sum(("違規" if r["pred"] in ("違規", "未解除") else r["pred"]) == r["gt"] for r in l2)
+    print(f"  L2 垃圾類 {len(l2)} 個:判對 {l2_ok}", flush=True)
+
+    for name, rows in (("l1_grid.csv", grid_rows), ("l1_per_clip.csv", per_clip),
+                       ("diag.csv", diag), ("l2_per_clip.csv", l2)):
+        with open(OUT / name, "w", newline="", encoding="utf-8-sig") as f:
+            w = csv.DictWriter(f, fieldnames=list(rows[0]))
+            w.writeheader()
+            w.writerows(rows)
+    (OUT / "summary.json").write_text(json.dumps(dict(grid=grid_rows, l2_correct=l2_ok, l2_n=len(l2)),
+                                                 ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"輸出 {OUT},{time.time() - t0:.0f} 秒")
+
+
+if __name__ == "__main__":
+    main()

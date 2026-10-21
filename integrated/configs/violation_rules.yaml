@@ -1,0 +1,54 @@
+# M6 違規判定(單人)規則設定 —— 由 src/m6_events/violation.py 使用
+#
+# 目前的值是 EPFL 廚房的初版(docs/M6_違規判定_單人_預先登記_20261021.md);
+# 洗手秒數、緩衝、碰觸類別等「規範參數」要等食安負責人填規範表(docs/違規事件_資料準備說明_20261021.md §2)後再改。
+# 相對路徑一律相對於 integrated/。
+
+step_s: 0.1                    # 偵測快取每步秒數(30 fps、stride 3)
+
+cameras:
+  overview: output0            # 定位 A / B 側、洗手台、垃圾桶(身體)
+  close:                       # 近拍鏡頭,依站的位置挑一組(角色分工融合)
+    A: [Aoutput1, Aoutput2, Aoutput3]
+    B: [Boutput1, Boutput2]
+  side_x: {x_a: 480.9, x_b: 729.3}   # output0 腳點 x 分界(YH2040 校準)
+
+zones:
+  output0: configs/zones/epfl_output0.json      # 垃圾桶區、洗手台
+  Aoutput1: configs/zones/epfl_Aoutput1.json    # 垃圾桶區
+
+# 人—物關聯(M6 V 規則;HY3 凍結值)
+association:
+  thr_person: 0.3
+  hand_in_person: 0.5
+  thr_hand: 0.3
+  thr_obj: 0.4
+  d: 0.1                       # 手與物件框間距 ≤ d × 人框高
+  iou_move: 0.9                # 0.5 秒前後物件框 IoU < 此值 = 在動
+  lag: 5                       # 動態比較間隔(步)
+  win: [5, 3]                  # 遲滯平滑:最近 5 步有 3 步成立才開
+  k_off: 10                    # 連續 10 步不成立才關
+  role_k: 2                    # 近拍組至少 2 台成立
+
+touch_classes: [食材, 刀具, 砧板, 鍋鏟, 鍋子, 容器]   # 「碰到食材 / 器具」的類別
+
+# 觸發:垃圾桶事件(事件測試第 3 輪 trash_body 凍結設定)
+trash_event:
+  hand_cam: Aoutput1
+  body_cam: output0
+  zone: 垃圾桶區
+  thr_hand: 0.2
+  body_ioa: 0.2
+  sync_s: 0.5
+  smooth: [3, 2, 5]
+  min_s: 1.0
+
+# 洗手規則
+hand_hygiene:
+  wash_cam: output0
+  sink_zone: 洗手台
+  wash_mode: body              # hand = 手中心在洗手台;body = 人框蓋住洗手台
+  thr_hand: 0.2
+  body_ioa: 0.2
+  wash_s: 2.0                  # 髒手期間洗手累計秒數(待規範表)
+  grace_s: 1.0                 # 觸發後幾秒才開始算「髒手」(待規範表)
