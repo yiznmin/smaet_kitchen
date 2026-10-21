@@ -5,7 +5,7 @@
   抹布   cloth     :M6 V 規則 + 角色分工融合 + 平滑(HY3 凍結參數),T 0
   吃東西 eat_pose  :ViTPose 手腕與頭點距離 ≤ 1.2 × 肩寬,output0 / Aoutput1,連續 ≥ 0.5 秒
 
-畫面:output0 | Aoutput1 | 近拍鏡頭(M3 抹布框最多的那台);上方為事件資訊與當下狀態,下方為時間軸
+畫面:output0 | Aoutput1 | 近拍鏡頭(M3 抹布框最多的那台,不含 Aoutput1);上方為事件資訊與當下狀態,下方為時間軸
   綠 = 人、紅 = 手、紫 = 抹布、青 = 垃圾桶 zone(成立時變黃)、黃點 = 頭點、紅點 = 手腕
 時間軸:標註區間(白)、各類「規則成立」(淡色)與「事件發出」(實色)、目前時間(白線)
 
@@ -156,7 +156,7 @@ def main():
                        for k, name, _ in ARMS if verdict[k] or truth[k]) or "都沒判"
         # 近拍鏡頭:M3 抹布框(conf ≥ 0.4)出現最多的那台
         best, best_n = "Aoutput2", -1
-        for v in EV.CLOSE["A"] + EV.CLOSE["B"]:
+        for v in [x for x in EV.CLOSE["A"] + EV.CLOSE["B"] if x != "Aoutput1"]:      # 第 2 格已是 Aoutput1
             c = DetCache(EV.CACHE / f"{e['clips'][v]}.npz")
             k = int(((c._cls == EV.CLOTH) & (c._conf >= 0.4)).sum())
             if k > best_n:
