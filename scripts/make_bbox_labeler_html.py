@@ -16,7 +16,7 @@
      --classes knife,cutting_board,raw_meat,cooked_food,cloth,tongs,container,glove,hand
   # 載入 M3 / SAM 3 草稿(scripts/prelabel_drafts.py 產出):
   python scripts/make_bbox_labeler_html.py --img_dir <影像資料夾> --draft results/prelabel/test_draft_C.json \\
-     --out results/prelabel/labeler_test.html --classes 人,刀具,砧板,食材,鍋鏟,鍋子,手,容器,抹布,夾子,手套,衛生紙
+     --out results/prelabel/labeler_test.html --classes 人,刀具,砧板,食材,鍋鏟,鍋子,手,容器,抹布,夾子,手套,手機,衛生紙
 """
 import argparse
 import base64

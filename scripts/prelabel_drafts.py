@@ -29,11 +29,11 @@ DATA = Path("D:/yizhen/m3_fintune_data/m3_finetune_r2")
 OUT = ROOT / "results/prelabel"
 M3_W = ROOT / "integrated/weights/m3_nano_r2_armA/checkpoint_best_total.pth"
 SAM3_W = ROOT / "integrated/weights/sam3"
-ALL = CLASSES + ["衛生紙"]                                          # 草稿類別:11 類 + 新類(2026-10-27 使用者:不設手機類別)
-OLD_ALL = CLASSES + ["手機", "衛生紙"]                               # 舊快取(沒有 classes 欄位)的類別順序
+ALL = CLASSES + ["手機", "衛生紙"]                                  # 草稿類別:11 類 + 新類
+OLD_ALL = ALL                                                        # 舊快取(沒有 classes 欄位)的類別順序
 PROMPTS = {"人": ["person"], "刀具": ["knife"], "砧板": ["cutting board"], "食材": ["food", "vegetable"],
            "鍋鏟": ["spatula"], "鍋子": ["pot", "pan"], "手": ["hand"], "容器": ["bowl", "plate", "container"],
-           "抹布": ["sponge", "towel"], "夾子": ["tongs"], "手套": ["glove"], "衛生紙": ["tissue"]}
+           "抹布": ["sponge", "towel"], "夾子": ["tongs"], "手套": ["glove"], "手機": ["phone"], "衛生紙": ["tissue"]}
 SAM_RAW_THR = 0.2
 SAM_GRID = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
 SCOPES = {"cloth_hand": ["抹布", "手"], "all": CLASSES}
@@ -129,7 +129,7 @@ def cloth_filter(sam_rows, m3_rows):
 
 def draft_C(r, m3_thr, sam_thr, scope):
     a = draft_A(r, m3_thr)
-    add_cls = {ALL.index(n) for n in SCOPES[scope]} | {ALL.index("衛生紙")}
+    add_cls = {ALL.index(n) for n in SCOPES[scope]} | {ALL.index(n) for n in ALL[len(CLASSES):]}
     out = list(a)
     for x in cloth_filter(draft_S(r, sam_thr), r["m3"]):
         if x[0] not in add_cls:
