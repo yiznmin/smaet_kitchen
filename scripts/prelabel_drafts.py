@@ -29,10 +29,11 @@ DATA = Path("D:/yizhen/m3_fintune_data/m3_finetune_r2")
 OUT = ROOT / "results/prelabel"
 M3_W = ROOT / "integrated/weights/m3_nano_r2_armA/checkpoint_best_total.pth"
 SAM3_W = ROOT / "integrated/weights/sam3"
-ALL = CLASSES + ["手機", "衛生紙"]                                  # 草稿類別:11 類 + 新類
+ALL = CLASSES + ["衛生紙"]                                          # 草稿類別:11 類 + 新類(2026-10-27 使用者:不設手機類別)
+OLD_ALL = CLASSES + ["手機", "衛生紙"]                               # 舊快取(沒有 classes 欄位)的類別順序
 PROMPTS = {"人": ["person"], "刀具": ["knife"], "砧板": ["cutting board"], "食材": ["food", "vegetable"],
            "鍋鏟": ["spatula"], "鍋子": ["pot", "pan"], "手": ["hand"], "容器": ["bowl", "plate", "container"],
-           "抹布": ["sponge", "towel"], "夾子": ["tongs"], "手套": ["glove"], "手機": ["phone"], "衛生紙": ["tissue"]}
+           "抹布": ["sponge", "towel"], "夾子": ["tongs"], "手套": ["glove"], "衛生紙": ["tissue"]}
 SAM_RAW_THR = 0.2
 SAM_GRID = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
 SCOPES = {"cloth_hand": ["抹布", "手"], "all": CLASSES}
@@ -94,6 +95,15 @@ def run_models(split):
     return raw
 
 
+def remap_raw(blob):
+    """快取 → {檔名: {m3, sam3}};SAM 3 框依類別名稱對到目前的 ALL,不在 ALL 的類別(如舊的手機)丟掉。"""
+    old = blob.get("classes", OLD_ALL) if "images" in blob else OLD_ALL
+    imgs = blob["images"] if "images" in blob else blob
+    for r in imgs.values():
+        r["sam3"] = [[ALL.index(old[c]), s, b] for c, s, b in r["sam3"] if old[c] in ALL]
+    return imgs
+
+
 # ── 草稿組合 ─────────────────────────────────────────────────────
 
 def m3_thresholds():
@@ -119,7 +129,7 @@ def cloth_filter(sam_rows, m3_rows):
 
 def draft_C(r, m3_thr, sam_thr, scope):
     a = draft_A(r, m3_thr)
-    add_cls = {ALL.index(n) for n in SCOPES[scope]} | {ALL.index("手機"), ALL.index("衛生紙")}
+    add_cls = {ALL.index(n) for n in SCOPES[scope]} | {ALL.index("衛生紙")}
     out = list(a)
     for x in cloth_filter(draft_S(r, sam_thr), r["m3"]):
         if x[0] not in add_cls:
@@ -213,10 +223,10 @@ def main():
     t0 = time.time()
     raw_p = OUT / f"{args.split}_raw.json"
     if raw_p.exists():
-        raw = json.loads(raw_p.read_text(encoding="utf-8"))
+        raw = remap_raw(json.loads(raw_p.read_text(encoding="utf-8")))
     else:
         raw = run_models(args.split)
-        raw_p.write_text(json.dumps(raw), encoding="utf-8")
+        raw_p.write_text(json.dumps(dict(classes=ALL, images=raw), ensure_ascii=False), encoding="utf-8")
     print(f"模型完成 {time.time() - t0:.0f} 秒", flush=True)
 
     gt = E.load_gt(str(DATA / args.split))
@@ -249,7 +259,7 @@ def main():
             rows.append(dict(group=g, cls=ALL[c], **res[c], P=round(p, 3), R=round(r, 3), F1=round(f, 3)))
         rows.append(dict(group=g, cls="全部", **{k: summ[g][k] for k in ("tp", "fp", "fn", "loose", "n_gt")},
                          P=summ[g]["P"], R=summ[g]["R"], F1=summ[g]["F1"]))
-        new = {n: sum(x[0] == ALL.index(n) for v in drafts.values() for x in v) for n in ("手機", "衛生紙")}
+        new = {n: sum(x[0] == ALL.index(n) for v in drafts.values() for x in v) for n in ALL[len(CLASSES):]}
         summ[g]["new_class_boxes"] = new
         (OUT / f"{args.split}_draft_{g}.json").write_text(json.dumps(to_coco(args.split, drafts), ensure_ascii=False),
                                                          encoding="utf-8")
