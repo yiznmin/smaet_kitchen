@@ -59,7 +59,8 @@ def in_poly(pts, poly):
 
 def dilate(x, k):
     """±k 步內有成立即成立。"""
-    return np.convolve(np.asarray(x, int), np.ones(2 * k + 1, int), "same") > 0
+    x = np.asarray(x, int)
+    return np.convolve(x, np.ones(2 * k + 1, int))[k:k + len(x)] > 0   # 片段短於視窗時仍保持原長度
 
 
 def intervals(mask):
