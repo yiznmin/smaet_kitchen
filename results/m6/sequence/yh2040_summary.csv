@@ -1,0 +1,5 @@
+﻿trigger,dry_filter,n_trig,gt_matched,n_gt,correct,violations_caught,n_gt_violation,false_violation,false_violation_per_h,unresolved,at_err_median_s
+base,0,15,3,3,3,3,3,7,32.3,5,1.4
+base,1,9,2,3,2,2,3,6,27.7,1,1.5
+mv,0,8,3,3,3,3,3,3,13.8,2,1.1
+mv,1,3,2,3,2,2,3,1,4.6,0,1.3
