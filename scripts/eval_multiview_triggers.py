@@ -101,9 +101,11 @@ def raw_of(d, cfg, drop=None):
     if arm.startswith("single_"):
         v = arm[len("single_"):]
         return z if drop == v else d["hand"][(v, cfg["thr_hand"])]
-    hs = [dilate(d["hand"][(v, cfg["thr_hand"])], SYNC) if v != drop else z for v in TRASH_VIEWS]
-    raw = np.sum(hs, 0) >= cfg["k"]
-    if arm == "kofn_body":
+    hs0 = [d["hand"][(v, cfg["thr_hand"])] if v != drop else z for v in TRASH_VIEWS]
+    raw = np.sum([dilate(h, SYNC) for h in hs0], 0) >= cfg["k"]
+    if arm.startswith("kofn_strict"):                    # §8.3:放寬只用來數台數,成立時間以原始偵測為準
+        raw &= np.any(hs0, 0)
+    if arm.endswith("_body"):
         raw &= z if drop == "output0" else dilate(d["body"], SYNC)
     return raw
 
@@ -117,7 +119,7 @@ def configs():
     for thr, T in itertools.product(GRID["thr_hand"], GRID["T"]):
         for v in TRASH_VIEWS:
             yield dict(arm=f"single_{v}", thr_hand=thr, T=T)
-        for arm, k in itertools.product(["kofn", "kofn_body"], KS):
+        for arm, k in itertools.product(["kofn", "kofn_body", "kofn_strict", "kofn_strict_body"], KS):
             yield dict(arm=arm, k=k, thr_hand=thr, T=T)
 
 

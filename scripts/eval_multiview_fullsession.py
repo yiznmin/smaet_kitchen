@@ -134,7 +134,7 @@ def main():
                  & dilate(zone_body_series(caches["output0"], T, tz["output0"], b["x"]), SYNC))
     variants = [("base", dict(arm="base", T=b["T"]))]
     variants += [(f"{arm}_k{k}", dict(arm=arm, k=k, thr_hand=mvc["thr_hand"], T=mvc["T"]))
-                 for arm in ("kofn", "kofn_body") for k in (1, 2, 3)]
+                 for arm in ("kofn", "kofn_body", "kofn_strict", "kofn_strict_body") for k in (1, 2, 3)]
     rows, fps = [], []
     for name, cfg in variants:
         sm = hysteresis(MV.raw_of(d, cfg), *MV.EV_SMOOTH)
@@ -168,8 +168,10 @@ def main():
     body_k = dilate(zone_body_series(caches["output0"], T, sink["output0"], BODY_X), SYNC)
     dl = {v: dilate(x, SYNC) for v, x in raw.items()}
     wash = dict(close_hand=np.any([raw[v] for v in CLOSE2], 0))
+    any_raw = np.any(list(raw.values()), 0)
     for k in (1, 2):
         wash[f"close4_{k}"] = np.sum(list(dl.values()), 0) >= k
+        wash[f"close4s_{k}"] = wash[f"close4_{k}"] & any_raw                 # §8.3 strict
     for m in list(wash):
         wash[f"{m}_body"] = wash[m] & body_k
     wseen = set()

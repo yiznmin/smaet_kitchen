@@ -1,0 +1,84 @@
+{
+  "trash": {
+    "multiview": {
+      "arm": "kofn",
+      "k": 3,
+      "thr_hand": 0.2,
+      "T": 0.5,
+      "R": 0.821,
+      "P": 0.696,
+      "F1": 0.753,
+      "FAR": 0.175,
+      "tp": 32,
+      "fp": 14,
+      "fn": 7,
+      "tn": 66
+    },
+    "single_output0": {
+      "arm": "single_output0",
+      "thr_hand": 0.2,
+      "T": 0.5,
+      "R": 0.641,
+      "P": 0.481,
+      "F1": 0.549,
+      "FAR": 0.338,
+      "tp": 25,
+      "fp": 27,
+      "fn": 14,
+      "tn": 53
+    },
+    "single_Aoutput0": {
+      "arm": "single_Aoutput0",
+      "thr_hand": 0.3,
+      "T": 0.5,
+      "R": 0.308,
+      "P": 0.429,
+      "F1": 0.358,
+      "FAR": 0.2,
+      "tp": 12,
+      "fp": 16,
+      "fn": 27,
+      "tn": 64
+    },
+    "single_Aoutput1": {
+      "arm": "single_Aoutput1",
+      "thr_hand": 0.3,
+      "T": 0.5,
+      "R": 0.846,
+      "P": 0.465,
+      "F1": 0.6,
+      "FAR": 0.475,
+      "tp": 33,
+      "fp": 38,
+      "fn": 6,
+      "tn": 42
+    },
+    "single_Aoutput2": {
+      "arm": "single_Aoutput2",
+      "thr_hand": 0.2,
+      "T": 0.5,
+      "R": 0.667,
+      "P": 0.703,
+      "F1": 0.684,
+      "FAR": 0.138,
+      "tp": 26,
+      "fp": 11,
+      "fn": 13,
+      "tn": 69
+    },
+    "base": {
+      "arm": "base",
+      "thr_hand": 0.2,
+      "x": 0.2,
+      "T": 1.0,
+      "R": 0.897,
+      "P": 0.625,
+      "F1": 0.737,
+      "FAR": 0.263,
+      "tp": 35,
+      "fp": 21,
+      "fn": 4,
+      "tn": 59
+    }
+  }
+}

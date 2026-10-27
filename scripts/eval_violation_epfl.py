@@ -99,7 +99,8 @@ def main():
     if args.round == 2:
         GRID["wash_mode"] = ["hand", "body", "close_hand", "close_hand_body"]
     if args.round == 3:
-        GRID.update(wash_mode=["close_hand"] + [f"close4_{k}{b}" for b in ("", "_body") for k in (1, 2)],
+        GRID.update(wash_mode=["close_hand"] + [f"close4_{k}{b}" for b in ("", "_body") for k in (1, 2)]
+                    + ["close4s_1", "close4s_2", "close4s_2_body"],                          # §8.3 strict
                     wash_s=[1.0, 2.0], D=[1.0])
     t0 = time.time()
     OUT.mkdir(parents=True, exist_ok=True)
@@ -134,6 +135,8 @@ def main():
             for kk in (1, 2):
                 wash[f"close4_{kk}"] = np.sum(list(b4.values()), 0) >= kk
                 wash[f"close4_{kk}_body"] = wash[f"close4_{kk}"] & body_k
+                wash[f"close4s_{kk}"] = wash[f"close4_{kk}"] & np.any(list(b4_raw.values()), 0)
+            wash["close4s_2_body"] = wash["close4s_2"] & body_k
             b4_parts[e["id"]] = (b4, body_k, b4_raw)
         if args.round == 2:
             k = int(round(hh["sync_s"] / step))
@@ -190,10 +193,12 @@ def main():
             rows = []
             for e in events:
                 p = parts[e["id"]]
-                if wm.startswith("close4_"):
-                    b4, body_k, _ = b4_parts[e["id"]]
+                if wm.startswith("close4"):
+                    b4, body_k, b4_raw = b4_parts[e["id"]]
                     kk = int(wm.split("_")[1])
                     w = np.sum([x for v, x in b4.items() if v != dv], 0) >= kk
+                    if wm.startswith("close4s_"):
+                        w &= np.any([x for v, x in b4_raw.items() if v != dv], 0)
                     if wm.endswith("_body"):
                         w &= body_k
                 elif dv in hh["close_cams"]:
