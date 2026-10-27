@@ -103,7 +103,7 @@ def m3_thresholds():
 
 
 def draft_A(r, m3_thr):
-    return [x for x in r["m3"] if x[1] >= m3_thr[x[0]]]
+    return [x for x in r["m3"] if x[0] in m3_thr and x[1] >= m3_thr[x[0]]]      # 丟掉 0..10 以外的多餘類別槽
 
 
 def draft_S(r, sam_thr):

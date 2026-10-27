@@ -1,7 +1,8 @@
 """
 產生「本機瀏覽器版 bbox 標註器」HTML(不需 opencv GUI)。支援多類別、多視角。
 
-- 載入指定資料夾的所有幀 + person 預標(綠框,來自 draft json)。
+- 載入指定資料夾的所有幀 + 草稿框(來自 draft json,依類別名稱對應 --classes;虛線 = 草稿、實線 = 人畫的)。
+  草稿可由 scripts/prelabel_drafts.py 產生(M3 / SAM 3)。舊草稿沒有對應名稱時,category_id 1 仍當第 1 類。
 - 你用滑鼠拖拉方框標各類物件;選類別後拉框。沒有的跳過。
 - 匯出 COCO(coco.json)→ 直接可微調。
 
@@ -13,6 +14,9 @@
      --draft data/m3_finetune/_mv_draft.json \\
      --out results/m2/bbox_labeler_mv.html \\
      --classes knife,cutting_board,raw_meat,cooked_food,cloth,tongs,container,glove,hand
+  # 載入 M3 / SAM 3 草稿(scripts/prelabel_drafts.py 產出):
+  python scripts/make_bbox_labeler_html.py --img_dir <影像資料夾> --draft results/prelabel/test_draft_C.json \\
+     --out results/prelabel/labeler_test.html --classes 人,刀具,砧板,食材,鍋鏟,鍋子,手,容器,抹布,夾子,手套,手機,衛生紙
 """
 import argparse
 import base64
@@ -39,7 +43,7 @@ TEMPLATE = r"""<!doctype html>
 <h3>bbox 標註器 — 匯出檔:__EXPORT_NAME__</h3>
 <div class="hint">
  <b>拖拉滑鼠</b>=畫框(目前類別) &nbsp;|&nbsp; <b>←/→</b>=上/下一張 &nbsp;|&nbsp;
- <b>數字鍵</b>快速切類別 &nbsp;|&nbsp; <b>d</b>=刪這張最後一個框 &nbsp;|&nbsp; 沒有的物件跳過 &nbsp;|&nbsp; 標完按<b>匯出</b>
+ <b>數字鍵</b>快速切類別 &nbsp;|&nbsp; <b>右鍵點框</b>=刪那個框 &nbsp;|&nbsp; <b>d</b>=刪這張最後一個框 &nbsp;|&nbsp; 沒有的物件跳過 &nbsp;|&nbsp; 標完按<b>匯出</b>
 </div>
 <div id="bar">
  <button onclick="prev()">← 上一張</button>
@@ -78,20 +82,25 @@ function load(){
 function draw(){
   ctx.clearRect(0,0,cv.width,cv.height);
   ctx.drawImage(img,0,0,cv.width,cv.height);
-  (DATA.anns[idx]||[]).forEach(a=>box(a.bbox, catColor(a.cat), catName(a.cat)));
+  (DATA.anns[idx]||[]).forEach(a=>box(a.bbox, catColor(a.cat), catName(a.cat), a.draft));
   if(drawing) box([Math.min(sx,cx),Math.min(sy,cy),Math.abs(cx-sx),Math.abs(cy-sy)],"#fff","");
   const cnt={};(DATA.anns[idx]||[]).forEach(a=>cnt[catName(a.cat)]=(cnt[catName(a.cat)]||0)+1);
   const s=Object.entries(cnt).map(([k,v])=>k+"="+v).join(" ");
   document.getElementById("status").textContent=
     `第 ${idx+1}/${DATA.images.length}  ${DATA.images[idx].file_name}  [${s}]`;
 }
-function box(b,color,label){
-  ctx.strokeStyle=color; ctx.lineWidth=2;
-  ctx.strokeRect(b[0]*scale,b[1]*scale,b[2]*scale,b[3]*scale);
+function box(b,color,label,dashed){
+  ctx.strokeStyle=color; ctx.lineWidth=2; ctx.setLineDash(dashed?[6,4]:[]);
+  ctx.strokeRect(b[0]*scale,b[1]*scale,b[2]*scale,b[3]*scale); ctx.setLineDash([]);
   if(label){ctx.fillStyle=color; ctx.font="14px sans-serif"; ctx.fillText(label,b[0]*scale,Math.max(12,b[1]*scale-3));}
 }
 function pos(e){const r=cv.getBoundingClientRect();return [(e.clientX-r.left)/scale,(e.clientY-r.top)/scale];}
-cv.addEventListener("mousedown",e=>{[sx,sy]=pos(e);[cx,cy]=[sx,sy];drawing=true;});
+cv.addEventListener("mousedown",e=>{if(e.button!==0)return;[sx,sy]=pos(e);[cx,cy]=[sx,sy];drawing=true;});
+// 右鍵:刪除包含游標的最小框(草稿或人畫的都可)
+cv.addEventListener("contextmenu",e=>{e.preventDefault();const [x,y]=pos(e);const L=DATA.anns[idx]||[];
+  let k=-1,best=Infinity;L.forEach((a,i)=>{const [bx,by,bw,bh]=a.bbox;
+    if(x>=bx&&x<=bx+bw&&y>=by&&y<=by+bh&&bw*bh<best){best=bw*bh;k=i;}});
+  if(k>=0){L.splice(k,1);draw();}});
 cv.addEventListener("mousemove",e=>{if(drawing){[cx,cy]=pos(e);draw();}});
 cv.addEventListener("mouseup",e=>{
   if(!drawing)return; drawing=false;
@@ -132,7 +141,9 @@ def main():
     ap.add_argument("--draft", default=str(ROOT / "data" / "m3_finetune" / "_draft.json"))
     ap.add_argument("--out", default=str(ROOT / "results" / "m2" / "bbox_labeler.html"))
     ap.add_argument("--classes", default="person,knife",
-                    help="逗號分隔的類別;第 1 個當『已預標的人』(承接 draft 的 person 框)")
+                    help="逗號分隔的類別(名稱須與草稿的類別名稱相同才會載入草稿框)")
+    ap.add_argument("--draft_min_score", type=float, default=0.0,
+                    help="草稿框有 score 欄位時,低於此值不載入")
     ap.add_argument("--batch", type=int, default=0,
                     help="每個 html 放幾張圖(0=全部放一個檔;圖多建議 200,會分批產生 _1/_2…)")
     args = ap.parse_args()
@@ -141,15 +152,25 @@ def main():
     categories = [{"id": i, "name": name.strip()}
                   for i, name in enumerate(args.classes.split(","), start=1)]
 
-    # person 預標(從 draft 讀,若有)
-    person_by_name = {}
+    # 草稿框(從 draft 讀,若有):依類別名稱對應;對不到名稱時,舊格式的 category_id 1 當第 1 類
+    draft_by_name, skipped = {}, {}
     draft_p = Path(args.draft)
     if draft_p.exists():
         draft = json.loads(draft_p.read_text(encoding="utf-8"))
         idn = {im["id"]: im["file_name"] for im in draft["images"]}
+        dname = {c["id"]: c["name"] for c in draft.get("categories", [])}
+        to_cat = {c["name"]: c["id"] for c in categories}
         for a in draft["annotations"]:
-            if a["category_id"] == 1:
-                person_by_name.setdefault(idn[a["image_id"]], []).append(a["bbox"])
+            if a.get("score", 1.0) < args.draft_min_score:
+                continue
+            cat = to_cat.get(dname.get(a["category_id"]), 1 if a["category_id"] == 1 else None)
+            if cat is None:
+                n = dname.get(a["category_id"], a["category_id"])
+                skipped[n] = skipped.get(n, 0) + 1
+                continue
+            draft_by_name.setdefault(idn[a["image_id"]], []).append((cat, a["bbox"]))
+        if skipped:
+            print(f"草稿中 --classes 沒列到的類別,未載入:{skipped}")
 
     imgs = sorted(IMG_DIR.glob("*.jpg"))
     images, anns = [], []
@@ -159,7 +180,8 @@ def main():
         ok, buf = cv2.imencode(".jpg", bgr, [cv2.IMWRITE_JPEG_QUALITY, 55])
         src = "data:image/jpeg;base64," + base64.b64encode(buf.tobytes()).decode()
         images.append({"file_name": p.name, "w": w, "h": h, "src": src})
-        anns.append([{"cat": 1, "bbox": [round(v, 1) for v in b]} for b in person_by_name.get(p.name, [])])
+        anns.append([{"cat": c, "bbox": [round(v, 1) for v in b], "draft": True}
+                     for c, b in draft_by_name.get(p.name, [])])
 
     def write_html(path, imgs, anns_sub, export_name):
         data = {"images": imgs, "anns": anns_sub, "categories": categories}
