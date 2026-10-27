@@ -6,10 +6,13 @@
 
 L1:觸發時間 = 標註起點,髒手從起點 + D 秒開始;網格 wash_mode × wash_s × D
 L2:只限垃圾類觸發(8 個),觸發由垃圾桶事件自動偵測;用 L1 的 wash_s 2、body、設定檔其餘值
+第 2 輪(§8.2 補登,--round 2):洗手方式加 close_hand、close_hand_body(Boutput1/2 上方鏡頭看水槽),L2 用 close_hand_body
 
 用法:
     python scripts/eval_violation_epfl.py
+    python scripts/eval_violation_epfl.py --round 2
 """
+import argparse
 import csv
 import itertools
 import json
@@ -27,8 +30,9 @@ sys.path.insert(0, str(INTEG / "src"))                  # 只用 integrated/ 的
 
 from common.zones import get_zone                                         # noqa: E402
 from m4_track.det_cache import DetCache                                   # noqa: E402
-from m6_events.violation import (HandHygieneFSM, side_series, steps,       # noqa: E402
-                                 touch_series, trash_intervals, zone_body_series, zone_hand_series)
+from m6_events.violation import (HandHygieneFSM, dilate, side_series, steps,  # noqa: E402
+                                 touch_series, trash_intervals, zone_any_hand_series, zone_body_series,
+                                 zone_hand_series)
 
 CLIPS = Path("D:/yizhen/event_clips")
 CACHE = ROOT / "results/det_cache/event_clips_s3"
@@ -69,6 +73,12 @@ def score(rows, key="pred"):
 
 
 def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--round", type=int, default=1, choices=[1, 2])
+    args = ap.parse_args()
+    pre = "" if args.round == 1 else f"r{args.round}_"
+    if args.round == 2:
+        GRID["wash_mode"] = ["hand", "body", "close_hand", "close_hand_body"]
     t0 = time.time()
     OUT.mkdir(parents=True, exist_ok=True)
     cfg = yaml.safe_load((INTEG / "configs/violation_rules.yaml").read_text(encoding="utf-8"))
@@ -84,12 +94,18 @@ def main():
     # 每個事件的零件序列(與網格無關,只算一次)
     parts = {}
     for e in events:
-        cs = {v: DetCache(CACHE / f"{e['clips'][v]}.npz") for v in ["output0"] + close["A"] + close["B"]}
+        cs = {v: DetCache(CACHE / f"{e['clips'][v]}.npz")
+              for v in dict.fromkeys(["output0"] + close["A"] + close["B"] + hh["close_cams"])}
         T = len(steps(cs["output0"])[0])
         side = side_series(cs[cams["overview"]], T, **cams["side_x"])
         touch = touch_series(cs, T, side, close, cfg["touch_classes"], cfg["association"])
         wash = dict(hand=zone_hand_series(cs[hh["wash_cam"]], T, sink, hh["thr_hand"]),
                     body=zone_body_series(cs[hh["wash_cam"]], T, sink, hh["body_ioa"]))
+        if args.round == 2:
+            k = int(round(hh["sync_s"] / step))
+            wash["close_hand"] = np.any([zone_any_hand_series(cs[v], T, get_zone(zp[v], hh["sink_zone"]),
+                                                              hh["thr_hand"]) for v in hh["close_cams"]], 0)
+            wash["close_hand_body"] = dilate(wash["close_hand"], k) & dilate(wash["body"], k)
         trash = trash_intervals(cs["Aoutput1"], cs["output0"], T, tz["Aoutput1"], tz["output0"],
                                 cfg["trash_event"], step) if e["trash_trigger"] else []
         parts[e["id"]] = dict(T=T, touch=touch, wash=wash, trash=trash, side=Counter(side))
@@ -122,8 +138,7 @@ def main():
         p = parts[e["id"]]
         d0 = int(round((max(e["a0"], 0) + 1) / step))
         diag.append(dict(id=e["id"], gt=e["gt"], note=e["note"],
-                         wash_hand_s=round(p["wash"]["hand"][d0:].sum() * step, 1),
-                         wash_body_s=round(p["wash"]["body"][d0:].sum() * step, 1),
+                         **{f"wash_{m}_s": round(p["wash"][m][d0:].sum() * step, 1) for m in p["wash"]},
                          touch_any_s=round(p["touch"][d0:].any(1).sum() * step, 1),
                          side=dict(p["side"])))
 
@@ -136,7 +151,8 @@ def main():
             l2.append(dict(id=e["id"], note=e["note"], gt=e["gt"], pred="無觸發", trigger_s=None, at_s=None))
             continue
         s, en = p["trash"][0]
-        v = fsm.run(en + int(round(hh["grace_s"] / step)), p["wash"][hh["wash_mode"]], p["touch"])
+        l2_mode = "close_hand_body" if args.round == 2 else hh["wash_mode"]
+        v = fsm.run(en + int(round(hh["grace_s"] / step)), p["wash"][l2_mode], p["touch"])
         l2.append(dict(id=e["id"], note=e["note"], gt=e["gt"], pred=v.result, trigger_s=round(s * step, 1),
                        at_s=None if v.at is None else round(v.at * step, 1)))
     l2_ok = sum(("違規" if r["pred"] in ("違規", "未解除") else r["pred"]) == r["gt"] for r in l2)
@@ -144,11 +160,11 @@ def main():
 
     for name, rows in (("l1_grid.csv", grid_rows), ("l1_per_clip.csv", per_clip),
                        ("diag.csv", diag), ("l2_per_clip.csv", l2)):
-        with open(OUT / name, "w", newline="", encoding="utf-8-sig") as f:
+        with open(OUT / (pre + name), "w", newline="", encoding="utf-8-sig") as f:
             w = csv.DictWriter(f, fieldnames=list(rows[0]))
             w.writeheader()
             w.writerows(rows)
-    (OUT / "summary.json").write_text(json.dumps(dict(grid=grid_rows, l2_correct=l2_ok, l2_n=len(l2)),
+    (OUT / f"{pre}summary.json").write_text(json.dumps(dict(grid=grid_rows, l2_correct=l2_ok, l2_n=len(l2)),
                                                  ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"輸出 {OUT},{time.time() - t0:.0f} 秒")
 

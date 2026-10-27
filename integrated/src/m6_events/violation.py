@@ -83,6 +83,19 @@ def zone_hand_series(cache, T, poly, thr_hand):
     return out
 
 
+def zone_any_hand_series(cache, T, poly, thr_hand):
+    """手中心在 zone 內,不要求手指派給人框(單人;上方鏡頭常只拍到手臂,人框不完整)。"""
+    idx = steps(cache)
+    out = np.zeros(T, bool)
+    for i in range(T):
+        xy, cf, cl = at(cache, idx, i)
+        hands = xy[(cl == HAND) & _above(cf, thr_hand)]
+        if len(hands):
+            ctr = np.c_[(hands[:, 0] + hands[:, 2]) / 2, (hands[:, 1] + hands[:, 3]) / 2]
+            out[i] = in_poly(ctr, poly).any()
+    return out
+
+
 def zone_body_series(cache, T, poly, x, thr_person=0.3):
     """有人框蓋住 zone(zone 外接框落在人框內的比例 ≥ x)。"""
     idx = steps(cache)
