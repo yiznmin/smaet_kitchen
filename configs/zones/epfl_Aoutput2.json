@@ -1,5 +1,5 @@
 {
-  "source": "EPFL 各場次 Aoutput2(SAM 3 提案:每場次最高分框取中位數外擴 5%;scripts/m6_zone_proposals_multiview.py;待使用者確認)",
+  "source": "EPFL 各場次 Aoutput2(SAM 3 提案:每場次最高分框取中位數外擴 5%;scripts/m6_zone_proposals_multiview.py;使用者 2026-10-27 確認)",
   "frame": 0,
   "width": 1280,
   "height": 720,
