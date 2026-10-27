@@ -80,7 +80,12 @@ def load_clips():
             c["files"][r["view"]] = cut if cut.exists() else team
             if not cut.exists():
                 c["team"].add(r["view"])
-    no_ng = {r["annotation_id"] for r in csv.DictReader(open(EV_NG, encoding="utf-8-sig")) if r["ng"] == "無NG"}
+    ev = list(csv.DictReader(open(EV_NG, encoding="utf-8-sig")))
+    # §8.4:與同場次 NG 事件時間重疊的無NG 事件 = 同一件事被標兩次,不當反例
+    hit = [(r["session_id"], float(r["annot_start_sec"]), float(r["annot_end_sec"])) for r in ev if r["ng"] != "無NG"]
+    no_ng = {r["annotation_id"] for r in ev if r["ng"] == "無NG" and not any(
+        s == r["session_id"] and min(b, float(r["annot_end_sec"])) > max(a, float(r["annot_start_sec"]))
+        for s, a, b in hit)}
     for r in csv.DictReader(open(EV_DIR / "clips_index.csv", encoding="utf-8-sig")):
         if r["annotation_id"] not in no_ng:
             continue
