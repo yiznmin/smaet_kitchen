@@ -7,6 +7,7 @@
 
 用法:
     python scripts/fetch_and_cache_sessions.py --minutes 20
+    python scripts/fetch_and_cache_sessions.py --minutes 0 --skip-download   # 整場(NG 準則評估)
 """
 import argparse
 import subprocess
@@ -53,11 +54,13 @@ def main():
                 n = extract_one(URL, e, dest)
                 print(f"  下載 {s} {v} {n / 1e6:.0f} MB", flush=True)
 
-    max_frames = int(args.minutes * 60 * 30)
+    # --minutes 0 = 整場,另存一個資料夾,不和前 N 分鐘的快取混用
+    max_frames = int(args.minutes * 60 * 30) if args.minutes > 0 else -1
+    cache_root = CACHE_ROOT if args.minutes > 0 else CACHE_ROOT.with_name("epfl_sessions_full_s3")
     py = str(ROOT / ".venv/Scripts/python")
     for s in sessions:
         sid = s.split("/", 1)[1]
-        out = CACHE_ROOT / sid.replace("/", "_")
+        out = cache_root / sid.replace("/", "_")
         for v in VIEWS:
             vid = VID_ROOT / sid / f"{v}.mp4"
             if (out / f"{v}.npz").exists() or not vid.exists():
