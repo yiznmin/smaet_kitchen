@@ -49,11 +49,11 @@ trash_event:
 hand_hygiene:
   wash_cam: output0
   sink_zone: 洗手台
-  wash_mode: body              # hand = output0 手中心在洗手台;body = output0 人框蓋住洗手台;
+  wash_mode: close_hand        # 第 2 輪最佳(docs/M6_違規判定_單人_預先登記_20261021.md §8.3);hand = output0 手中心在洗手台;body = output0 人框蓋住洗手台;
                                # close_hand = 上方近拍鏡頭手在水槽;close_hand_body = close_hand 且 body(±sync_s)
   close_cams: [Boutput1, Boutput2]
   sync_s: 0.5
   thr_hand: 0.2
   body_ioa: 0.2
-  wash_s: 2.0                  # 髒手期間洗手累計秒數(待規範表)
+  wash_s: 1.0                  # 髒手期間洗手累計秒數(第 2 輪最佳;待規範表)
   grace_s: 1.0                 # 觸發後幾秒才開始算「髒手」(待規範表)
