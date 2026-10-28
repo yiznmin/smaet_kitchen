@@ -31,7 +31,7 @@ from m3.classes import NAME_TO_CLASS                                      # noqa
 from m4_track.det_cache import DetCache                                   # noqa: E402
 from m6_events.association import ioa                                     # noqa: E402
 from m6_events.smoothing import hysteresis                                # noqa: E402
-from m6_events.violation import (HAND, HandHygieneFSM, at, intervals, side_series, steps,  # noqa: E402
+from m6_events.violation import (HAND, PERSON, HandHygieneFSM, at, intervals, side_series, steps,  # noqa: E402
                                  touch_series, trash_intervals, zone_any_hand_series)
 import eval_multiview_triggers as MV                                      # noqa: E402
 
@@ -60,6 +60,9 @@ NG4_OBJ_THR, NG4_WASH_S, NG4_PLACE_S, NG4_SUPPORT_IOA = 0.4, 1.0, 1.0, 0.3
 # §8.2 可調參數(第一個 = §3 預設值)
 GRID_VLM = [0.3, 0.5, 0.7]
 GRID_NG4 = [(1.0, 1.0), (0.5, 1.0), (2.0, 1.0), (0.5, 2.0), (1.0, 2.0), (2.0, 2.0)]
+# §8.6 NG3 規則:手在人框頭部 + 手邊有食材;(thr_hand, head_frac, thr_food, T 秒),第一組 = 預設
+GRID_NG3 = [(h, f, fd, t) for h in (0.3, 0.2) for f in (0.25, 0.35) for fd in (0.3, 0.2) for t in (0.3, 0.5)]
+NG3_PAD = 0.5                                             # 手框四邊各擴大手框寬高的比例,用來判斷「手邊」
 NEG_CATS = dict(NG1=("垃圾桶", "沒洗手"), NG2=("垃圾桶", "沒洗手"), NG3=("吃東西",), NG4=("食材衛生",))
 TOUCH_GAP_S, TOUCH_MIN_S = 1.0, 0.3
 
@@ -214,6 +217,33 @@ def ng4_rule(cs, T, sink, step):
     return grid, why
 
 
+def ng3_rule(cs, T):
+    """NG3:任一鏡頭連續 ≥ T 秒「手中心在人框頭部區 且 食材框與擴大後的手框重疊」。回傳 {grid: bool}。"""
+    FOOD = NAME_TO_CLASS["食材"]
+    base = {}
+    for h, f, fd in {g[:3] for g in GRID_NG3}:
+        hit = np.zeros(T, bool)
+        for c in cs.values():
+            idx = steps(c)
+            for i in range(T):
+                xy, cf, cl = at(c, idx, i)
+                P, H, F = xy[(cl == PERSON) & (cf >= 0.3)], xy[(cl == HAND) & (cf >= h)], xy[(cl == FOOD) & (cf >= fd)]
+                if not (len(P) and len(H) and len(F)):
+                    continue
+                cx, cy = (H[:, 0] + H[:, 2]) / 2, (H[:, 1] + H[:, 3]) / 2
+                top = P[:, 1] + f * (P[:, 3] - P[:, 1])
+                head = ((cx[:, None] >= P[None, :, 0]) & (cx[:, None] <= P[None, :, 2])
+                        & (cy[:, None] >= P[None, :, 1]) & (cy[:, None] <= top[None])).any(1)
+                if not head.any():
+                    continue
+                Hh = H[head]
+                w, hh = Hh[:, 2] - Hh[:, 0], Hh[:, 3] - Hh[:, 1]
+                Hx = np.c_[Hh[:, 0] - NG3_PAD * w, Hh[:, 1] - NG3_PAD * hh, Hh[:, 2] + NG3_PAD * w, Hh[:, 3] + NG3_PAD * hh]
+                hit[i] |= bool((ioa(F, Hx) > 0).any())
+        base[(h, f, fd)] = max((e - s for s, e in intervals(hit)), default=0)
+    return {g: base[g[:3]] >= max(1, int(round(g[3] / 0.1))) for g in GRID_NG3}
+
+
 def rule_part(c, cfg):
     """偵測規則部分:污染觸發(垃圾桶)、洗手、碰觸、NG4 規則。"""
     step, cams, hh, te = cfg["step_s"], cfg["cameras"], cfg["hand_hygiene"], cfg["trash_event"]
@@ -244,6 +274,7 @@ def rule_part(c, cfg):
         r["touch"] = None
     sink = {v: zone(v, hh["sink_zone"]) for v in ("Boutput1", "Boutput2")}
     r["ng4"], r["ng4_why"] = ng4_rule(cs, T, sink, step)
+    r["ng3"] = ng3_rule(cs, T)
     return r
 
 
@@ -319,6 +350,8 @@ def clip_row(c, cfg):
         row.update({f"vlm{thr}_{k}": x for k, x in d.items()})
         row[f"eat{thr}"] = vlm_flag(c, "eat", thr)[0]
         row[f"ng4vlm{thr}"] = vlm_flag(c, "ng4", thr)[0]
+    for g, x in r["ng3"].items():
+        row["ng3rule" + "_".join(map(str, g))] = x
     for (w, pp), x in r["ng4"].items():
         row[f"ng4rule{w}_{pp}"] = x
     for kind in PROMPTS:
@@ -336,6 +369,7 @@ DETECTORS = {
     "NG2_垃圾桶_base": ("NG2", "垃圾桶", [("frozen", "base_ng2")]),
     "NG2_沒洗手_vlm": ("NG2", "沒洗手", [(f"thr{t}", f"vlm{t}_ng2") for t in [0.5, 0.3, 0.7]]),
     "NG3_vlm": ("NG3", None, [(f"thr{t}", f"eat{t}") for t in GRID_VLM]),
+    "NG3_rule": ("NG3", None, [("h{}_f{}_fd{}_T{}".format(*g), "ng3rule" + "_".join(map(str, g))) for g in GRID_NG3]),
     "NG4_rule": ("NG4", None, [(f"w{w}_p{p}", f"ng4rule{w}_{p}") for w, p in GRID_NG4]),
     "NG4_vlm": ("NG4", None, [(f"thr{t}", f"ng4vlm{t}") for t in [0.5, 0.3, 0.7]]),
 }
