@@ -177,16 +177,18 @@ class Verdict:
 class HandHygieneFSM:
     """髒手期間:洗手累計 ≥ wash_s → 合格;洗手前碰到食材 / 器具 → 違規;都沒有 → 未解除。"""
 
-    def __init__(self, wash_s, step, classes):
+    def __init__(self, wash_s, step, classes, ignore_wash_s=0.0):
         self.need = max(1, int(round(wash_s / step)))
         self.classes = classes
+        self.ignore = int(round(ignore_wash_s / step))      # 碰觸前後這幾步內有洗手 → 視為洗手中,不算違規
 
     def run(self, dirty_from, wash, touch):
         washed = 0
+        near_wash = dilate(wash, self.ignore) if self.ignore else wash & False
         for i in range(max(dirty_from, 0), len(wash)):
             washed += int(wash[i])
             if washed >= self.need:
                 return Verdict("合格", dirty_from, i, wash_steps=washed)
-            if touch[i].any():
+            if touch[i].any() and not near_wash[i]:
                 return Verdict("違規", dirty_from, i, [self.classes[j] for j in np.flatnonzero(touch[i])], washed)
         return Verdict("未解除", dirty_from, None, wash_steps=washed)

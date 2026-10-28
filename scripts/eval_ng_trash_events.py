@@ -36,6 +36,7 @@ NG1_WASH_WITHIN_S = 5.0                 # 團隊 NG1:最後一次接觸後 5 秒
 EV_MATCH_S = 1.0                        # 觸發與標註區間相距 ≤ 1 秒才算這個事件的觸發
 TOOL_CLASSES = ("砧板", "容器")          # 「用工具倒 / 刮」:這些物件中心在垃圾桶區
 TOOL_THR, TOOL_FRAC = 0.4, 0.5
+IGNORE_WASH = (1.0, 0.5)                # §8.10 B:主設定 1.0
 
 
 def load_events():
@@ -106,12 +107,18 @@ def judge(e, cfg):
             k = f"{name}_{variant}"
             if not tr:
                 row.update({f"{k}_contam": 0, f"{k}_ng1": 0, f"{k}_ng2": 0})
+                if k == "base_all":
+                    row.update({f"base_iw{iw}_ng2": 0 for iw in IGNORE_WASH})
                 continue
             end = tr[-1][1]                                      # 事件內最後一次接觸
             dirty = end + grace
             washed5 = wash[dirty:end + int(NG1_WASH_WITHIN_S / step)].sum() >= fsm.need
             v = fsm.run(dirty, wash, touch)
             row.update({f"{k}_contam": 1, f"{k}_ng1": int(not washed5), f"{k}_ng2": int(v.result == "違規")})
+            if k == "base_all":                                  # §8.10 B:洗手中碰觸不計
+                for iw in IGNORE_WASH:
+                    f2 = HandHygieneFSM(hh["wash_s"], step, cfg["touch_classes"], ignore_wash_s=iw)
+                    row[f"base_iw{iw}_ng2"] = int(f2.run(dirty, wash, touch).result == "違規")
     row["tool_frac"] = round(float(tool[max(0, s_ev - m):e_ev + m].mean()), 2)
     return row
 
@@ -155,6 +162,12 @@ def main():
                     if subset == "全部":
                         print(f"  {k:12s} {gt:16s} R {m['R']:.2f} P {m['P']:.2f} F1 {m['F1']:.2f} "
                               f"({m['tp']}/{m['fp']}/{m['fn']})", flush=True)
+        for iw in IGNORE_WASH:
+            m = prf([dict(r, _gt=r["gt_ng2"]) for r in data], f"base_iw{iw}_ng2", "_gt")
+            summ.append(dict(subset=subset, trigger="base", variant=f"ignore_wash_{iw}", gt="NG2(=NG1-order)", n=len(data), **m))
+            if subset == "全部":
+                print(f"  base iw{iw}     NG2              R {m['R']:.2f} P {m['P']:.2f} F1 {m['F1']:.2f} "
+                      f"({m['tp']}/{m['fp']}/{m['fn']})", flush=True)
     E.write_csv("summary", summ)
 
 
