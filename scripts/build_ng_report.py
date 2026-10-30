@@ -15,11 +15,8 @@
 import argparse
 import csv
 import glob
-import shutil
-import subprocess
 import sys
-import tempfile
-from concurrent.futures import ThreadPoolExecutor
+from multiprocessing import Pool
 from pathlib import Path
 
 import numpy as np
@@ -75,6 +72,11 @@ def ng12():
         base = dict(event=k, key=e["key"], session=e["session"], note=e["note"], team_ng=e["ng"],
                     correction=x["correction"], ev_start=e["start"], ev_end=e["end"], w0=w0,
                     dur=e["dur"], sys_contact="", sys_wash_first="", sys_wash5_s="", sys_ng2_at=x["ng2_at"], sys_touched="")
+        T = r["T"]
+        contact = np.zeros(T, bool)
+        for s0, s1 in (r["trig_base"] or []):
+            contact[s0:s1] = True
+        dirty_arr, ng2_step = np.zeros(T, bool), None
         if tr:
             a, b = tr[0][0], tr[-1][1]
             base["sys_contact"] = f"{hms(tsec(a))}–{hms(tsec(b))}"
@@ -87,6 +89,16 @@ def ng12():
             v = HandHygieneFSM(hh["wash_s"], step, cfg["touch_classes"]).run(dirty, r["wash"], r["touch"])
             if v.result == "違規":
                 base["sys_touched"] = "、".join(v.touched)
+                ng2_step = v.at
+            acc, stop = 0, T                                         # 髒手:dirty 起,到洗手累計滿 wash_s
+            for i in range(dirty, T):
+                acc += int(r["wash"][i])
+                if acc >= int(round(hh["wash_s"] / step)):
+                    stop = i
+                    break
+            dirty_arr[dirty:stop] = True
+        base["_ov"] = dict(contact=contact, wash=np.asarray(r["wash"], bool), dirty=dirty_arr, ng2_step=ng2_step,
+                           touch=[[cfg["touch_classes"][j] for j in np.flatnonzero(r["touch"][i])] for i in range(T)])
         for ng in ("NG1", "NG2"):
             gt = x[f"gt_{ng.lower()}"]
             if gt == "":                                  # 團隊未回答 NG2 → 該類排除
@@ -132,6 +144,7 @@ def ng3():
                 continue
             out.append(dict(key=x["key"], session=x["session"], pid=x["pid"], team=x["ng"], cat_event=x["cat"],
                             note=x["note"], dur=float(x["dur_s"]), param=best[0], gt=int(y), pred=int(bool(p)),
+                            _param=next(g for g in E.GRID_NG3 if "h{}_f{}_fd{}_T{}".format(*g) == best[0]),
                             category=CAT[cat_of(y, p)]))
     return out
 
@@ -142,19 +155,20 @@ def ng3_source(key, view):
         a8 = key.split("_")[-1]
         for r in csv.DictReader(open(EV_DIR / "clips_index.csv", encoding="utf-8-sig")):
             if r["annotation_id"].startswith(a8) and r["view"] == view:
-                return EV_DIR / r["clip_file"], float(r["clip_start_sec"])
-        return None, 0
+                return EV_DIR / r["clip_file"], float(r["clip_start_sec"]), E.EV_CACHE / f"{Path(r['clip_file']).stem}.npz"
+        return None, 0, None
     s = {f'{x["session_id"].split("/")[1]}_{x["session_id"].split("/")[2]}_{x["no"]}': x
          for x in csv.DictReader(open(ROOT / "results/ng_clips/ng_clip_summary.csv", encoding="utf-8-sig"))}[key]
     t0 = float(s["clip_start_sec"])
+    cp = E.CACHE / key / f"{view}.npz"
     cut = ROOT / "data/ng_clips_cut" / key / f"{view}.mp4"
     if cut.exists():
-        return cut, t0
+        return cut, t0, cp
     for r in csv.DictReader(open(NG_DIR / "ng_clips_index.csv", encoding="utf-8-sig")):
         if (r["session_id"] == s["session_id"] and r["view"] == view and r["ng_type"] == s["ng_type"]
                 and abs(float(r["clip_start_sec"]) - t0) < 0.01):
-            return NG_DIR / "NG" / r["clip_file"], t0
-    return None, t0
+            return NG_DIR / "NG" / r["clip_file"], t0, cp
+    return None, t0, None
 
 
 # ── NG4 ──────────────────────────────────────────────────────────
@@ -167,6 +181,9 @@ def ng4():
     import eval_ng4_instances as N4
     wins = N4.windows([dict(session=t["session"], start=float(t["start"]), end=float(t["end"])) for t in truth])
     out = []
+    win_dets = {}
+    for d in dets:
+        win_dets.setdefault(d["window"], []).append((float(d["start"]), float(d["end"]), f'{d["kind"]}/{d["obj"]}'))
     for t in truth:
         w = next(w for w in wins if w["session"] == t["session"] and w["t0"] <= float(t["start"]) <= w["t0"] + w["dur"])
         hit = int(t[f"hit_{tag}"])
@@ -175,37 +192,19 @@ def ng4():
         out.append(dict(kind_row="團隊", session=t["session"], window=w["key"], t0=w["t0"], wdur=w["dur"],
                         ng4_kind=t["kind"], start=float(t["start"]), end=float(t["end"]),
                         desc=f'{t["reason"]}:{t["note"]}', gt=1, pred=hit, category=CAT["TP" if hit else "FN"],
-                        matched="、".join(f'{d["kind"]}/{d["obj"]} {d["start"]}–{d["end"]}' for d in m)))
+                        matched="、".join(f'{d["kind"]}/{d["obj"]} {d["start"]}–{d["end"]}' for d in m),
+                        _dets=win_dets.get(w["key"], [])))
     for d in dets:
         if d["match_any"] == "1":
             continue
         w = next(w for w in wins if w["key"] == d["window"])
         out.append(dict(kind_row="系統", session=w["session"], window=w["key"], t0=w["t0"], wdur=w["dur"],
                         ng4_kind=d["kind"], start=float(d["start"]), end=float(d["end"]), desc=f'物件 {d["obj"]}',
-                        gt=0, pred=1, category=CAT["FP"], matched=""))
+                        gt=0, pred=1, category=CAT["FP"], matched="", _dets=win_dets.get(w["key"], [])))
     return out
 
 
 # ── 影片 ─────────────────────────────────────────────────────────
-
-def render(job, tmp):
-    """job:dict(out, inputs=[(檔, 片段內起點秒)], dur, offset, label)。三個鏡頭並排 + 字幕(含原影片時間)。"""
-    out = Path(job["out"])                                  # 同名檔直接覆寫(ffmpeg -y)
-    out.parent.mkdir(parents=True, exist_ok=True)
-    lab = Path(tmp) / f"{abs(hash(str(out)))}.txt"
-    lab.write_text(job["label"] + f"\n影片時間 %{{pts:hms:{job['offset']:.2f}}}", encoding="utf-8")
-    cmd = ["ffmpeg", "-v", "error", "-y"]
-    for f, ss in job["inputs"]:
-        cmd += ["-ss", f"{max(0.0, ss):.2f}", "-t", f"{job['dur']:.2f}", "-i", str(f)]
-    n = len(job["inputs"])
-    fc = "".join(f"[{i}]scale=640:360,setsar=1[v{i}];" for i in range(n))
-    fc += "".join(f"[v{i}]" for i in range(n)) + f"hstack={n}[s];" if n > 1 else "[v0]copy[s];"
-    fc += f"[s]drawtext=fontfile=msjh.ttc:textfile={lab.name}:fontsize=22:fontcolor=yellow:borderw=2:x=10:y=10:line_spacing=6"
-    cmd += ["-filter_complex", fc, "-an", "-c:v", "libx264", "-preset", "veryfast", "-crf", "26", str(out)]
-    p = subprocess.run(cmd, cwd=tmp, capture_output=True, text=True)
-    if p.returncode:
-        print("失敗", out.name, p.stderr[-300:], flush=True)
-
 
 def write_csv(path, rows):
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -218,10 +217,16 @@ def write_csv(path, rows):
         w.writerows(rows)
 
 
+def zone(view, name):
+    return E.get_zone(E.INTEG / f"configs/zones/epfl_{view}.json", name)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--no-video", action="store_true")
     ap.add_argument("--only", nargs="*", help="只剪這些 NG 的片段(例:NG3)")
+    ap.add_argument("--first", type=int, default=0, help="只剪前 N 段(試跑)")
+    ap.add_argument("--workers", type=int, default=6)
     args = ap.parse_args()
     jobs = []
     r12 = ng12()
@@ -244,9 +249,12 @@ def main():
                      f"系統碰垃圾桶 {r['sys_contact'] or '無'} | 系統髒手後第一次洗手 {r['sys_wash_first'] or '無'}"
                      + (f"(5 秒內洗手 {r['sys_wash5_s']} 秒)" if r["sys_wash5_s"] != "" else "")
                      + (f" | 系統髒手碰觸 {hms(float(r['sys_ng2_at']))} {r['sys_touched']}" if r["sys_ng2_at"] else ""))
-            src = M.CUT / r["key"]
-            jobs.append(dict(out=OUT / r["video"], dur=dur, offset=r["w0"], label=label,
-                             inputs=[(src / f"{v}.mp4", 0) for v in ("output0", "Aoutput1", "Boutput1")]))
+            src, cdir = M.CUT / r["key"], M.CACHE / r["key"]
+            zn = {"output0": ["垃圾桶區"], "Aoutput1": ["垃圾桶區"], "Boutput1": ["洗手台"]}
+            jobs.append(dict(out=OUT / r["video"], n_frames=int(dur * FPS), start_frame=0, offset=r["w0"], label=label,
+                             kind="ng12", status=r["_ov"],
+                             views=[dict(name=v, video=src / f"{v}.mp4", cache=cdir / f"{v}.npz",
+                                         zones={z: zone(v, z) for z in zn[v]}) for v in zn]))
         write_csv(OUT / ng / "清單.csv", rows)
 
     r3 = ng3()
@@ -255,9 +263,9 @@ def main():
         r["video"] = f"NG3/{r['category']}/{name}"
         ins, off = [], 0
         for v in ("output0", "Aoutput1", "Aoutput2"):
-            f, t0 = ng3_source(r["key"], v)
-            if f is not None and f.exists():
-                ins.append((f, 0))
+            f, t0, cp = ng3_source(r["key"], v)
+            if f is not None and f.exists() and cp is not None and cp.exists():
+                ins.append(dict(name=v, video=f, cache=cp, zones={}))
                 off = t0
         r["video_views"] = len(ins)
         if not ins:
@@ -265,7 +273,9 @@ def main():
             continue
         label = (f"NG3 {r['category']} | {r['pid']} {r['cat_event']} {r['note']} | 團隊 {r['team']} → "
                  f"真值 {'有' if r['gt'] else '無'}NG3,系統(CV 參數 {r['param']}){'有' if r['pred'] else '無'}")
-        jobs.append(dict(out=OUT / r["video"], dur=r["dur"] + 0.5, offset=off, label=label, inputs=ins))
+        h, f_, fd, _ = r["_param"]
+        jobs.append(dict(out=OUT / r["video"], n_frames=int((r["dur"] + 0.5) * FPS), start_frame=0, offset=off,
+                         label=label, kind="ng3", views=ins, ng3_param=(h, f_, fd), thr={"人": 0.3, "手": h, "食材": fd}))
     write_csv(OUT / "NG3" / "清單.csv", r3)
 
     r4 = ng4()
@@ -278,9 +288,12 @@ def main():
         b = min(r["t0"] + r["wdur"], r["end"] + pad)
         label = (f"NG4 {r['category']} | {pid} {r['kind_row']}{r['ng4_kind']} {r['desc']}\n"
                  f"範圍 {hms(r['start'])}–{hms(r['end'])}" + (f" | 系統對到:{r['matched']}" if r["matched"] else ""))
-        src = ROOT / "data/ng4_win" / r["window"]
-        jobs.append(dict(out=OUT / r["video"], dur=b - a, offset=a, label=label,
-                         inputs=[(src / f"{v}.mp4", a - r["t0"]) for v in ("Aoutput1", "Aoutput2", "Boutput1")]))
+        src, cdir = ROOT / "data/ng4_win" / r["window"], ROOT / "results/det_cache/ng4_win_s3" / r["window"]
+        jobs.append(dict(out=OUT / r["video"], n_frames=int((b - a) * FPS), start_frame=int(round((a - r["t0"]) * FPS)),
+                         offset=r["t0"], label=label, kind="ng4", status=dict(dets=r["_dets"]),
+                         views=[dict(name=v, video=src / f"{v}.mp4", cache=cdir / f"{v}.npz",
+                                     zones={"洗手台": zone(v, "洗手台")} if v == "Boutput1" else {})
+                                for v in ("Aoutput1", "Aoutput2", "Boutput1")]))
     write_csv(OUT / "NG4" / "清單.csv", r4)
 
     for ng, rows in list(r12.items()) + [("NG3", r3), ("NG4", r4)]:
@@ -292,11 +305,15 @@ def main():
         return
     if args.only:
         jobs = [j for j in jobs if Path(j["out"]).relative_to(OUT).parts[0] in args.only]
-    tmp = tempfile.mkdtemp()
-    shutil.copy(FONT, Path(tmp) / "msjh.ttc")
-    with ThreadPoolExecutor(4) as ex:
-        list(ex.map(lambda j: render(j, tmp), jobs))
-    shutil.rmtree(tmp, ignore_errors=True)
+    if args.first:
+        jobs = jobs[:args.first]
+    for j in jobs:
+        Path(j["out"]).parent.mkdir(parents=True, exist_ok=True)
+    import ng_overlay
+    with Pool(args.workers) as pool:
+        for n, _ in enumerate(pool.imap_unordered(ng_overlay.render, jobs), 1):
+            if n % 20 == 0:
+                print(f"  片段 {n}/{len(jobs)}", flush=True)
     print("片段", len(jobs), "完成", flush=True)
 
 
