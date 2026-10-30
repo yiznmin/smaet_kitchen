@@ -7,6 +7,7 @@
 用法:
     python scripts/eval_ng_details.py
 """
+import argparse
 import csv
 import re
 import sys
@@ -23,6 +24,7 @@ import eval_ng_trash_events as M                                          # noqa
 from m6_events.violation import HandHygieneFSM, intervals                 # noqa: E402
 
 INST = Path("D:/yizhen/NG_clips/ng_instances.csv")
+ANSWER = ROOT / "results/m6/ng/details/team_questions_result.csv"     # §8.20 團隊回覆
 OUT = ROOT / "results/m6/ng/details"
 TOL_S, TOUCH_GAP_S, TOUCH_MIN_S = 1.0, 1.0, 0.3
 KINDS = {"接觸污染源": "contact", "洗手": "wash", "手接觸食材、餐具或廚具": "touch"}
@@ -59,6 +61,23 @@ def load_instances():
     return out
 
 
+def load_corrections(events):
+    """§8.20:團隊回覆 → {事件 8 碼: dict(ng1=0/1, ng2=0/1/None 表示排除, exclude=bool, note)}。"""
+    out = {}
+    for r in csv.DictReader(open(ANSWER, encoding="utf-8-sig")):
+        ans = list(r.values())[-1] or ""
+        a = sec(r["事件時間"].split("–")[0])
+        e = next(x for x in events if x["session"] == r["場次"] and abs(x["start"] - a) < 0.2)
+        k = e["key"][-8:]
+        if "略過" in ans:
+            out[k] = dict(exclude=True, note="略過")
+        elif "系統標對" in ans or "應為接觸汙染源" in ans:
+            out[k] = dict(ng1=1, ng2=None, note="團隊改 NG1 正例")
+        elif "應該是NG2" in ans:
+            out[k] = dict(ng2=1, note="團隊改 NG2 正例")
+    return out
+
+
 def touch_ivs(touch_any):
     gap, mn = int(round(TOUCH_GAP_S / 0.1)), int(round(TOUCH_MIN_S / 0.1))
     merged = []
@@ -83,11 +102,17 @@ def q(x):
 
 
 def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--corrected", action="store_true", help="§8.20:依團隊回覆修正真值、NG2 只算事件時間內")
+    args = ap.parse_args()
+    out_dir = OUT.parent / "details_corrected" if args.corrected else OUT
     cfg = yaml.safe_load((E.INTEG / "configs/violation_rules.yaml").read_text(encoding="utf-8"))
     step, hh = cfg["step_s"], cfg["hand_hygiene"]
     inst = load_instances()
     det_rows, extra_rows, ev_rows = [], [], []
-    for e in M.load_events():
+    events = M.load_events()
+    corr = load_corrections(events) if args.corrected else {}
+    for e in events:
         k = e["key"][-8:]
         c = dict(key=e["key"], caches={v: M.CACHE / e["key"] / f"{v}.npz" for v in M.VIEWS})
         r = E.rule_part(c, cfg)
@@ -123,6 +148,7 @@ def main():
         s_ev, e_ev = int((e["start"] - w0) / step), int((e["end"] - w0) / step)
         tr = [(s, x) for s, x in (r["trig_base"] or []) if s <= e_ev + 10 and x >= s_ev - 10]
         p1 = p2 = 0
+        at = ""
         if tr:
             end = tr[-1][1]
             dirty = end + int(round(hh["grace_s"] / step))
@@ -130,12 +156,29 @@ def main():
             p1 = int(r["wash"][dirty:end + int(M.NG1_WASH_WITHIN_S / step)].sum() < fsm.need)
             v = fsm.run(dirty, r["wash"], r["touch"])
             p2 = int(v.result == "違規" and tsec(v.at) <= scope_end + TOL_S)
-        ev_rows.append(dict(event=k, note=e["note"], team_ng=e["ng"], has_timeline=int(bool(info)),
-                            gt_ng1=info["ng1"] if info else 0, gt_ng1_ok=info["ng1_ok"] if info else 0,
-                            gt_ng2=info["ng2"] if info else 0, pred_ng1=p1, pred_ng2=p2, m3_train=e["m3_train"]))
+            at = round(tsec(v.at), 2) if v.result == "違規" else ""
+        row = dict(event=k, note=e["note"], team_ng=e["ng"], has_timeline=int(bool(info)),
+                   gt_ng1=info["ng1"] if info else 0, gt_ng1_ok=info["ng1_ok"] if info else 0,
+                   gt_ng2=info["ng2"] if info else 0, pred_ng1=p1, pred_ng2=p2, m3_train=e["m3_train"],
+                   ev_end=e["end"], ng2_at=at, correction="")
+        c = corr.get(k)
+        if c and c.get("exclude"):
+            continue
+        if c:
+            row["correction"] = c["note"]
+            if "ng1" in c:
+                row["gt_ng1"] = c["ng1"]
+            if "ng2" in c:
+                row["gt_ng2"] = c["ng2"]
+        if args.corrected:
+            # 團隊:NG2 只算事件時間內的碰觸(主分析容忍 1 秒;另報 0 秒、舊範圍)
+            row["pred_ng2_old"] = p2
+            row["pred_ng2_t0"] = int(at != "" and at <= e["end"])
+            row["pred_ng2"] = int(at != "" and at <= e["end"] + TOL_S)
+        ev_rows.append(row)
 
-    OUT.mkdir(parents=True, exist_ok=True)
-    E.OUT = OUT
+    out_dir.mkdir(parents=True, exist_ok=True)
+    E.OUT = out_dir
     E.write_csv("details", det_rows)
     E.write_csv("extra", extra_rows)
     E.write_csv("events", ev_rows)
@@ -152,17 +195,24 @@ def main():
         print(f"  {kind:8s} 團隊 {len(d):3d}  抓到 {k_:3d}(R {k_ / max(len(d), 1):.2f},{lo}–{hi})  "
               f"起點差 {tq}  範圍內多出 {n_extra}")
     print("B. NG1 / NG2 重算(53 個事件)")
-    for name, sub in (("全部", ev_rows), ("排除M3訓練場次", [x for x in ev_rows if not x["m3_train"]])):
-        for ng in ("ng1", "ng2"):
-            tp = sum(x[f"pred_{ng}"] and x[f"gt_{ng}"] for x in sub)
-            fp = sum(x[f"pred_{ng}"] and not x[f"gt_{ng}"] for x in sub)
-            fn = sum(x[f"gt_{ng}"] and not x[f"pred_{ng}"] for x in sub)
+    subsets = [("全部", ev_rows), ("排除M3訓練場次", [x for x in ev_rows if not x["m3_train"]])]
+    if args.corrected:
+        subsets.append(("排除031d4d5b", [x for x in ev_rows if x["event"] != "031d4d5b"]))
+    preds = [("ng1", "pred_ng1"), ("ng2", "pred_ng2")]
+    if args.corrected:
+        preds += [("ng2", "pred_ng2_t0"), ("ng2", "pred_ng2_old")]
+    for name, sub0 in subsets:
+        for ng, pk in preds:
+            sub = [x for x in sub0 if x[f"gt_{ng}"] is not None]
+            tp = sum(x[pk] and x[f"gt_{ng}"] for x in sub)
+            fp = sum(x[pk] and not x[f"gt_{ng}"] for x in sub)
+            fn = sum(x[f"gt_{ng}"] and not x[pk] for x in sub)
             R, P = tp / max(tp + fn, 1), tp / max(tp + fp, 1)
             (rl, rh), (pl, ph) = E.wilson(tp, tp + fn), E.wilson(tp, tp + fp)
-            summ.append(dict(part="B", item=f"{ng}_{name}", n=len(sub), hit=tp, R=round(R, 3), R_ci=f"{rl}-{rh}",
+            summ.append(dict(part="B", item=f"{pk}_{name}", n=len(sub), hit=tp, R=round(R, 3), R_ci=f"{rl}-{rh}",
                              P=round(P, 3), P_ci=f"{pl}-{ph}", fp=fp, fn=fn))
-            print(f"  {name} {ng.upper()}  TP {tp} FP {fp} FN {fn}  R {R:.2f}({rl}–{rh})  P {P:.2f}({pl}–{ph})")
-        ok = [x for x in sub if x["gt_ng1_ok"]]
+            print(f"  {name} {pk:13s} n {len(sub)}  TP {tp} FP {fp} FN {fn}  R {R:.2f}({rl}–{rh})  P {P:.2f}({pl}–{ph})")
+        ok = [x for x in sub0 if x["gt_ng1_ok"]]
         print(f"  {name} NG1 合格反例 {len(ok)} 個,系統判 NG1:{sum(x['pred_ng1'] for x in ok)}")
     E.write_csv("summary", summ)
 
