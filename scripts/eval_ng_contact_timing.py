@@ -7,6 +7,7 @@
 用法:
     python scripts/eval_ng_contact_timing.py
 """
+import argparse
 import copy
 import sys
 from pathlib import Path
@@ -28,6 +29,13 @@ GAP_S, MAX_S, NEAR_S = [0.5, 1.0, 2.0], [3, 5, 10, 15], 1.0
 BASE_MIN_S = 1.0
 EARLY = {"b4bc7660", "98426e2b", "00184e88", "cefcfc35", "3d339029", "ef2ab21d"}   # 團隊起點早 ≥ 2 秒
 NO_CONTACT = {"52fbe2c2", "1fe9866a"}                                       # 團隊回覆「手沒碰到」
+# §8.24:M3 認得的丟棄物(食材類),依團隊事件備註
+FOOD_KW = ("廚餘", "果皮", "籽", "子", "皮", "蛋殼")
+NONFOOD_KW = ("包裝", "衛生紙", "餐巾紙")
+
+
+def is_food(note):
+    return any(k in note for k in FOOD_KW) and not any(k in note for k in NONFOOD_KW)
 
 
 def prepare():
@@ -124,9 +132,18 @@ def summarize_b(rows):
 
 
 def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--subset", choices=["food"], help="§8.24:只留 M3 認得的丟棄物(食材類)")
+    args = ap.parse_args()
     cfg, evs = prepare()
-    E.OUT = OUT
-    OUT.mkdir(parents=True, exist_ok=True)
+    out = OUT
+    if args.subset == "food":
+        evs = [ev for ev in evs if is_food(ev["note"])]
+        out = OUT.parent / "contact_timing_food"
+        print(f"子集 food:{len(evs)} 個事件,有團隊時間軸 {sum(ev['team_start'] is not None for ev in evs)};"
+              f"早起點 {sorted(ev['event'] for ev in evs if ev['event'] in EARLY)}")
+    E.OUT = out
+    out.mkdir(parents=True, exist_ok=True)
     pids = sorted({ev["pid"] for ev in evs})
 
     # ── A. 時間門檻 ──
@@ -139,7 +156,8 @@ def main():
         print(f"  min_s {g['min_s']:>4}  NG1 {g['ng1_tp']}/{g['ng1_fp']}/{g['ng1_fn']} F1 {g['ng1_F1']:.3f}  "
               f"NG2 {g['ng2_tp']}/{g['ng2_fp']}/{g['ng2_fn']} F1 {g['ng2_F1']:.3f}  接觸R {g['contact_R']:.3f}  "
               f"手沒碰到仍判接觸 {g['no_contact_hit']}/2")
-    if (base["ng1_tp"], base["ng1_fp"], base["ng1_fn"], base["ng2_tp"], base["ng2_fp"], base["ng2_fn"]) != (26, 4, 5, 16, 5, 5):
+    if not args.subset and (base["ng1_tp"], base["ng1_fp"], base["ng1_fn"],
+                            base["ng2_tp"], base["ng2_fp"], base["ng2_fn"]) != (26, 4, 5, 16, 5, 5):
         print("!! min_s 1.0 與 §8.21 不一致,停止")
         return
 
