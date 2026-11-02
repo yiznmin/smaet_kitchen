@@ -41,6 +41,35 @@ def _touches(touch_any, start, stop, gap, mn):
     return [(s + start, e + start) for s, e in merged if e - s >= mn]
 
 
+def backtrack_contacts(contacts, food, near, gap, max_len):
+    """回推污染起點(§8.22):要丟的東西本身是污染源。
+
+    對每個垃圾桶接觸 (s, e):若 [s − near, s] 內手有碰食材,從最後一次碰觸往前延伸,
+    未碰觸連續 ≥ gap 步就停,最多回推 max_len 步。回推後重疊的接觸合併。單位皆為步。
+    """
+    out = []
+    for s, e in contacts:
+        lo = max(0, s - near)
+        hit = np.flatnonzero(food[lo:s + 1])
+        start = s
+        if len(hit):
+            j = lo + hit[-1]
+            start, miss = j, 0
+            for i in range(j, max(0, s - max_len) - 1, -1):
+                if food[i]:
+                    start, miss = i, 0
+                else:
+                    miss += 1
+                    if miss >= gap:
+                        break
+            start = min(start, s)
+        if out and start <= out[-1][1]:
+            out[-1] = (out[-1][0], max(out[-1][1], e))
+        else:
+            out.append((start, e))
+    return out
+
+
 def series(caches, cfg, root):
     """由各鏡頭 DetCache 算出規則需要的時間序列。caches:{鏡頭: DetCache};root:zone 路徑的基準(integrated/)。"""
     step, cams, hh, te = cfg["step_s"], cfg["cameras"], cfg["hand_hygiene"], cfg["trash_event"]
@@ -57,6 +86,11 @@ def series(caches, cfg, root):
                    for v in hh["close_cams"]], 0)
     side = side_series(caches[cams["overview"]], T, **cams["side_x"])
     touch = touch_series(caches, T, side, cams["close"], cfg["touch_classes"], cfg["association"])
+    bt = te.get("backtrack", {})
+    if bt.get("enable"):
+        k = lambda sec: int(round(sec / step))
+        food = touch[:, cfg["touch_classes"].index("食材")]
+        contacts = backtrack_contacts(contacts, food, k(bt["near_s"]), max(1, k(bt["gap_s"])), k(bt["max_s"]))
     return dict(T=T, contacts=contacts, wash=wash, touch=touch)
 
 

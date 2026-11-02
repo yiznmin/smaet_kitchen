@@ -44,6 +44,8 @@ trash_event:
   sync_s: 0.5
   smooth: [3, 2, 5]
   min_s: 1.0
+  # 回推污染起點(§8.22 / §8.23):手拿著要丟的食材 → 起點往前推;§8.23 未達採用條件,維持關閉
+  backtrack: {enable: false, near_s: 1.0, gap_s: 1.0, max_s: 10.0}
 
 # 洗手規則
 hand_hygiene:
