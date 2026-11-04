@@ -102,7 +102,14 @@ def wash_segments(raw_j, p, step):
     return [(s, e) for s, e in segs if sm[s:e].sum() >= k(p["wash_min_s"])]
 
 
-def _place_flags(v, i, name, base, p, prev=None):
+def _sink_dist(b, poly):
+    """框中心到洗手台多邊形的距離(像素;在多邊形內為負)。"""
+    import cv2
+    q = np.asarray(poly, np.float32).reshape(-1, 1, 2)
+    return np.array([-cv2.pointPolygonTest(q, (float(x), float(y)), True) for x, y in _ctr(b)])
+
+
+def _place_flags(v, i, name, base, p, prev=None, excl=None):
     """回傳 (在支撐物上, 在桌面, 這步的新框)。
 
     prev:前 still_s 秒那一步的新框;stationary_ok(§8.36)時,和 prev 幾乎重合(IoU ≥ still_iou)的框
@@ -112,6 +119,10 @@ def _place_flags(v, i, name, base, p, prev=None):
     b = _outside(b, v.sink)
     if len(b) and len(base):
         b = b[~(_iou(b, base) >= p["new_iou"]).any(1)]
+    if len(b) and v.sink is not None and p.get("sink_margin", 0) > 0:   # §8.42:水槽邊緣的不算放下
+        b = b[_sink_dist(b, v.sink) >= p["sink_margin"]]
+    if len(b) and excl is not None and len(excl):                       # §8.42:已放過的砧板 / 容器上的移動不算
+        b = b[~(ioa(b, excl) >= p["sup_ioa"]).any(1)]
     if not len(b):
         return False, False, b
     sup_ids = [NAME_TO_CLASS[n] for n in p["supports"]]
@@ -208,13 +219,16 @@ def find_puts_during(views, T, name, ws, we, p, step):
     cat = lambda v, r: (np.concatenate([_outside(v.get(i, name)[0], v.sink) for i in r]) if len(r)
                         else np.zeros((0, 4)))
     base = {vn: cat(v, range(max(0, ws - k(p["base_s"])), ws)) for vn, v in views.items()}
+    used = {vn: np.zeros((0, 4)) for vn in views}               # 已放過食材的砧板 / 容器框(lock_support)
+    sup_ids = [NAME_TO_CLASS[n] for n in p["supports"]]
     out, cur = [], lo
     while cur < hi - k(p["put_min_s"]) and len(out) < p.get("max_puts", 5):
         flags, boxes = {}, {}
         for vn, v in views.items():
             f, bx = [], []
             for i in range(cur, hi):
-                a, c, b = _place_flags(v, i, name, base[vn], p)
+                a, c, b = _place_flags(v, i, name, base[vn], p,
+                                       excl=used[vn] if p.get("lock_support") else None)
                 f.append((a, c))
                 bx.append(b)
             flags[vn], boxes[vn] = np.array(f, bool).reshape(-1, 2), bx
@@ -230,10 +244,17 @@ def find_puts_during(views, T, name, ws, we, p, step):
         place, sup, cnt = _judge(flags, t, p, step)
         out.append(dict(put=cur + t, place=place, sup_views=sup, counter_views=cnt))
         stop = t + off + k(p["judge_s"])
-        for vn in views:                                        # 這次放下的東西併入舊框,避免重複抓到
+        for vn, v in views.items():                             # 這次放下的東西併入舊框,避免重複抓到
             seen = [b for b in boxes[vn][t:stop] if len(b)]
             if seen:
                 base[vn] = np.concatenate([base[vn]] + seen)
+            if place == "砧板或容器" and seen and p.get("lock_support"):
+                fb = np.concatenate(seen)
+                for i in range(cur + t, min(T, cur + stop)):
+                    xy, cf, cl = at(v.c, v.idx, i)
+                    sb = xy[np.isin(cl, sup_ids) & (cf >= p["thr_obj"])]
+                    if len(sb):
+                        used[vn] = np.concatenate([used[vn], sb[(ioa(fb, sb) >= p["sup_ioa"]).any(0)]])
         cur = cur + stop
     return out
 
