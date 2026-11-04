@@ -218,7 +218,18 @@ def find_puts_during(views, T, name, ws, we, p, step):
     hi = min(T, last_start + k(p["put_min_s"]) + k(p["judge_s"]) + off)
     cat = lambda v, r: (np.concatenate([_outside(v.get(i, name)[0], v.sink) for i in r]) if len(r)
                         else np.zeros((0, 4)))
-    base = {vn: cat(v, range(max(0, ws - k(p["base_s"])), ws)) for vn, v in views.items()}
+    pre = k(p.get("pre_base_s", p["base_s"]))                 # §8.44:舊框看清洗前多久(拉長可減少偵測時有時無)
+    base = {vn: cat(v, range(max(0, ws - pre), ws)) for vn, v in views.items()}
+    hand_in = np.zeros(T, bool)                                  # §8.44:B 鏡頭手中心在洗手台(手還在水槽)
+    if p.get("hand_out"):
+        for v in views.values():
+            if v.sink is None:
+                continue
+            for i in range(lo, hi):
+                xy, cf, cl = at(v.c, v.idx, i)
+                h = xy[(cl == HAND) & (cf >= p["thr_hand"])]
+                if len(h) and in_poly(_ctr(h), v.sink).any():
+                    hand_in[i] = True
     used = {vn: np.zeros((0, 4)) for vn in views}               # 已放過食材的砧板 / 容器框(lock_support)
     sup_ids = [NAME_TO_CLASS[n] for n in p["supports"]]
     out, cur = [], lo
@@ -231,7 +242,11 @@ def find_puts_during(views, T, name, ws, we, p, step):
                                        excl=used[vn] if p.get("lock_support") else None)
                 f.append((a, c))
                 bx.append(b)
-            flags[vn], boxes[vn] = np.array(f, bool).reshape(-1, 2), bx
+            f = np.array(f, bool).reshape(-1, 2)
+            if p.get("hand_out"):                               # 清洗結束前:手還在水槽的時刻不算放下
+                busy = hand_in[cur:hi] & (np.arange(cur, hi) < we)
+                f[busy] = False
+            flags[vn], boxes[vn] = f, bx
         t = None
         for vn, f in flags.items():
             sm = hysteresis(f[:, 0] | f[:, 1], *p["smooth"])

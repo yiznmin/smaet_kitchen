@@ -4,7 +4,8 @@
 測試集:§8.34 D1 115 件;只看食材類事件。輸出 results/m6/ng/ng4_during2/(不進 git)
 
 用法:
-    python scripts/eval_ng4_during2.py
+    python scripts/eval_ng4_during2.py            # §8.42
+    python scripts/eval_ng4_during2.py --round3   # §8.44
 """
 import sys
 from pathlib import Path
@@ -21,6 +22,9 @@ from m6_events.ng4 import detect_ng4                                      # noqa
 OUT = ROOT / "results/m6/ng/ng4_during2"
 DET = ROOT / "results/m6/ng/ng4_detectable/per_candidate.csv"
 GRID = [dict(during_wash=True, sink_margin=m, lock_support=l) for m in (0, 30, 60) for l in (False, True)]
+if "--round3" in sys.argv:                                   # §8.44
+    GRID = [dict(during_wash=True, lock_support=True, pre_base_s=b, hand_out=h) for b in (1.0, 5.0) for h in (False, True)]
+    OUT = ROOT / "results/m6/ng/ng4_during3"
 
 
 def main():
