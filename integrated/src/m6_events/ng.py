@@ -8,7 +8,10 @@
   NG2:手在污染狀態下(接觸後、洗手前),每接觸一次食材 / 餐具 / 廚具算一次;
        範圍 = 最近一次接觸污染源開始 → 這次接觸結束。
 
-範圍外:手機、衛生紙、撿地上東西、擦地等污染源(M3 沒有類別);NG3(吃東西,規則不成立);NG4(樣本不足,未定案)。
+  NG4(NG4a):洗過的食材 / 廚具直接放桌面,範圍 = 清洗開始 → 放下;見 m6_events/ng4.py(設定 ng4 節)。
+
+範圍外:手機、衛生紙、撿地上東西、擦地等污染源(M3 沒有類別);NG3(吃東西,規則不成立);
+        NG4b(放桌面後未清洗即使用,§8.14 無鑑別力)。
 """
 from pathlib import Path
 
@@ -17,6 +20,7 @@ import numpy as np
 from m6_events.violation import (dilate, intervals, side_series, steps, touch_series, trash_intervals,
                                     zone_any_hand_series)
 from common.zones import get_zone
+from m6_events.ng4 import detect_ng4
 
 
 def _episodes(contacts, merge):
@@ -91,7 +95,13 @@ def series(caches, cfg, root):
         k = lambda sec: int(round(sec / step))
         food = touch[:, cfg["touch_classes"].index("食材")]
         contacts = backtrack_contacts(contacts, food, k(bt["near_s"]), max(1, k(bt["gap_s"])), k(bt["max_s"]))
-    return dict(T=T, contacts=contacts, wash=wash, touch=touch)
+    ng4 = []
+    if cfg.get("ng4", {}).get("enable"):
+        n4 = cfg["ng4"]
+        sinks = {v: zone(v, hh["sink_zone"]) for v in n4["sink_cams"]}
+        params = {k: v for k, v in n4.items() if k not in ("enable", "sink_cams")}
+        ng4 = [e for e in detect_ng4(caches, sinks, step, params) if e["ng4"]]
+    return dict(T=T, contacts=contacts, wash=wash, touch=touch, ng4=ng4)
 
 
 def detect_ng(s, cfg, t0=0.0):
@@ -125,4 +135,7 @@ def detect_ng(s, cfg, t0=0.0):
             cls = [cfg["touch_classes"][j] for j in np.flatnonzero(touch[ts:te_].any(0))]
             out.append(dict(type="NG2", start=sec(parts[-1][0]), end=sec(te_), touched=cls,
                             reason="手汙染狀態下接觸食材、餐具或廚具"))
+    for e in s.get("ng4", []):                                   # NG4a(series 內已算好,時間從 0 起)
+        out.append(dict(type="NG4", start=round(t0 + e["start"], 2), end=round(t0 + e["end"], 2), obj=e["obj"],
+                        place=e["place"], status=e["status"], reason=e["reason"]))
     return sorted(out, key=lambda x: (x["start"], x["type"]))

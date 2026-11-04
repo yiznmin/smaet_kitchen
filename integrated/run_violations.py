@@ -1,4 +1,4 @@
-"""M6 團隊 NG 準則判定(單人):讀各鏡頭 M3 全類別偵測快取 → NG1 / NG2 事件。
+"""M6 團隊 NG 準則判定(單人):讀各鏡頭 M3 全類別偵測快取 → NG1 / NG2 / NG4 事件。
 
     M3 偵測快取(每台一個 <鏡頭>.npz,stride 3 = 0.1 秒一步,全類別)→ 垃圾桶接觸 / 洗手 / 碰觸 → NG 事件
 
@@ -7,7 +7,7 @@ zone:configs/zones/epfl_<鏡頭>.json。需要的鏡頭:output0、Aoutput1~3、B
 說明見 src/m6_events/ng.py。
 
 輸出(--out 目錄):
-  ng_events.jsonl   每個 NG 一筆:type(NG1 / NG2)、start、end(秒)、reason、n_contacts 或 touched
+  ng_events.jsonl   每個 NG 一筆:type(NG1 / NG2 / NG4)、start、end(秒)、reason、n_contacts / touched / obj、place、status(NG4:確定 / 待確認)
   ng_summary.json   各類次數、輸入、設定(下游自檢用)
 
 用法:
