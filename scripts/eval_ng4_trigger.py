@@ -141,7 +141,7 @@ def main():
     print(f"\n輸出 {OUT}")
 
 
-if __name__ == "__main__" and "--round2" not in sys.argv:
+if __name__ == "__main__" and len(sys.argv) == 1:
     main()
 
 
@@ -208,3 +208,18 @@ def round2():
 
 if __name__ == "__main__" and "--round2" in sys.argv:
     round2()
+
+
+# ── §8.32 第 3 輪:判位置時間往後移 + 多數決 ───────────────────────────────
+WASH3 = [GRID2[3], GRID2[7], GRID2[1]]                       # 第 2 輪全資料 F1 前三名
+GRID3 = [dict(w, judge_offset_s=o, decide=d) for w in WASH3 for o in (0.0, 0.5, 1.0) for d in ("strict", "majority")]
+
+
+def round3():
+    global GRID2, OUT2
+    GRID2, OUT2 = GRID3, ROOT / "results/m6/ng/ng4_trigger_r3"
+    round2()
+
+
+if __name__ == "__main__" and "--round3" in sys.argv:
+    round3()

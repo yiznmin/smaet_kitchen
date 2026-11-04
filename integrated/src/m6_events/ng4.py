@@ -122,7 +122,8 @@ def _place_flags(v, i, name, base, p):
 def find_put(views, T, name, ws, we, p, step):
     """清洗 [ws, we) 之後的放下時間與位置;找不到回傳 None。"""
     k = lambda s: max(1, int(round(s / step)))
-    lo, hi = we, min(T, we + k(p["max_gap_s"]) + k(p["put_min_s"]) + k(p["judge_s"]))
+    lo, hi = we, min(T, we + k(p["max_gap_s"]) + k(p["put_min_s"]) + k(p["judge_s"])
+                     + int(round(p.get("judge_offset_s", 0.0) / step)))
     if hi - lo < k(p["put_min_s"]):
         return None
     flags = {}
@@ -141,13 +142,17 @@ def find_put(views, T, name, ws, we, p, step):
     if t is None:
         return None
     sup, cnt = [], []
+    off = int(round(p.get("judge_offset_s", 0.0) / step))      # §8.32:放下起點常早於真正放好,判位置往後移
     for vn, f in flags.items():
-        w = f[t:t + k(p["judge_s"])]
+        w = f[t + off:t + off + k(p["judge_s"])]
         if len(w) and w[:, 0].mean() >= p["vote"]:
             sup.append(vn)
         if len(w) and w[:, 1].mean() >= p["vote"]:
             cnt.append(vn)
-    place = "砧板或容器" if sup and not cnt else "桌面" if cnt and not sup else "無法判斷"
+    if p.get("decide", "strict") == "majority":                # §8.32:兩邊都有時比鏡頭數,同數才算無法判斷
+        place = "砧板或容器" if len(sup) > len(cnt) else "桌面" if len(cnt) > len(sup) else "無法判斷"
+    else:
+        place = "砧板或容器" if sup and not cnt else "桌面" if cnt and not sup else "無法判斷"
     return dict(put=lo + t, place=place, sup_views=sup, counter_views=cnt)
 
 
