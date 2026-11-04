@@ -179,6 +179,8 @@ def round2():
         cv_pairs += [(bool(pred[(best, c["id"])]), c["gt_id"] == 2) for c in use if c["id"][:6] == pid]
     cv = R.prf(cv_pairs)
     full = max(range(len(GRID2)), key=lambda gi: (grid_rows[gi]["F1"], -gi))
+    pd.DataFrame([dict(id=cid, grid=gi, pred=v) for (gi, cid), v in pred.items()]
+                 ).to_csv(OUT2 / "pred_test1.csv", index=False, encoding="utf-8-sig")
     pd.DataFrame(grid_rows).to_csv(OUT2 / "grid_test1.csv", index=False, encoding="utf-8-sig")
     pd.DataFrame(chosen).to_csv(OUT2 / "cv_chosen.csv", index=False, encoding="utf-8-sig")
     print(pd.DataFrame(grid_rows).to_string())
@@ -223,3 +225,28 @@ def round3():
 
 if __name__ == "__main__" and "--round3" in sys.argv:
     round3()
+
+
+# ── §8.36 第 4 輪:改放下偵測(手扶著的靜止框算放好、舊框只算清洗前就靜止的)──────────
+GRID4 = [dict(GRID3[3], put_min_s=pm, stationary_ok=so, base_mode=bm)
+         for pm in (0.5, 0.3) for so in (False, True) for bm in ("last", "static")]
+
+
+def round4():
+    global GRID2, OUT2
+    GRID2, OUT2 = GRID4, ROOT / "results/m6/ng/ng4_trigger_r4"
+    round2()
+    # 可偵測子集(§8.34 D1 / D2)
+    det = pd.read_csv(ROOT / "results/m6/ng/ng4_detectable/per_candidate.csv")
+    pr = pd.read_csv(OUT2 / "pred_test1.csv").merge(det[["id", "gt_id", "d1", "d2"]], on="id")
+    rows = []
+    for gi in range(len(GRID4)):
+        for name, col in (("D1", "d1"), ("D2", "d2")):
+            u = pr[(pr.grid == gi) & pr[col] & pr.gt_id.isin([1, 2])]
+            rows.append(dict(grid=gi, subset=name, **R.prf(list(zip(u.pred.astype(bool), u.gt_id == 2)))))
+    pd.DataFrame(rows).to_csv(OUT2 / "grid_detectable.csv", index=False, encoding="utf-8-sig")
+    print(pd.DataFrame(rows).to_string())
+
+
+if __name__ == "__main__" and "--round4" in sys.argv:
+    round4()

@@ -102,21 +102,37 @@ def wash_segments(raw_j, p, step):
     return [(s, e) for s, e in segs if sm[s:e].sum() >= k(p["wash_min_s"])]
 
 
-def _place_flags(v, i, name, base, p):
-    """回傳 (在支撐物上, 在桌面) 兩個布林。"""
+def _place_flags(v, i, name, base, p, prev=None):
+    """回傳 (在支撐物上, 在桌面, 這步的新框)。
+
+    prev:前 still_s 秒那一步的新框;stationary_ok(§8.36)時,和 prev 幾乎重合(IoU ≥ still_iou)的框
+    即使手還碰著也算「放好了」(手扶著 / 放下後手停在旁邊)。
+    """
     b, h, xy, cf, cl = v.get(i, name)
     b = _outside(b, v.sink)
     if len(b) and len(base):
         b = b[~(_iou(b, base) >= p["new_iou"]).any(1)]
     if not len(b):
-        return False, False
+        return False, False, b
     sup_ids = [NAME_TO_CLASS[n] for n in p["supports"]]
     s = xy[np.isin(cl, sup_ids) & (cf >= p["thr_obj"])]
     if name in p["supports"] and len(s):
         s = s[~(_iou(s, b) > 0.95).any(1)]                     # 支撐物類別本身:排除自己那個框
     on = (ioa(b, s) >= p["sup_ioa"]).any(1) if len(s) else np.zeros(len(b), bool)
     held = (ioa(b, h) > 0).any(1) if len(h) else np.zeros(len(b), bool)
-    return bool(on.any()), bool((~on & ~held).any())
+    if p.get("stationary_ok") and prev is not None and len(prev):
+        held &= ~(_iou(b, prev) >= p.get("still_iou", 0.8)).any(1)
+    return bool(on.any()), bool((~on & ~held).any()), b
+
+
+def _baseline(v, name, ws, we, p, k):
+    """舊框:清洗最後 base_s 秒洗手台外的框;base_mode = static(§8.36)時,只留清洗開始前也在同位置的框(靜止物)。"""
+    cat = lambda r: np.concatenate([_outside(v.get(i, name)[0], v.sink) for i in r]) if len(r) else np.zeros((0, 4))
+    base = cat(range(max(ws, we - k(p["base_s"])), we))
+    if p.get("base_mode", "last") == "static" and len(base):
+        pre = cat(range(max(0, ws - k(p["base_s"])), ws))
+        base = base[(_iou(base, pre) >= 0.5).any(1)] if len(pre) else base[:0]
+    return base
 
 
 def find_put(views, T, name, ws, we, p, step):
@@ -126,12 +142,15 @@ def find_put(views, T, name, ws, we, p, step):
                      + int(round(p.get("judge_offset_s", 0.0) / step)))
     if hi - lo < k(p["put_min_s"]):
         return None
-    flags = {}
+    flags, lag = {}, k(p.get("still_s", 0.5))
     for vn, v in views.items():
-        base = [_outside(v.get(i, name)[0], v.sink) for i in range(max(ws, we - k(p["base_s"])), we)]
-        base = np.concatenate(base) if base else np.zeros((0, 4))
-        f = np.array([_place_flags(v, i, name, base, p) for i in range(lo, hi)]).reshape(-1, 2)
-        flags[vn] = f
+        base = _baseline(v, name, ws, we, p, k)
+        f, boxes = [], []
+        for n, i in enumerate(range(lo, hi)):
+            a, c, b = _place_flags(v, i, name, base, p, boxes[n - lag] if n >= lag else None)
+            f.append((a, c))
+            boxes.append(b)
+        flags[vn] = np.array(f, bool).reshape(-1, 2)
     t = None
     for vn, f in flags.items():
         sm = hysteresis(f[:, 0] | f[:, 1], *p["smooth"])
