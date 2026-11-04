@@ -175,6 +175,69 @@ def find_put(views, T, name, ws, we, p, step):
     return dict(put=lo + t, place=place, sup_views=sup, counter_views=cnt)
 
 
+def _judge(flags, t, p, step):
+    """放下起點 t(相對 flags 的步)之後判位置。"""
+    k = lambda s: max(1, int(round(s / step)))
+    off = int(round(p.get("judge_offset_s", 0.0) / step))
+    sup, cnt = [], []
+    for vn, f in flags.items():
+        w = f[t + off:t + off + k(p["judge_s"])]
+        if len(w) and w[:, 0].mean() >= p["vote"]:
+            sup.append(vn)
+        if len(w) and w[:, 1].mean() >= p["vote"]:
+            cnt.append(vn)
+    if p.get("decide", "strict") == "majority":
+        place = "砧板或容器" if len(sup) > len(cnt) else "桌面" if len(cnt) > len(sup) else "無法判斷"
+    else:
+        place = "砧板或容器" if sup and not cnt else "桌面" if cnt and not sup else "無法判斷"
+    return place, sup, cnt
+
+
+def find_puts_during(views, T, name, ws, we, p, step):
+    """§8.40:清洗期間也找放下,一段清洗可有多次放下(連續洗好幾樣食材)。
+
+    - 從清洗開始 + wash_min_s 起找,直到清洗結束 + max_gap_s;
+    - 舊框 = 清洗開始前 base_s 秒洗手台外已有的框(清洗中才放下的都算新的);
+    - 找到一次放下後,把判位置窗口內看到的新框併入舊框,再往後找下一次(每段最多 max_puts 次)。
+    """
+    k = lambda s: max(1, int(round(s / step)))
+    off = int(round(p.get("judge_offset_s", 0.0) / step))
+    lo = min(T, ws + k(p["wash_min_s"]))
+    last_start = we + k(p["max_gap_s"])
+    hi = min(T, last_start + k(p["put_min_s"]) + k(p["judge_s"]) + off)
+    cat = lambda v, r: (np.concatenate([_outside(v.get(i, name)[0], v.sink) for i in r]) if len(r)
+                        else np.zeros((0, 4)))
+    base = {vn: cat(v, range(max(0, ws - k(p["base_s"])), ws)) for vn, v in views.items()}
+    out, cur = [], lo
+    while cur < hi - k(p["put_min_s"]) and len(out) < p.get("max_puts", 5):
+        flags, boxes = {}, {}
+        for vn, v in views.items():
+            f, bx = [], []
+            for i in range(cur, hi):
+                a, c, b = _place_flags(v, i, name, base[vn], p)
+                f.append((a, c))
+                bx.append(b)
+            flags[vn], boxes[vn] = np.array(f, bool).reshape(-1, 2), bx
+        t = None
+        for vn, f in flags.items():
+            sm = hysteresis(f[:, 0] | f[:, 1], *p["smooth"])
+            for s, e in intervals(sm):
+                if cur + s <= last_start and e - s >= k(p["put_min_s"]):
+                    t = s if t is None else min(t, s)
+                    break
+        if t is None:
+            break
+        place, sup, cnt = _judge(flags, t, p, step)
+        out.append(dict(put=cur + t, place=place, sup_views=sup, counter_views=cnt))
+        stop = t + off + k(p["judge_s"])
+        for vn in views:                                        # 這次放下的東西併入舊框,避免重複抓到
+            seen = [b for b in boxes[vn][t:stop] if len(b)]
+            if seen:
+                base[vn] = np.concatenate([base[vn]] + seen)
+        cur = cur + stop
+    return out
+
+
 def detect_ng4(caches, sinks, step=0.1, params=None, t0=0.0):
     """caches:{鏡頭: DetCache};sinks:{鏡頭: 洗手台多邊形}(沒有的鏡頭不用給)。
 
@@ -189,14 +252,17 @@ def detect_ng4(caches, sinks, step=0.1, params=None, t0=0.0):
     out = []
     for j, name in enumerate(p["objects"]):
         for ws, we in wash_segments(raw[:, j], p, step):
-            r = find_put(views, T, name, ws, we, p, step)
-            if r is None:
-                continue
-            ng = r["place"] != "砧板或容器"
-            out.append(dict(type="NG4", obj=name, start=sec(ws), wash_end=sec(we), put=sec(r["put"]),
-                            end=sec(r["put"] + k(p["put_min_s"])), place=r["place"], ng4=ng,
-                            status=("確定" if r["place"] == "桌面" else "待確認") if ng else "",
-                            sup_views="、".join(r["sup_views"]), counter_views="、".join(r["counter_views"]),
-                            reason="清洗後放桌面" if r["place"] == "桌面" else
-                            "清洗後放置位置無法判斷" if ng else "清洗後放砧板 / 容器(合格)"))
+            if p.get("during_wash"):                            # §8.40:清洗期間也找放下
+                puts = find_puts_during(views, T, name, ws, we, p, step)
+            else:
+                r = find_put(views, T, name, ws, we, p, step)
+                puts = [r] if r else []
+            for r in puts:
+                ng = r["place"] != "砧板或容器"
+                out.append(dict(type="NG4", obj=name, start=sec(ws), wash_end=sec(we), put=sec(r["put"]),
+                                end=sec(r["put"] + k(p["put_min_s"])), place=r["place"], ng4=ng,
+                                status=("確定" if r["place"] == "桌面" else "待確認") if ng else "",
+                                sup_views="、".join(r["sup_views"]), counter_views="、".join(r["counter_views"]),
+                                reason="清洗後放桌面" if r["place"] == "桌面" else
+                                "清洗後放置位置無法判斷" if ng else "清洗後放砧板 / 容器(合格)"))
     return sorted(out, key=lambda x: x["start"])
