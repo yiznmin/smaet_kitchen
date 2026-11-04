@@ -91,7 +91,8 @@ def wash_series(views, T, p):
 
 def wash_segments(raw_j, p, step):
     k = lambda s: max(1, int(round(s / step)))
-    sm = hysteresis(raw_j, *p["smooth"])
+    # wash_smooth = False(§8.30):M3 在水槽裡的食材框時有時無,不平滑、直接累計原始成立步數
+    sm = hysteresis(raw_j, *p["smooth"]) if p.get("wash_smooth", True) else np.asarray(raw_j, bool)
     segs = []
     for s, e in intervals(sm):
         if segs and s - segs[-1][1] < k(p["wash_gap_s"]):

@@ -141,5 +141,70 @@ def main():
     print(f"\n輸出 {OUT}")
 
 
-if __name__ == "__main__":
+if __name__ == "__main__" and "--round2" not in sys.argv:
     main()
+
+
+# ── §8.30 第 2 輪:放寬清洗 / 放下門檻,依受試者留一交叉驗證選參數 ──────────────
+GRID2 = [dict(wash_smooth=True, wash_min_s=1.0, wash_gap_s=1.0)] + \
+        [dict(wash_smooth=False, wash_min_s=m, wash_gap_s=g) for m in (0.3, 0.5) for g in (1.0, 3.0)]
+GRID2 = [dict(g, put_min_s=pm) for g in GRID2 for pm in (1.0, 0.5)]
+OUT2 = ROOT / "results/m6/ng/ng4_trigger_r2"
+
+
+def round2():
+    OUT2.mkdir(parents=True, exist_ok=True)
+    rows = R.load()
+    pred = {}                                                   # (格點序號, 候選) → 0/1
+    for n, c in enumerate(rows, 1):
+        t0 = max(0.0, c["wash_start"] - R.PRE_S)
+        cs = load(R.CACHE / c["id"])
+        for gi, g in enumerate(GRID2):
+            ev = detect_ng4(cs, SINK, STEP, params=dict(g, objects=["食材"]), t0=t0)
+            pred[(gi, c["id"])] = int(any(e["ng4"] for e in ev))
+        print(f"  [r2] {n}/{len(rows)} {c['id']}", flush=True)
+    use = [c for c in rows if c["gt_id"] in (1, 2)]
+    pids = sorted({c["id"][:6] for c in use})
+    grid_rows = []
+    for gi, g in enumerate(GRID2):
+        m = R.prf([(bool(pred[(gi, c["id"])]), c["gt_id"] == 2) for c in use])
+        grid_rows.append(dict(grid=gi, **g, **m))
+    # 留一受試者:在其餘受試者上選 F1 最高的格點(同分取序號小者),套到留下的受試者
+    cv_pairs, chosen = [], []
+    for pid in pids:
+        tr = [c for c in use if c["id"][:6] != pid]
+        f1 = [R.prf([(bool(pred[(gi, c["id"])]), c["gt_id"] == 2) for c in tr])["F1"] for gi in range(len(GRID2))]
+        best = int(np.argmax(f1))
+        chosen.append(dict(pid=pid, grid=best))
+        cv_pairs += [(bool(pred[(best, c["id"])]), c["gt_id"] == 2) for c in use if c["id"][:6] == pid]
+    cv = R.prf(cv_pairs)
+    full = max(range(len(GRID2)), key=lambda gi: (grid_rows[gi]["F1"], -gi))
+    pd.DataFrame(grid_rows).to_csv(OUT2 / "grid_test1.csv", index=False, encoding="utf-8-sig")
+    pd.DataFrame(chosen).to_csv(OUT2 / "cv_chosen.csv", index=False, encoding="utf-8-sig")
+    print(pd.DataFrame(grid_rows).to_string())
+    print(f"\nLOPO CV:{cv}\n全資料最佳格點 {full}:{GRID2[full]}")
+    # 測試 3:用全資料最佳格點(所有物件)
+    s3 = []
+    hours, ev_all = 0.0, []
+    for sn in sorted(os.listdir(FULL)):
+        cs = load(FULL / sn)
+        hours += cs["Boutput1"].meta["max_fid"] / 30 / 3600
+        obj_w, hand_w = wash_ann(sn)
+        ov = lambda e, A: bool(len(A)) and bool(((A[:, 0] - MATCH_S <= e["wash_end"]) &
+                                                 (A[:, 1] + MATCH_S >= e["start"])).any())
+        for e in detect_ng4(cs, SINK, STEP, params=GRID2[full]):
+            ev_all.append(dict(session=sn, **e, wash_obj_ann=int(ov(e, obj_w)), wash_hand_ann=int(ov(e, hand_w))))
+        print(f"  [r2-3] {sn}", flush=True)
+    d = pd.DataFrame(ev_all)
+    d.to_csv(OUT2 / "test3_events.csv", index=False, encoding="utf-8-sig")
+    ng = d[d.ng4]
+    s3 = dict(n=len(ng), per_hour=round(len(ng) / hours, 1), backed=round(ng.wash_obj_ann.mean(), 3),
+              hand_wash=round(ng.wash_hand_ann.mean(), 3))
+    summ = [dict(item="LOPO CV(測試 1)", **cv), dict(item=f"全資料最佳格點 {full}", **grid_rows[full]),
+            dict(item="測試 3(全資料最佳格點)", **s3)]
+    pd.DataFrame(summ).to_csv(OUT2 / "summary.csv", index=False, encoding="utf-8-sig")
+    print(f"測試 3:{s3}\n輸出 {OUT2}")
+
+
+if __name__ == "__main__" and "--round2" in sys.argv:
+    round2()
