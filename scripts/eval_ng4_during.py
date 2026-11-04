@@ -35,20 +35,20 @@ def main():
             continue
         t0 = max(0.0, c["wash_start"] - X.R.PRE_S)
         cs = X.load(X.R.CACHE / c["id"])
-        r = dict(id=c["id"], food=c["food"], gt=int(c["gt_id"] == 2))
+        r = dict(id=c["id"], food=c["food"], y=int(c["gt_id"] == 2))
         for name, p in arms.items():
             ev = detect_ng4(cs, X.SINK, X.STEP, params=p, t0=t0)
             r[f"{name}_pred"] = int(any(e["ng4"] for e in ev))
             r[f"{name}_n"] = len(ev)
             r[f"{name}_events"] = "、".join(f"{e['put']}秒 {e['place']}" for e in ev)
         rows.append(r)
-        print(f"  {c['id']} 真值 {r['gt']} 現行 {r['現行_pred']} 新 {r['清洗期間也找_pred']}", flush=True)
+        print(f"  {c['id']} 真值 {r['y']} 現行 {r['現行_pred']} 新 {r['清洗期間也找_pred']}", flush=True)
     d = pd.DataFrame(rows)
     d.to_csv(OUT / "per_candidate.csv", index=False, encoding="utf-8-sig")
-    summ = [dict(arm=a, **X.R.prf(list(zip(d[f"{a}_pred"].astype(bool), d.gt == 1)))) for a in arms]
+    summ = [dict(arm=a, **X.R.prf(list(zip(d[f"{a}_pred"].astype(bool), d.y == 1)))) for a in arms]
     flips = d[d["現行_pred"] != d["清洗期間也找_pred"]]
-    summ.append(dict(arm="改變的件數", n=len(flips), tp=int(((flips.清洗期間也找_pred == 1) & (flips.gt == 1)).sum()),
-                     fp=int(((flips.清洗期間也找_pred == 1) & (flips.gt == 0)).sum())))
+    summ.append(dict(arm="改變的件數", n=len(flips), tp=int(((flips.清洗期間也找_pred == 1) & (flips.y == 1)).sum()),
+                     fp=int(((flips.清洗期間也找_pred == 1) & (flips.y == 0)).sum())))
     s = pd.DataFrame(summ)
     s.to_csv(OUT / "summary.csv", index=False, encoding="utf-8-sig")
     print("\n" + s.to_string())
