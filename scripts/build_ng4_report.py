@@ -57,6 +57,7 @@ def main():
                            + (f"({e['status']})" if e["ng4"] else "(合格)") for e in ev) or "無清洗 → 放下事件"
         r = dict(id=c["id"], session=c["session"], food=c["food"], wash=f"{hms(c['wash_start'])}–{hms(c['wash_end'])}",
                  put_end=hms(c["put_end"]), review=GT_NAME.get(gt, gt), gt=int(gt == 2), pred=pred, category=cat,
+                 level=("確定" if any(e["status"] == "確定" for e in food) else "待確認") if pred else "",  # §8.56 回查先看確定
                  sys_food_events=len(food), sys_events=sys_txt, video="")
         if not cat.startswith("排除"):
             n += 1
@@ -76,7 +77,11 @@ def main():
                                     for v in VIDEO_VIEWS]))
         rows.append(r)
         print(f"  {c['id']} {cat}", flush=True)
-    write_csv(OUT / "清單.csv", rows)
+    order = {"確定": 0, "待確認": 1, "": 2}
+    write_csv(OUT / "清單.csv", sorted(rows, key=lambda r: (r["category"], order[r["level"]])))
+    lv = pd.DataFrame([r for r in rows if r["pred"] and not r["category"].startswith("排除")])
+    if len(lv):
+        print(lv.groupby(["level", "category"]).size().to_string(), flush=True)
     cnt = pd.Series([r["category"] for r in rows]).value_counts().to_dict()
     tp, fp, fn = cnt.get(CAT["TP"], 0), cnt.get(CAT["FP"], 0), cnt.get(CAT["FN"], 0)
     print(f"NG4 {cnt}  R {tp / max(tp + fn, 1):.3f}  P {tp / max(tp + fp, 1):.3f}", flush=True)
