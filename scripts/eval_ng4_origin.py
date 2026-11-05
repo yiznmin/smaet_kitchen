@@ -9,6 +9,7 @@
     python scripts/eval_ng4_origin.py --start   # §8.53
     python scripts/eval_ng4_origin.py --judge   # §8.56
     python scripts/eval_ng4_origin.py --visible # §8.59
+    python scripts/eval_ng4_origin.py --release # §8.61
 """
 import sys
 from pathlib import Path
@@ -26,6 +27,12 @@ OUT = ROOT / "results/m6/ng/ng4_origin"
 DET = ROOT / "results/m6/ng/ng4_detectable/per_candidate.csv"
 # 格點 0 = 現行(兩者都關)
 GRID = [dict(origin_s=o, sup_mem_s=m) for o in (0, 3, 5) for m in (0, 2, 5)]
+SINKS = X.SINK
+if "--release" in sys.argv:                                  # §8.61(基準 = §8.60 正式設定)
+    from common.zones import get_zone
+    OUT = ROOT / "results/m6/ng/ng4_release"
+    SINK_A = dict(X.SINK, **{v: get_zone(X.E.INTEG / f"configs/zones/epfl_{v}.json", "洗手台") for v in ("Aoutput1", "Aoutput2")})
+    GRID = [dict(_a_sink=a, release_s=r, wash_views=["Boutput1", "Boutput2"]) for a in (False, True) for r in (0, 1, 2)]
 if "--visible" in sys.argv:                                  # §8.59(基準 = §8.55 正式設定)
     OUT = ROOT / "results/m6/ng/ng4_visible"
     POT = ["砧板", "容器", "鍋子"]
@@ -55,7 +62,8 @@ def main():
         r = dict(id=c["id"], pid=c["id"][:6], food=c["food"], y=int(c["gt_id"] == 2))
         r["cur"] = int(any(e["ng4"] for e in detect_ng4(cs, X.SINK, X.STEP, params=cur, t0=t0)))
         for gi, g in enumerate(GRID):
-            ev = detect_ng4(cs, X.SINK, X.STEP, params=dict(cur, **g), t0=t0)
+            gg = {k: v for k, v in g.items() if not k.startswith("_")}
+            ev = detect_ng4(cs, SINK_A if g.get("_a_sink") else X.SINK, X.STEP, params=dict(cur, **gg), t0=t0)
             r[f"g{gi}"] = int(any(e["ng4"] for e in ev))
             r[f"g{gi}_n"] = len(ev)
         rows.append(r)
@@ -81,6 +89,7 @@ def main():
     pd.DataFrame(grid).to_csv(OUT / "grid.csv", index=False, encoding="utf-8-sig")
     pd.DataFrame(summ).to_csv(OUT / "summary.csv", index=False, encoding="utf-8-sig")
     print("\n" + pd.DataFrame(grid).to_string() + "\n\n" + pd.DataFrame(summ).to_string())
+    print("櫛瓜:", d[d.id == "YH2003_2023_06_02_09_20_42_ng003"][[f"g{i}" for i in range(len(GRID))]].to_dict("records"))
     ck = d[d.id == "YH2004_2023_07_06_08_59_27_ng002"]
     print("黃瓜:", ck[[f"g{i}" for i in range(len(GRID))]].to_dict("records"))
 

@@ -69,8 +69,8 @@ class _View:
 def wash_series(views, T, p):
     """[T, 物件類別] 原始清洗訊號(手拿著物件在水槽)。"""
     raw = np.zeros((T, len(p["objects"])), bool)
-    for v in views.values():
-        if v.sink is None:
+    for vn, v in views.items():
+        if v.sink is None or (p.get("wash_views") and vn not in p["wash_views"]):
             continue
         for i in range(T):
             xy, cf, cl = at(v.c, v.idx, i)
@@ -123,6 +123,19 @@ def _place_flags(v, i, name, base, p, prev=None, excl=None):
         b = b[_sink_dist(b, v.sink) >= p["sink_margin"]]
     if len(b) and excl is not None and len(excl):                       # §8.42:已放過的砧板 / 容器上的移動不算
         b = b[~(ioa(b, excl) >= p["sup_ioa"]).any(1)]
+    rel = int(round(p.get("release_s", 0) / 0.1))
+    if len(b) and rel > 0:                                              # §8.61:前 release_s 秒內手碰過這個位置(從手上放下)
+        w, hh = b[:, 2] - b[:, 0], b[:, 3] - b[:, 1]
+        bx = np.c_[b[:, 0] - 0.5 * w, b[:, 1] - 0.5 * hh, b[:, 2] + 0.5 * w, b[:, 3] + 0.5 * hh]
+        touched = np.zeros(len(b), bool)
+        for j in range(max(0, i - rel), i + 1):
+            xj, cj, lj = at(v.c, v.idx, j)
+            hj = xj[(lj == HAND) & (cj >= p["thr_hand"])]
+            if len(hj):
+                touched |= (ioa(bx, hj) > 0).any(1)
+            if touched.all():
+                break
+        b = b[touched]
     if not len(b):
         return False, False, b
     sup_ids = [NAME_TO_CLASS[n] for n in p["supports"]]
