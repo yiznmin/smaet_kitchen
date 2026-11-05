@@ -239,6 +239,88 @@ def clip_row2(c):
     return row
 
 
+# ── §8.84 第 3 輪:臉部位置記憶 + 手高過肩膀;真值排除「衛生紙擦鼻子」 ──────────
+OUT3 = ROOT / "results/m6/ng/ng3_face_r3"
+# (r, src, mem_s, above),第一組 = 第 2 輪預設(r0.5_either_any_T0.3)
+GRID3 = [(r, s, m, a) for m in (0.0, 1.0) for a in (False, True) for r in (0.5, 0.3) for s in ("either", "hand")]
+EXCL3 = "擦鼻子"                                          # 使用者決定(2026-11-05):衛生紙擦鼻子不算碰臉,排除不評估
+
+
+def tag3(g):
+    return "r{}_{}_m{}_{}".format(g[0], g[1], g[2], "above" if g[3] else "any")
+
+
+def face_series3(dc, pz, n):
+    """回傳 {(r, src, mem, above): bool[n]}。
+
+    mem:該幀找不到臉時,沿用前 mem 秒內最近一次的臉中心與肩寬(手遮住臉時鼻 / 眼關鍵點會消失);
+    above:手框中心 / 手腕要高於雙肩連線(y 較小)才算。
+    """
+    idx = steps(dc)
+    keys = {(g[0], s, g[2], g[3]) for g in GRID3 for s in ("hand", "wrist")}
+    out = {k: np.zeros(n, bool) for k in keys}
+    st, kp = pz["step"], pz["kp"]
+    last = []                                             # (步, 臉中心, 肩寬, 肩線 y)
+    for i in np.unique(st):
+        if i >= n:
+            continue
+        xy, cf, cl = at(dc, idx, int(i))
+        H = xy[(cl == HAND) & (cf >= HAND_THR2)]
+        faces, wrists = [], []
+        for k in kp[st == i]:
+            wr = k[[9, 10]][k[[9, 10], 2] >= KP_THR][:, :2]
+            wrists.append(wr)
+            head = k[:5][k[:5, 2] >= KP_THR]
+            if len(head) and k[5, 2] >= KP_THR and k[6, 2] >= KP_THR:
+                sw = np.linalg.norm(k[5, :2] - k[6, :2])
+                if sw >= 1:
+                    faces.append((head[:, :2].mean(0), sw, (k[5, 1] + k[6, 1]) / 2))
+        if faces:
+            last = [(i, *f) for f in faces]
+        wr_all = np.concatenate(wrists) if wrists else np.zeros((0, 2))
+        for mem in {g[2] for g in GRID3}:
+            use = faces if faces else [f[1:] for f in last if i - f[0] <= mem / STEP] if mem > 0 else []
+            for fc, sw, sy in use:
+                hc = np.c_[(H[:, 0] + H[:, 2]) / 2, (H[:, 1] + H[:, 3]) / 2] if len(H) else np.zeros((0, 2))
+                dh = (np.hypot(np.clip(fc[0], H[:, 0], H[:, 2]) - fc[0], np.clip(fc[1], H[:, 1], H[:, 3]) - fc[1])
+                      if len(H) else np.zeros(0))
+                dw = np.hypot(*(wr_all - fc).T) if len(wr_all) else np.zeros(0)
+                for (r, src, m, above) in keys:
+                    if m != mem:
+                        continue
+                    d, yy = (dh, hc[:, 1]) if src == "hand" else (dw, wr_all[:, 1])
+                    ok = d <= r * sw
+                    if above:
+                        ok &= yy < sy
+                    if ok.any():
+                        out[(r, src, m, above)][i:min(n, i + POSE_EVERY)] = True
+    return out
+
+
+def clip_row3(c):
+    gt = int(c["ng"] == "NG3" or (c["ng"] == "無NG" and c["cat"] == "吃東西"))
+    row = dict(key=c["key"], pid=c["pid"], ng=c["ng"], cat=c["cat"], note=c["note"], dur_s=c["dur"], y=gt)
+    vs = [v for v in POSE_VIEWS if v in c["caches"] and pose_path(c, v).exists()]
+    row["views"] = len(vs)
+    if not vs or EXCL3 in str(c["note"] or ""):
+        for g in GRID3:
+            row[tag3(g)] = None
+        return row
+    dcs = {v: DetCache(c["caches"][v]) for v in vs}
+    n = min(len(steps(x)[0]) for x in dcs.values())
+    fs = {v: face_series3(dcs[v], np.load(pose_path(c, v)), n) for v in vs}
+    for g in GRID3:
+        r, src, m, a = g
+        per = [fs[v][(r, "hand", m, a)] | fs[v][(r, "wrist", m, a)] if src == "either" else fs[v][(r, src, m, a)]
+               for v in vs]
+        k = touches(np.any(per, 0), 0.3)
+        row[tag3(g)] = int(bool(k))
+        row["n_" + tag3(g)] = len(k)
+        if g == GRID3[0]:
+            row["touch_s"] = ";".join(f"{x * STEP:.1f}-{y * STEP:.1f}" for x, y in k)
+    return row
+
+
 def prf(rows, col):
     v = [(bool(r[col]), bool(r["y"])) for r in rows if r[col] is not None]
     tp = sum(p and y for p, y in v)
@@ -260,6 +342,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--smoke", type=int, default=0)
     ap.add_argument("--pose", action="store_true", help="§8.49 第 2 輪:ViTPose 臉部定位")
+    ap.add_argument("--r3", action="store_true", help="§8.84 第 3 輪:臉部位置記憶 + 手高過肩膀")
     args = ap.parse_args()
     global OUT
     t0 = time.time()
@@ -267,7 +350,11 @@ def main():
              and not c["key"].startswith("ev_" + E.EXCLUDE[0])]
     if args.smoke:
         clips = clips[:args.smoke]
-    if args.pose:
+    if args.r3:
+        OUT = OUT3
+        run_pose(clips)
+        grid, row_fn, tag_fn = GRID3, clip_row3, tag3
+    elif args.pose:
         OUT = OUT2
         run_pose(clips)
         grid, row_fn, tag_fn = GRID2, clip_row2, tag2
