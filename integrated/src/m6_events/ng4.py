@@ -274,6 +274,10 @@ def _judge(flags, t, p, step):
             sup.append(vn)
         if len(w) and w[:, 1].mean() >= p["vote"]:
             cnt.append(vn)
+    if p.get("sup_any"):                                         # §8.69:任一鏡頭任一步在支撐物上就算合格
+        anys = [vn for vn, f in flags.items() if f[t + off:t + off + k(p["judge_s"])][:, 0].any()]
+        if anys:
+            return "砧板或容器", anys, cnt
     if p.get("decide", "strict") == "majority":
         place = "砧板或容器" if len(sup) > len(cnt) else "桌面" if len(cnt) > len(sup) else "無法判斷"
     else:

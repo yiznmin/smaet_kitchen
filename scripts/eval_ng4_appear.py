@@ -7,6 +7,7 @@
 用法:
     python scripts/eval_ng4_appear.py --build   # 先建直方圖快取
     python scripts/eval_ng4_appear.py
+    python scripts/eval_ng4_appear.py --supany  # §8.69
 """
 import sys
 from multiprocessing import Pool
@@ -31,6 +32,9 @@ DET = ROOT / "results/m6/ng/ng4_detectable/per_candidate.csv"
 FOOD, THR = NAME_TO_CLASS["食材"], 0.3
 # 格點 0 = 現行(兩者都關)
 GRID = [dict(app_dist=a, put_still_iou=s) for a in (0, 0.35, 0.5, 0.65) for s in (0, 0.5, 0.7)]
+if "--supany" in sys.argv:                                   # §8.69
+    OUT = ROOT / "results/m6/ng/ng4_supany"
+    GRID = [dict(sup_any=sa, judge_s=j, release_s=r) for sa in (False, True) for j in (1.5, 3.0) for r in (0, 2, 5)]
 
 
 def hist(crop):
