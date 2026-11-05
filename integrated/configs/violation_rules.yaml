@@ -77,7 +77,8 @@ ng4:
   enable: true
   objects: [食材, 刀具, 砧板, 鍋鏟, 鍋子, 容器]
   views: [Aoutput1, Aoutput2, Aoutput3, Boutput1, Boutput2]
-  sink_cams: [Boutput1, Boutput2]
+  sink_cams: [Boutput1, Boutput2, Aoutput1, Aoutput2]   # §8.77:A 鏡頭也有洗手台_NG4(排除水槽內還在洗的食材)
+  wash_views: [Boutput1, Boutput2]   # 清洗偵測仍只用 B 鏡頭
   sink_zone: 洗手台_NG4         # §8.65:使用者手框多邊形(洗手偵測仍用 hand_hygiene.sink_zone)
   wash_smooth: false           # 水槽內物件框斷續,不平滑、直接累計
   wash_min_s: 0.3
