@@ -220,13 +220,15 @@ def find_puts_during(views, T, name, ws, we, p, step):
     """
     k = lambda s: max(1, int(round(s / step)))
     off = int(round(p.get("judge_offset_s", 0.0) / step))
-    lo = min(T, ws + k(p["wash_min_s"]))
+    st = int(round(p.get("start_s", 0) / step))                 # §8.53:清洗開始的前 start_s 秒
+    lo = min(T, ws + max(k(p["wash_min_s"]), st if p.get("start_mode", "skip") == "skip" else 0))
     last_start = we + k(p["max_gap_s"])
     hi = min(T, last_start + k(p["put_min_s"]) + k(p["judge_s"]) + off)
     cat = lambda v, r: (np.concatenate([_outside(v.get(i, name)[0], v.sink) for i in r]) if len(r)
                         else np.zeros((0, 4)))
     pre = k(p.get("pre_base_s", p["base_s"]))                 # §8.44:舊框看清洗前多久(拉長可減少偵測時有時無)
-    base = {vn: cat(v, range(max(0, ws - pre), ws)) for vn, v in views.items()}
+    b_hi = min(T, ws + st) if p.get("start_mode") == "base" else ws   # base:前 start_s 秒看到的框也當舊框
+    base = {vn: cat(v, range(max(0, ws - pre), b_hi)) for vn, v in views.items()}
     hand_in = np.zeros(T, bool)                                  # §8.44:B 鏡頭手中心在洗手台(手還在水槽)
     org = int(round(p.get("origin_s", 0) / step))
     if p.get("hand_out") or org > 0:
