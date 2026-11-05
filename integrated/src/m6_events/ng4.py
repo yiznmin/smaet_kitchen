@@ -56,8 +56,9 @@ def _outside(b, poly):
 class _View:
     """單一鏡頭的逐步偵測存取。"""
 
-    def __init__(self, cache, sink, p):
+    def __init__(self, cache, sink, p, app=None):
         self.c, self.idx, self.sink, self.p = cache, steps(cache), sink, p
+        self.app, self.ref = app, None            # §8.67:{步: (食材框, 直方圖)};ref = 這段清洗的參考直方圖
 
     def get(self, i, cls_name):
         xy, cf, cl = at(self.c, self.idx, i)
@@ -136,6 +137,8 @@ def _place_flags(v, i, name, base, p, prev=None, excl=None):
             if touched.all():
                 break
         b = b[touched]
+    if len(b) and p.get("app_dist") and v.app is not None and v.ref is not None:   # §8.67:外觀要像剛洗的食材
+        b = b[_app_dist(v, i, b) <= p["app_dist"]]
     if not len(b):
         return False, False, b
     sup_ids = [NAME_TO_CLASS[n] for n in p["supports"]]
@@ -154,6 +157,50 @@ def _place_flags(v, i, name, base, p, prev=None, excl=None):
     if p.get("stationary_ok") and prev is not None and len(prev):
         held &= ~(_iou(b, prev) >= p.get("still_iou", 0.8)).any(1)
     return bool(on.any()), bool((~on & ~held).any()), b
+
+
+def _app_dist(v, i, b):
+    """§8.67:每個框與清洗參考直方圖的最小 Bhattacharyya 距離;查不到直方圖的框回傳 0(不過濾)。"""
+    d = np.zeros(len(b))
+    ent = v.app.get(i)
+    if ent is None or not len(ent[0]):
+        return d
+    bx, hs = ent
+    rr = np.sqrt(v.ref)
+    for n, x in enumerate(b):
+        m = np.abs(bx - x[:4]).max(1) < 0.5
+        if m.any():
+            bc = rr @ np.sqrt(hs[np.argmax(m)])
+            d[n] = np.sqrt(max(0.0, 1.0 - bc.max()))
+    return d
+
+
+def wash_ref(views, name, ws, we, p, max_n=200):
+    """§8.67:清洗期間水槽內、手拿著的食材框直方圖(B 鏡頭),當外觀參考集;沒有則回傳 None。"""
+    out = []
+    for vn, v in views.items():
+        if v.sink is None or v.app is None or (p.get("wash_views") and vn not in p["wash_views"]):
+            continue
+        for i in range(ws, we):
+            ent = v.app.get(i)
+            if ent is None or not len(ent[0]):
+                continue
+            b, h, *_ = v.get(i, name)
+            if not len(b) or not len(h):
+                continue
+            h = h[in_poly(_ctr(h), v.sink)]
+            b = b[in_poly(_ctr(b), v.sink)]
+            if not len(h) or not len(b):
+                continue
+            b = b[(ioa(b, h) > 0).any(1)]
+            for x in b:
+                m = np.abs(ent[0] - x[:4]).max(1) < 0.5
+                if m.any():
+                    out.append(ent[1][np.argmax(m)])
+    if not out:
+        return None
+    out = np.array(out)
+    return out[np.linspace(0, len(out) - 1, min(max_n, len(out))).astype(int)]
 
 
 def _baseline(v, name, ws, we, p, k):
@@ -285,6 +332,12 @@ def find_puts_during(views, T, name, ws, we, p, step):
                 f[busy] = False
             if org > 0:
                 f[~recent[cur:hi]] = False
+            if p.get("put_still_iou"):                          # §8.67:新框 0.5 秒前也在同位置才算放下
+                lag, stat = k(0.5), np.zeros(len(bx), bool)
+                for n in range(lag, len(bx)):
+                    if len(bx[n]) and len(bx[n - lag]):
+                        stat[n] = (_iou(bx[n], bx[n - lag]) >= p["put_still_iou"]).any()
+                f[~stat] = False
             flags[vn], boxes[vn] = f, bx
         t = None
         for vn, f in flags.items():
@@ -313,13 +366,14 @@ def find_puts_during(views, T, name, ws, we, p, step):
     return out
 
 
-def detect_ng4(caches, sinks, step=0.1, params=None, t0=0.0):
+def detect_ng4(caches, sinks, step=0.1, params=None, t0=0.0, apps=None):
     """caches:{鏡頭: DetCache};sinks:{鏡頭: 洗手台多邊形}(沒有的鏡頭不用給)。
+    apps(§8.67,選用):{鏡頭: {步: (食材框, 直方圖)}},給了且 params 有 app_dist 才做外觀比對。
 
     回傳每一次「清洗 → 放下」事件(含合格的),ng4 欄位表示是否違規;時間為秒(已加 t0)。
     """
     p = dict(DEFAULT, **(params or {}))
-    views = {v: _View(caches[v], sinks.get(v), p) for v in p["views"] if v in caches}
+    views = {v: _View(caches[v], sinks.get(v), p, (apps or {}).get(v)) for v in p["views"] if v in caches}
     T = min(len(steps(c.c)[0]) for c in views.values())
     raw = wash_series(views, T, p)
     k = lambda s: max(1, int(round(s / step)))
@@ -327,6 +381,10 @@ def detect_ng4(caches, sinks, step=0.1, params=None, t0=0.0):
     out = []
     for j, name in enumerate(p["objects"]):
         for ws, we in wash_segments(raw[:, j], p, step):
+            if p.get("app_dist") and apps:
+                ref = wash_ref(views, name, ws, we, p)
+                for v in views.values():
+                    v.ref = ref
             if p.get("during_wash"):                            # §8.40:清洗期間也找放下
                 puts = find_puts_during(views, T, name, ws, we, p, step)
             else:
