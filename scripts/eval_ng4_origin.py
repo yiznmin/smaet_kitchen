@@ -10,6 +10,7 @@
     python scripts/eval_ng4_origin.py --judge   # §8.56
     python scripts/eval_ng4_origin.py --visible # §8.59
     python scripts/eval_ng4_origin.py --release # §8.61
+    python scripts/eval_ng4_origin.py --userzone # §8.63
 """
 import sys
 from pathlib import Path
@@ -33,6 +34,14 @@ if "--release" in sys.argv:                                  # §8.61(基準 = �
     OUT = ROOT / "results/m6/ng/ng4_release"
     SINK_A = dict(X.SINK, **{v: get_zone(X.E.INTEG / f"configs/zones/epfl_{v}.json", "洗手台") for v in ("Aoutput1", "Aoutput2")})
     GRID = [dict(_a_sink=a, release_s=r, wash_views=["Boutput1", "Boutput2"]) for a in (False, True) for r in (0, 1, 2)]
+if "--userzone" in sys.argv:                                 # §8.63(基準 = §8.60 正式設定)
+    import json
+    OUT = ROOT / "results/m6/ng/ng4_userzone"
+    UZ = {v: np.array(p, np.int32) for v, p in json.loads(
+        (X.E.INTEG / "configs/zones/sink_user_20261105.json").read_text(encoding="utf-8"))["zones"].items()}
+    SINK_SETS = {0: X.SINK, 1: {v: UZ[v] for v in ("Boutput1", "Boutput2")},
+                 2: dict(X.SINK, Aoutput1=UZ["Aoutput1"], Aoutput2=UZ["Aoutput2"]), 3: dict(UZ)}
+    GRID = [dict(_sinks=k, wash_views=["Boutput1", "Boutput2"]) for k in range(4)]
 if "--visible" in sys.argv:                                  # §8.59(基準 = §8.55 正式設定)
     OUT = ROOT / "results/m6/ng/ng4_visible"
     POT = ["砧板", "容器", "鍋子"]
@@ -63,7 +72,8 @@ def main():
         r["cur"] = int(any(e["ng4"] for e in detect_ng4(cs, X.SINK, X.STEP, params=cur, t0=t0)))
         for gi, g in enumerate(GRID):
             gg = {k: v for k, v in g.items() if not k.startswith("_")}
-            ev = detect_ng4(cs, SINK_A if g.get("_a_sink") else X.SINK, X.STEP, params=dict(cur, **gg), t0=t0)
+            sk = SINK_SETS[g["_sinks"]] if "_sinks" in g else SINK_A if g.get("_a_sink") else X.SINK
+            ev = detect_ng4(cs, sk, X.STEP, params=dict(cur, **gg), t0=t0)
             r[f"g{gi}"] = int(any(e["ng4"] for e in ev))
             r[f"g{gi}_n"] = len(ev)
         rows.append(r)
