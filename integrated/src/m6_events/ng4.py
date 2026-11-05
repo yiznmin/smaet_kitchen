@@ -312,6 +312,20 @@ def find_puts_during(views, T, name, ws, we, p, step):
     pre = k(p.get("pre_base_s", p["base_s"]))                 # §8.44:舊框看清洗前多久(拉長可減少偵測時有時無)
     b_hi = min(T, ws + st) if p.get("start_mode") == "base" else ws   # base:前 start_s 秒看到的框也當舊框
     base = {vn: cat(v, range(max(0, ws - pre), b_hi)) for vn, v in views.items()}
+    gone = int(round(p.get("base_gone_s", 0) / step))
+    if gone > 0:                                                 # §8.82:清洗期間消失 ≥ base_gone_s 的舊框(被拿去洗)移出舊框名單
+        for vn, v in views.items():
+            b0 = base[vn]
+            if not len(b0):
+                continue
+            miss = np.zeros(len(b0), int)
+            run = np.zeros(len(b0), int)
+            for i in range(b_hi, min(T, we)):
+                cur_b = _outside(v.get(i, name)[0], v.sink)
+                seen = (_iou(b0, cur_b) >= p["new_iou"]).any(1) if len(cur_b) else np.zeros(len(b0), bool)
+                run = np.where(seen, 0, run + 1)
+                miss = np.maximum(miss, run)
+            base[vn] = b0[miss < gone]
     hand_in = np.zeros(T, bool)                                  # §8.44:B 鏡頭手中心在洗手台(手還在水槽)
     org = int(round(p.get("origin_s", 0) / step))
     if p.get("hand_out") or org > 0:
