@@ -11,6 +11,7 @@
     python scripts/eval_ng4_appear.py --suponly # §8.72
     python scripts/eval_ng4_appear.py --azone   # §8.75
     python scripts/eval_ng4_appear.py --azalign # §8.77
+    python scripts/eval_ng4_appear.py --dedup   # §8.79
 """
 import sys
 from multiprocessing import Pool
@@ -83,6 +84,9 @@ def a_sinks(base, up, cid=None):
     return out
 
 
+if "--dedup" in sys.argv:                                    # §8.79(基準 = §8.77 正式設定)
+    OUT = ROOT / "results/m6/ng/ng4_dedup"
+    GRID = [dict(sup_dedup_iou=x) for x in (0, 0.5, 0.6, 0.7)]
 if "--supany" in sys.argv:                                   # §8.69
     OUT = ROOT / "results/m6/ng/ng4_supany"
     GRID = [dict(sup_any=sa, judge_s=j, release_s=r) for sa in (False, True) for j in (1.5, 3.0) for r in (0, 2, 5)]

@@ -152,7 +152,10 @@ def _place_flags(v, i, name, base, p, prev=None, excl=None):
         s = np.concatenate(past)
     if name in p["supports"] and len(s):
         s = s[~(_iou(s, b) > 0.95).any(1)]                     # 支撐物類別本身:排除自己那個框
-    on = (ioa(b, s) >= p["sup_ioa"]).any(1) if len(s) else np.zeros(len(b), bool)
+    if len(s) and p.get("sup_dedup_iou"):                       # §8.79:和食材框幾乎重疊的支撐物框 = 同一個東西被認兩次,不算
+        on = ((ioa(b, s) >= p["sup_ioa"]) & (_iou(b, s) < p["sup_dedup_iou"])).any(1)
+    else:
+        on = (ioa(b, s) >= p["sup_ioa"]).any(1) if len(s) else np.zeros(len(b), bool)
     held = (ioa(b, h) > 0).any(1) if len(h) else np.zeros(len(b), bool)
     if p.get("stationary_ok") and prev is not None and len(prev):
         held &= ~(_iou(b, prev) >= p.get("still_iou", 0.8)).any(1)
