@@ -7,6 +7,7 @@
 用法:
     python scripts/eval_ng4_origin.py
     python scripts/eval_ng4_origin.py --start   # §8.53
+    python scripts/eval_ng4_origin.py --judge   # §8.56
 """
 import sys
 from pathlib import Path
@@ -24,6 +25,9 @@ OUT = ROOT / "results/m6/ng/ng4_origin"
 DET = ROOT / "results/m6/ng/ng4_detectable/per_candidate.csv"
 # 格點 0 = 現行(兩者都關)
 GRID = [dict(origin_s=o, sup_mem_s=m) for o in (0, 3, 5) for m in (0, 2, 5)]
+if "--judge" in sys.argv:                                    # §8.56(基準 = §8.55 正式設定)
+    OUT = ROOT / "results/m6/ng/ng4_judge"
+    GRID = [dict(judge_s=j, vote=v) for j in (1.5, 3.0, 5.0) for v in (0.5, 0.3, 0.15)]
 if "--start" in sys.argv:                                    # §8.53
     OUT = ROOT / "results/m6/ng/ng4_start"
     GRID = [dict(start_s=s, start_mode=md, sup_mem_s=m) for s, md in [(0, "skip"), (1, "skip"), (2, "skip"),
