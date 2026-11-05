@@ -10,6 +10,7 @@
     python scripts/eval_ng4_appear.py --supany  # §8.69
     python scripts/eval_ng4_appear.py --suponly # §8.72
     python scripts/eval_ng4_appear.py --azone   # §8.75
+    python scripts/eval_ng4_appear.py --azalign # §8.77
 """
 import sys
 from multiprocessing import Pool
@@ -38,7 +39,7 @@ if "--suponly" in sys.argv:                                  # §8.72(基準 = �
     OUT = ROOT / "results/m6/ng/ng4_suponly"
     GRID = [dict(sup_only_s=x) for x in (0, 0.1, 0.3, 0.5)]
 AZ = None
-if "--azone" in sys.argv:                                    # §8.75(基準 = §8.74 正式設定)
+if "--azone" in sys.argv or "--azalign" in sys.argv:                                    # §8.75(基準 = §8.74 正式設定)
     import json
     OUT = ROOT / "results/m6/ng/ng4_azone"
     AZ = {v: np.array(p, np.int32) for v, p in json.loads(
@@ -46,12 +47,37 @@ if "--azone" in sys.argv:                                    # §8.75(基準 = �
     GRID = [dict(_up=None)] + [dict(_up=u, wash_views=["Boutput1", "Boutput2"]) for u in (0, 30, 60, 100)]
 
 
-def a_sinks(base, up):
-    """§8.75:A 鏡頭洗手台 = 使用者多邊形往上延伸 up 像素(與平移後多邊形的凸包)。"""
+if "--azalign" in sys.argv:                                  # §8.77:逐片段影像對位
+    OUT = ROOT / "results/m6/ng/ng4_azalign"
+    GRID = [dict(_up=None)] + [dict(_up=u, _align=True, wash_views=["Boutput1", "Boutput2"]) for u in (0, 30, 60)]
+ALIGN = {}
+
+
+def align_poly(cid, v):
+    """§8.77:基準畫面(zone_draw/<鏡頭>_frame.png)對片段第 0 幀做 ORB 特徵比對 + 相似轉換,回傳轉換後的使用者多邊形。"""
+    key = (cid, v)
+    if key not in ALIGN:
+        ref = cv2.imread(str(ROOT / f"results/m6/ng/zone_draw/{v}_frame.png"), cv2.IMREAD_GRAYSCALE)
+        ok, fr = cv2.VideoCapture(str(ROOT / "data/ng4_ok_win" / cid / f"{v}.mp4")).read()
+        orb, bf = cv2.ORB_create(4000), cv2.BFMatcher(cv2.NORM_HAMMING)
+        k1, d1 = orb.detectAndCompute(ref, None)
+        k2, d2 = orb.detectAndCompute(cv2.cvtColor(fr, cv2.COLOR_BGR2GRAY), None)
+        m = [a for a, b in bf.knnMatch(d1, d2, k=2) if a.distance < 0.75 * b.distance]
+        M, inl = cv2.estimateAffinePartial2D(np.float32([k1[x.queryIdx].pt for x in m]),
+                                             np.float32([k2[x.trainIdx].pt for x in m]), method=cv2.RANSAC,
+                                             ransacReprojThreshold=4.0)
+        p = AZ[v].astype(np.float32)
+        ALIGN[key] = (cv2.transform(p.reshape(-1, 1, 2), M).reshape(-1, 2) if M is not None else p, int(inl.sum()) if M is not None else 0)
+    return ALIGN[key][0]
+
+
+def a_sinks(base, up, cid=None):
+    """§8.75:A 鏡頭洗手台 = 使用者多邊形往上延伸 up 像素(與平移後多邊形的凸包);§8.77 cid 給定時先逐片段對位。"""
     if up is None:
         return base
     out = dict(base)
-    for v, p in AZ.items():
+    for v, p0 in AZ.items():
+        p = align_poly(cid, v) if cid else p0
         q = np.vstack([p, p - [0, up]]).astype(np.int32)
         out[v] = cv2.convexHull(q).reshape(-1, 2)
     return out
@@ -143,13 +169,16 @@ def main():
         r["cur"] = int(any(e["ng4"] for e in detect_ng4(cs, sinks, X.STEP, params=cur, t0=t0)))
         for gi, g in enumerate(GRID):
             gg = {k: v for k, v in g.items() if not k.startswith("_")}
-            ev = detect_ng4(cs, a_sinks(sinks, g.get("_up")), X.STEP, params=dict(cur, **gg), t0=t0, apps=apps)
+            ev = detect_ng4(cs, a_sinks(sinks, g.get("_up"), c["id"] if g.get("_align") else None), X.STEP, params=dict(cur, **gg), t0=t0, apps=apps)
             r[f"g{gi}"] = int(any(e["ng4"] for e in ev))
             r[f"g{gi}_n"] = len(ev)
         rows.append(r)
         print(f"  {c['id']} 真值 {r['y']} 現行 {r['cur']} " + " ".join(str(r[f'g{i}']) for i in range(len(GRID))),
               flush=True)
     d = pd.DataFrame(rows)
+    if ALIGN:
+        pd.DataFrame([dict(id=k[0], view=k[1], inliers=v[1], poly=v[0].round(1).tolist()) for k, v in ALIGN.items()]).to_csv(
+            OUT / "align.csv", index=False, encoding="utf-8-sig")
     d.to_csv(OUT / "per_candidate.csv", index=False, encoding="utf-8-sig")
     prf = lambda sub, col: X.R.prf(list(zip(sub[col].astype(bool), sub.y == 1)))
     grid = [dict(grid=gi, **g, events_per_clip=round(d[f"g{gi}_n"].mean(), 2), **prf(d, f"g{gi}"))
