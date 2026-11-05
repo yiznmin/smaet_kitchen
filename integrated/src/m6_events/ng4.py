@@ -274,6 +274,12 @@ def _judge(flags, t, p, step):
             sup.append(vn)
         if len(w) and w[:, 1].mean() >= p["vote"]:
             cnt.append(vn)
+    so = int(round(p.get("sup_only_s", 0) / step))
+    if so > 0:                                                   # §8.72:有在支撐物上 ≥ sup_only_s、且沒有任何桌面證據 → 合格
+        ws_ = {vn: f[t + off:t + off + k(p["judge_s"])] for vn, f in flags.items()}
+        on_v = [vn for vn, w in ws_.items() if len(w) and w[:, 0].sum() >= so]
+        if on_v and not any(len(w) and w[:, 1].any() for w in ws_.values()):
+            return "砧板或容器", on_v, []
     if p.get("sup_any"):                                         # §8.69:任一鏡頭任一步在支撐物上就算合格
         anys = [vn for vn, f in flags.items() if f[t + off:t + off + k(p["judge_s"])][:, 0].any()]
         if anys:
