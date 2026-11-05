@@ -36,13 +36,14 @@ def main():
     ap.add_argument("--workers", type=int, default=6)
     args = ap.parse_args()
     cfg = yaml.safe_load((X.E.INTEG / "configs/violation_rules.yaml").read_text(encoding="utf-8"))["ng4"]
-    params = {k: v for k, v in cfg.items() if k not in ("enable", "sink_cams")}
+    params = {k: v for k, v in cfg.items() if k not in ("enable", "sink_cams", "sink_zone")}
+    sinks = {v: zone(v, cfg.get("sink_zone", "洗手台")) for v in cfg["sink_cams"]}     # §8.65:依設定的洗手台範圍
     det = pd.read_csv(DET).set_index("id")
     rows, jobs, n = [], [], 0
     for c in X.R.load():
         t0 = max(0.0, c["wash_start"] - X.R.PRE_S)
         cs = X.load(X.R.CACHE / c["id"])
-        ev = detect_ng4(cs, X.SINK, X.STEP, params=params, t0=t0)
+        ev = detect_ng4(cs, sinks, X.STEP, params=params, t0=t0)
         food = [e for e in ev if e["obj"] == "食材"]
         pred = int(any(e["ng4"] for e in food))
         gt = c["gt_id"]

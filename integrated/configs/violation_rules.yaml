@@ -78,6 +78,7 @@ ng4:
   objects: [食材, 刀具, 砧板, 鍋鏟, 鍋子, 容器]
   views: [Aoutput1, Aoutput2, Aoutput3, Boutput1, Boutput2]
   sink_cams: [Boutput1, Boutput2]
+  sink_zone: 洗手台_NG4         # §8.65:使用者手框多邊形(洗手偵測仍用 hand_hygiene.sink_zone)
   wash_smooth: false           # 水槽內物件框斷續,不平滑、直接累計
   wash_min_s: 0.3
   wash_gap_s: 1.0

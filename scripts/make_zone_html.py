@@ -124,13 +124,22 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("source")
     ap.add_argument("--frame", type=int, default=0)
+    ap.add_argument("--out", default=None, help="輸出 HTML 路徑(預設 results/m2/zone_annotator.html)")
+    ap.add_argument("--default-name", default="floor", help="完成區域時預設的名稱")
     args = ap.parse_args()
+    global OUT
+    if args.out:
+        OUT = (ROOT / args.out) if not Path(args.out).is_absolute() else Path(args.out)
 
     frame = None
-    for fid, ts, fr in iter_frames(args.source):
-        if fid >= args.frame:
-            frame = fr
-            break
+    if Path(args.source).suffix.lower() in (".png", ".jpg", ".jpeg"):      # 直接讀圖片(例:多場次中位數背景)
+        import numpy as np
+        frame = cv2.imdecode(np.fromfile(args.source, np.uint8), cv2.IMREAD_COLOR)
+    else:
+        for fid, ts, fr in iter_frames(args.source):
+            if fid >= args.frame:
+                frame = fr
+                break
     if frame is None:
         sys.exit(f"無法取得畫面:{args.source}")
     H, W = frame.shape[:2]
@@ -138,9 +147,9 @@ def main():
     src = "data:image/jpeg;base64," + base64.b64encode(buf.tobytes()).decode()
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    html = HTML.format(W=W, H=H, SRC='"' + src + '"', FRAME=args.frame)
+    html = HTML.format(W=W, H=H, SRC='"' + src + '"', FRAME=args.frame).replace('"floor");', f'"{args.default_name}");')
     OUT.write_text(html, encoding="utf-8")
-    print(f"已產生:{OUT.relative_to(ROOT).as_posix()}")
+    print(f"已產生:{OUT}")
     print("用瀏覽器打開它 → 滑鼠點多邊形 → 完成區域(命名 floor)→ 匯出 zones.json")
     print("匯出的 zones.json 會下載到你的『下載』資料夾,再搬到 configs/zones.json 即可")
 

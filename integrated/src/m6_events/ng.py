@@ -98,8 +98,8 @@ def series(caches, cfg, root):
     ng4 = []
     if cfg.get("ng4", {}).get("enable"):
         n4 = cfg["ng4"]
-        sinks = {v: zone(v, hh["sink_zone"]) for v in n4["sink_cams"]}
-        params = {k: v for k, v in n4.items() if k not in ("enable", "sink_cams")}
+        sinks = {v: zone(v, n4.get("sink_zone", hh["sink_zone"])) for v in n4["sink_cams"]}   # §8.65:NG4 用使用者手框範圍
+        params = {k: v for k, v in n4.items() if k not in ("enable", "sink_cams", "sink_zone")}
         ng4 = [e for e in detect_ng4(caches, sinks, step, params) if e["ng4"]]
     return dict(T=T, contacts=contacts, wash=wash, touch=touch, ng4=ng4)
 
