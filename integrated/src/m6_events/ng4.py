@@ -127,6 +127,13 @@ def _place_flags(v, i, name, base, p, prev=None, excl=None):
         return False, False, b
     sup_ids = [NAME_TO_CLASS[n] for n in p["supports"]]
     s = xy[np.isin(cl, sup_ids) & (cf >= p["thr_obj"])]
+    mem = int(round(p.get("sup_mem_s", 0) / 0.1))
+    if mem > 0:                                                          # §8.51:被擋住時沿用前幾秒的砧板 / 容器位置
+        past = [s]
+        for j in range(max(0, i - mem), i):
+            xj, cj, lj = at(v.c, v.idx, j)
+            past.append(xj[np.isin(lj, sup_ids) & (cj >= p["thr_obj"])])
+        s = np.concatenate(past)
     if name in p["supports"] and len(s):
         s = s[~(_iou(s, b) > 0.95).any(1)]                     # 支撐物類別本身:排除自己那個框
     on = (ioa(b, s) >= p["sup_ioa"]).any(1) if len(s) else np.zeros(len(b), bool)
@@ -221,15 +228,20 @@ def find_puts_during(views, T, name, ws, we, p, step):
     pre = k(p.get("pre_base_s", p["base_s"]))                 # §8.44:舊框看清洗前多久(拉長可減少偵測時有時無)
     base = {vn: cat(v, range(max(0, ws - pre), ws)) for vn, v in views.items()}
     hand_in = np.zeros(T, bool)                                  # §8.44:B 鏡頭手中心在洗手台(手還在水槽)
-    if p.get("hand_out"):
+    org = int(round(p.get("origin_s", 0) / step))
+    if p.get("hand_out") or org > 0:
         for v in views.values():
             if v.sink is None:
                 continue
-            for i in range(lo, hi):
+            for i in range(max(0, lo - org), hi):
                 xy, cf, cl = at(v.c, v.idx, i)
                 h = xy[(cl == HAND) & (cf >= p["thr_hand"])]
                 if len(h) and in_poly(_ctr(h), v.sink).any():
                     hand_in[i] = True
+    if org > 0:                                                  # §8.51:前 origin_s 秒內手在水槽,才算剛從水槽拿出來
+        c = np.concatenate([[0], np.cumsum(hand_in)])
+        ii = np.arange(T)
+        recent = (c[ii + 1] - c[np.maximum(0, ii - org)]) > 0
     used = {vn: np.zeros((0, 4)) for vn in views}               # 已放過食材的砧板 / 容器框(lock_support)
     sup_ids = [NAME_TO_CLASS[n] for n in p["supports"]]
     out, cur = [], lo
@@ -246,6 +258,8 @@ def find_puts_during(views, T, name, ws, we, p, step):
             if p.get("hand_out"):                               # 清洗結束前:手還在水槽的時刻不算放下
                 busy = hand_in[cur:hi] & (np.arange(cur, hi) < we)
                 f[busy] = False
+            if org > 0:
+                f[~recent[cur:hi]] = False
             flags[vn], boxes[vn] = f, bx
         t = None
         for vn, f in flags.items():
