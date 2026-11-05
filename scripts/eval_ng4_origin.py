@@ -8,6 +8,7 @@
     python scripts/eval_ng4_origin.py
     python scripts/eval_ng4_origin.py --start   # §8.53
     python scripts/eval_ng4_origin.py --judge   # §8.56
+    python scripts/eval_ng4_origin.py --visible # §8.59
 """
 import sys
 from pathlib import Path
@@ -25,6 +26,11 @@ OUT = ROOT / "results/m6/ng/ng4_origin"
 DET = ROOT / "results/m6/ng/ng4_detectable/per_candidate.csv"
 # 格點 0 = 現行(兩者都關)
 GRID = [dict(origin_s=o, sup_mem_s=m) for o in (0, 3, 5) for m in (0, 2, 5)]
+if "--visible" in sys.argv:                                  # §8.59(基準 = §8.55 正式設定)
+    OUT = ROOT / "results/m6/ng/ng4_visible"
+    POT = ["砧板", "容器", "鍋子"]
+    GRID = [dict(vote_base="window")] + [dict(vote_base="window", supports=POT)] + [
+        dict(vote_base="visible", min_vis_s=m, **({"supports": POT} if pot else {})) for m in (0.2, 0.5) for pot in (False, True)]
 if "--judge" in sys.argv:                                    # §8.56(基準 = §8.55 正式設定)
     OUT = ROOT / "results/m6/ng/ng4_judge"
     GRID = [dict(judge_s=j, vote=v) for j in (1.5, 3.0, 5.0) for v in (0.5, 0.3, 0.15)]

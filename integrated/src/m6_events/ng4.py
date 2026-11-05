@@ -182,6 +182,11 @@ def find_put(views, T, name, ws, we, p, step):
     off = int(round(p.get("judge_offset_s", 0.0) / step))      # §8.32:放下起點常早於真正放好,判位置往後移
     for vn, f in flags.items():
         w = f[t + off:t + off + k(p["judge_s"])]
+        if p.get("vote_base", "window") == "visible":           # §8.59:分母只算有看到新食材框的步數
+            vis = w[:, 0] | w[:, 1] if len(w) else w
+            if not len(w) or vis.sum() < k(p.get("min_vis_s", 0.2)):
+                continue
+            w = w[vis]
         if len(w) and w[:, 0].mean() >= p["vote"]:
             sup.append(vn)
         if len(w) and w[:, 1].mean() >= p["vote"]:
@@ -200,6 +205,11 @@ def _judge(flags, t, p, step):
     sup, cnt = [], []
     for vn, f in flags.items():
         w = f[t + off:t + off + k(p["judge_s"])]
+        if p.get("vote_base", "window") == "visible":           # §8.59:分母只算有看到新食材框的步數
+            vis = w[:, 0] | w[:, 1] if len(w) else w
+            if not len(w) or vis.sum() < k(p.get("min_vis_s", 0.2)):
+                continue
+            w = w[vis]
         if len(w) and w[:, 0].mean() >= p["vote"]:
             sup.append(vn)
         if len(w) and w[:, 1].mean() >= p["vote"]:
