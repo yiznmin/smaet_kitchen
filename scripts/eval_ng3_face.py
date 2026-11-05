@@ -9,6 +9,7 @@
 """
 import argparse
 import csv
+import os
 import sys
 import time
 from collections import Counter
@@ -86,6 +87,158 @@ def clip_row(c):
     return row
 
 
+# ── §8.49 第 2 輪:ViTPose 臉部定位 ─────────────────────────────────
+OUT2 = ROOT / "results/m6/ng/ng3_face_r2"
+POSE_EV = ROOT / "results/m7/events/pose"                 # 事件片段既有快取(M7 §9.2)
+POSE_NG = ROOT / "results/m6/ng/ng3_face/pose"            # NG 片段新算
+POSE_VIEWS = ("output0", "Aoutput1")
+POSE_MODEL = "usyd-community/vitpose-base-simple"
+POSE_EVERY = 2                                            # 每 2 步(0.2 秒)一幀
+KP_THR, HAND_THR2, BOTH_TOL = 0.3, 0.2, 5                 # 關鍵點分數、手框信心、both 容許 ±0.5 秒
+# (r, src, cams, T 秒),第一組 = 預設
+GRID2 = [(r, s, cm, t) for r in (0.5, 0.3, 0.8) for s in ("either", "hand", "wrist")
+         for cm in ("any", "both") for t in (0.3, 0.5)]
+
+
+def tag2(g):
+    return "r{}_{}_{}_T{}".format(*g)
+
+
+def pose_path(c, v):
+    if c["key"].startswith("ev_"):
+        return POSE_EV / f"{Path(c['caches'][v]).stem}.npz"
+    return POSE_NG / f"{c['key']}_{v}.npz"
+
+
+def short_path(p):
+    """OpenCV 在 Windows 開不了含中文的路徑:在同一磁碟建 ASCII 檔名的硬連結(不複製內容)。"""
+    p = Path(p)
+    if not p.exists() and (p.parent / "NG" / p.name).exists():   # 團隊片段已移到 NG/ 子資料夾
+        p = p.parent / "NG" / p.name
+    if str(p).isascii():
+        return str(p)
+    tmp = POSE_NG / "_tmp_link.mp4"
+    tmp.unlink(missing_ok=True)
+    os.link(p, tmp)
+    return str(tmp)
+
+
+def run_pose(clips):
+    """NG 片段缺的關鍵點快取用 ViTPose 補算(做法同 scripts/m7_event_pose.py)。"""
+    todo = [(c, v) for c in clips for v in POSE_VIEWS if v in c["caches"] and not pose_path(c, v).exists()]
+    print(f"ViTPose 待跑 {len(todo)} 支", flush=True)
+    if not todo:
+        return
+    import cv2
+    import torch
+    from transformers import AutoProcessor, VitPoseForPoseEstimation
+    proc = AutoProcessor.from_pretrained(POSE_MODEL)
+    model = VitPoseForPoseEstimation.from_pretrained(POSE_MODEL).to("cuda").eval()
+    POSE_NG.mkdir(parents=True, exist_ok=True)
+    t0 = time.time()
+    for n, (c, v) in enumerate(todo, 1):
+        dc = DetCache(c["caches"][v])
+        fids, lo, hi = steps(dc)
+        want = {int(fids[i]): i for i in range(0, len(fids), POSE_EVERY)}
+        cap = cv2.VideoCapture(short_path(c["files"][v]))
+        if not cap.isOpened():
+            raise RuntimeError(f"開不了影片:{c['files'][v]}")
+        rec_s, rec_b, rec_k, fid = [], [], [], 0
+        while want:
+            ok, f = cap.read()
+            if not ok:
+                break
+            i = want.pop(fid, None)
+            fid += 1
+            if i is None:
+                continue
+            cl, cf, xy = dc._cls[lo[i]:hi[i]], dc._conf[lo[i]:hi[i]], dc._xyxy[lo[i]:hi[i]].astype(float)
+            pb = xy[(cl == PERSON) & (cf >= 0.3)]
+            if not len(pb):
+                continue
+            xywh = np.c_[pb[:, :2], pb[:, 2:] - pb[:, :2]]
+            inp = proc(f[:, :, ::-1].copy(), boxes=[xywh], return_tensors="pt").to("cuda")
+            with torch.inference_mode():
+                out = model(**inp)
+            res = proc.post_process_pose_estimation(out, boxes=[xywh])[0]
+            for b, r in zip(pb, res):
+                rec_s.append(i)
+                rec_b.append(b)
+                rec_k.append(np.c_[r["keypoints"].cpu().numpy(), r["scores"].cpu().numpy()])
+        cap.release()
+        np.savez_compressed(pose_path(c, v), step=np.array(rec_s, np.int32),
+                            box=np.array(rec_b, np.float32).reshape(-1, 4),
+                            kp=np.array(rec_k, np.float32).reshape(-1, 17, 3))
+        if n % 20 == 0 or n == len(todo):
+            print(f"  ViTPose {n}/{len(todo)}  {time.time() - t0:.0f} 秒", flush=True)
+
+
+def face_series(dc, pz, n):
+    """回傳 {(r, src): bool[n]}:該步是否有手框 / 手腕在臉中心 r × 肩寬內。關鍵點每 0.2 秒一幀,下一步沿用。"""
+    idx = steps(dc)
+    out = {(r, s): np.zeros(n, bool) for r in {g[0] for g in GRID2} for s in ("hand", "wrist")}
+    st, kp = pz["step"], pz["kp"]
+    for i in np.unique(st):
+        if i >= n:
+            continue
+        K = kp[st == i]
+        xy, cf, cl = at(dc, idx, int(i))
+        H = xy[(cl == HAND) & (cf >= HAND_THR2)]
+        for k in K:
+            head = k[:5][k[:5, 2] >= KP_THR]
+            if not len(head) or k[5, 2] < KP_THR or k[6, 2] < KP_THR:
+                continue
+            fc, s = head[:, :2].mean(0), np.linalg.norm(k[5, :2] - k[6, :2])
+            if s < 1:
+                continue
+            dh = (np.hypot(np.clip(fc[0], H[:, 0], H[:, 2]) - fc[0], np.clip(fc[1], H[:, 1], H[:, 3]) - fc[1]).min()
+                  if len(H) else np.inf)
+            wr = k[[9, 10]][k[[9, 10], 2] >= KP_THR]
+            dw = np.hypot(*(wr[:, :2] - fc).T).min() if len(wr) else np.inf
+            for r in {g[0] for g in GRID2}:
+                for src, d in (("hand", dh), ("wrist", dw)):
+                    if d <= r * s:
+                        out[(r, src)][i:min(n, i + POSE_EVERY)] = True
+    return out
+
+
+def dilate(x, k):
+    if not x.any():
+        return x
+    c = np.concatenate([[0], np.cumsum(x.astype(int))])
+    i = np.arange(len(x))
+    return (c[np.minimum(len(x), i + k + 1)] - c[np.maximum(0, i - k)]) > 0   # 前後 k 步內有任一成立
+
+
+def clip_row2(c):
+    gt = int(c["ng"] == "NG3" or (c["ng"] == "無NG" and c["cat"] == "吃東西"))
+    row = dict(key=c["key"], pid=c["pid"], ng=c["ng"], cat=c["cat"], note=c["note"], dur_s=c["dur"], y=gt)
+    vs = [v for v in POSE_VIEWS if v in c["caches"] and pose_path(c, v).exists()]
+    row["views"] = len(vs)
+    if not vs:
+        for g in GRID2:
+            row[tag2(g)] = None
+        return row
+    dcs = {v: DetCache(c["caches"][v]) for v in vs}
+    n = min(len(steps(x)[0]) for x in dcs.values())
+    fs = {v: face_series(dcs[v], np.load(pose_path(c, v)), n) for v in vs}
+    for g in GRID2:
+        r, src, cm, T_s = g
+        per = [fs[v][(r, "hand")] | fs[v][(r, "wrist")] if src == "either" else fs[v][(r, src)] for v in vs]
+        if cm == "any":
+            raw = np.any(per, 0)
+        elif len(per) == 2:
+            raw = (per[0] & dilate(per[1], BOTH_TOL)) | (per[1] & dilate(per[0], BOTH_TOL))
+        else:
+            raw = np.zeros(n, bool)                       # both 需要兩台都在
+        k = touches(raw, T_s)
+        row[tag2(g)] = int(bool(k))
+        row["n_" + tag2(g)] = len(k)
+        if g == GRID2[0]:
+            row["touch_s"] = ";".join(f"{a * STEP:.1f}-{b * STEP:.1f}" for a, b in k)
+    return row
+
+
 def prf(rows, col):
     v = [(bool(r[col]), bool(r["y"])) for r in rows if r[col] is not None]
     tp = sum(p and y for p, y in v)
@@ -106,21 +259,29 @@ def write(name, data):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--smoke", type=int, default=0)
+    ap.add_argument("--pose", action="store_true", help="§8.49 第 2 輪:ViTPose 臉部定位")
     args = ap.parse_args()
+    global OUT
     t0 = time.time()
-    OUT.mkdir(parents=True, exist_ok=True)
     clips = [c for c in E.load_clips().values() if not c["key"].startswith(E.EXCLUDE)
              and not c["key"].startswith("ev_" + E.EXCLUDE[0])]
     if args.smoke:
         clips = clips[:args.smoke]
+    if args.pose:
+        OUT = OUT2
+        run_pose(clips)
+        grid, row_fn, tag_fn = GRID2, clip_row2, tag2
+    else:
+        grid, row_fn, tag_fn = GRID, clip_row, tag
+    OUT.mkdir(parents=True, exist_ok=True)
     print(f"片段 {len(clips)}:正例 {sum(c['ng'] == 'NG3' or c['cat'] == '吃東西' and c['ng'] == '無NG' for c in clips)}",
           flush=True)
     rows = []
     for i, c in enumerate(clips, 1):
-        rows.append(clip_row(c))
+        rows.append(row_fn(c))
         if i % 20 == 0:
             print(f"  {i}/{len(clips)}  {time.time() - t0:.0f} 秒", flush=True)
-    cols = [tag(g) for g in GRID]
+    cols = [tag_fn(g) for g in grid]
 
     # 參與者留一
     pids = sorted({r["pid"] for r in rows})
@@ -137,7 +298,7 @@ def main():
         folds.append(dict(pid=pid, chosen=best, n_pos=sum(r["y"] for r in te), **prf(te, best)))
     cv = prf(rows, "cv")
     summ = [dict(setting="LOPO", **cv,
-                 R_ci=tuple(map(float, E.wilson(cv["tp"], cv["tp"] + cv["fn"]))), P_ci=tuple(map(float, E.wilson(cv["tp"], cv["tp"] + cv["fp"]))))]
+                 R_ci=E.wilson(cv["tp"], cv["tp"] + cv["fn"]), P_ci=E.wilson(cv["tp"], cv["tp"] + cv["fp"]))]
     summ += [dict(setting=col, **prf(rows, col)) for col in cols]
     # 分項:正例來源的召回、反例各類的誤觸發
     for name, sel in (("正例_NG3片段", lambda r: r["ng"] == "NG3"),
