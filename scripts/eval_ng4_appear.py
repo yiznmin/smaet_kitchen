@@ -9,6 +9,7 @@
     python scripts/eval_ng4_appear.py
     python scripts/eval_ng4_appear.py --supany  # §8.69
     python scripts/eval_ng4_appear.py --suponly # §8.72
+    python scripts/eval_ng4_appear.py --azone   # §8.75
 """
 import sys
 from multiprocessing import Pool
@@ -36,6 +37,26 @@ GRID = [dict(app_dist=a, put_still_iou=s) for a in (0, 0.35, 0.5, 0.65) for s in
 if "--suponly" in sys.argv:                                  # §8.72(基準 = §8.71 正式設定)
     OUT = ROOT / "results/m6/ng/ng4_suponly"
     GRID = [dict(sup_only_s=x) for x in (0, 0.1, 0.3, 0.5)]
+AZ = None
+if "--azone" in sys.argv:                                    # §8.75(基準 = §8.74 正式設定)
+    import json
+    OUT = ROOT / "results/m6/ng/ng4_azone"
+    AZ = {v: np.array(p, np.int32) for v, p in json.loads(
+        (ROOT / "integrated/configs/zones/sink_user_A_20261105b.json").read_text(encoding="utf-8")).items()}
+    GRID = [dict(_up=None)] + [dict(_up=u, wash_views=["Boutput1", "Boutput2"]) for u in (0, 30, 60, 100)]
+
+
+def a_sinks(base, up):
+    """§8.75:A 鏡頭洗手台 = 使用者多邊形往上延伸 up 像素(與平移後多邊形的凸包)。"""
+    if up is None:
+        return base
+    out = dict(base)
+    for v, p in AZ.items():
+        q = np.vstack([p, p - [0, up]]).astype(np.int32)
+        out[v] = cv2.convexHull(q).reshape(-1, 2)
+    return out
+
+
 if "--supany" in sys.argv:                                   # §8.69
     OUT = ROOT / "results/m6/ng/ng4_supany"
     GRID = [dict(sup_any=sa, judge_s=j, release_s=r) for sa in (False, True) for j in (1.5, 3.0) for r in (0, 2, 5)]
@@ -121,7 +142,8 @@ def main():
         r = dict(id=c["id"], pid=c["id"][:6], food=c["food"], y=int(c["gt_id"] == 2))
         r["cur"] = int(any(e["ng4"] for e in detect_ng4(cs, sinks, X.STEP, params=cur, t0=t0)))
         for gi, g in enumerate(GRID):
-            ev = detect_ng4(cs, sinks, X.STEP, params=dict(cur, **g), t0=t0, apps=apps)
+            gg = {k: v for k, v in g.items() if not k.startswith("_")}
+            ev = detect_ng4(cs, a_sinks(sinks, g.get("_up")), X.STEP, params=dict(cur, **gg), t0=t0, apps=apps)
             r[f"g{gi}"] = int(any(e["ng4"] for e in ev))
             r[f"g{gi}_n"] = len(ev)
         rows.append(r)
