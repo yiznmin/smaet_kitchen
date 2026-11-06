@@ -10,6 +10,7 @@
 
 用法:
     python scripts/eval_ng12_per_contact.py
+    python scripts/eval_ng12_per_contact.py --user   # §8.87 套用使用者真值修正(多人排除、NG1 標錯改正例)
 """
 import csv
 import sys
@@ -25,6 +26,8 @@ import eval_ng_clips as E                                                 # noqa
 import eval_ng_trash_events as M                                          # noqa: E402
 
 OUT = ROOT / "results/m6/ng/ng12_per_contact"
+if "--user" in sys.argv:                                     # §8.87:套用使用者真值修正
+    OUT = ROOT / "results/m6/ng/ng12_per_contact_user"
 TOL_S = 1.0
 
 
@@ -44,12 +47,14 @@ def main():
     step = cfg["step_s"]
     res = {r["event"]: r for r in csv.DictReader(open(ROOT / "results/m6/ng/details_corrected/events.csv",
                                                        encoding="utf-8-sig"))}
+    ucorr = B.user_corrections() if "--user" in sys.argv else {}
     rows = []
     for e in M.load_events():
         k = e["key"].split("_")[-1]
-        if k not in res:
-            continue                                                  # 團隊建議略過
-        x = res[k]
+        u = ucorr.get(k, {})
+        if k not in res or u.get("exclude"):
+            continue                                                  # 團隊建議略過 / §8.87 多人畫面
+        x = B.apply_user(res[k], u)
         r = E.rule_part(dict(key=e["key"], caches={v: M.CACHE / e["key"] / f"{v}.npz" for v in M.VIEWS}), cfg)
         st = B.ng12_status(r, cfg, r["T"])
         w0 = e["f0"] / B.FPS

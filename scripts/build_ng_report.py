@@ -47,6 +47,24 @@ def cat_of(gt, pred):
 
 
 # ── NG1 / NG2 ────────────────────────────────────────────────────
+USER_CORR = ROOT / "results/m6/ng/details_corrected/user_corrections_20261106.csv"
+
+
+def user_corrections():
+    """§8.87:使用者回查的真值修正 → {事件 8 碼: dict(exclude, gt_ng1, note)}(多人畫面排除、NG1 標錯改正例)。"""
+    if not USER_CORR.exists():
+        return {}
+    return {r["event"]: r for r in csv.DictReader(open(USER_CORR, encoding="utf-8-sig"))}
+
+
+def apply_user(x, u):
+    """套用使用者修正到 details_corrected/events.csv 的一列;回傳新 dict。"""
+    x = dict(x)
+    if u.get("gt_ng1"):
+        x["gt_ng1"] = u["gt_ng1"]
+        x["correction"] = (x.get("correction") or "") + ("、" if x.get("correction") else "") + u["note"]
+    return x
+
 
 def window_preds(st, s_ev, e_ev, w0, ev_end, step, tol_s=1.0):
     """§8.86 事件層判定:事件範圍(±1 秒)內每一次接觸各自判 NG1 / NG2(逐次接觸,同正式偵測)。
@@ -116,16 +134,17 @@ def ng12():
                                                        encoding="utf-8-sig"))}
     events = M.load_events()
     corr = D.load_corrections(events)
+    ucorr = user_corrections()
     rows = {"NG1": [], "NG2": []}
     for e in events:
         k = e["key"][-8:]
-        c = corr.get(k, {})
-        if c.get("exclude"):
+        c, u = corr.get(k, {}), ucorr.get(k, {})
+        if c.get("exclude") or u.get("exclude"):
             for ng in rows:
                 rows[ng].append(dict(event=k, session=e["session"], note=e["note"], team_ng=e["ng"],
-                                     category="排除", correction="團隊建議略過"))
+                                     category="排除", correction=u["note"] if u.get("exclude") else "團隊建議略過"))
             continue
-        x = res[k]
+        x = apply_user(res[k], u)
         r = E.rule_part(dict(key=e["key"], caches={v: M.CACHE / e["key"] / f"{v}.npz" for v in M.VIEWS}), cfg)
         w0 = e["f0"] / FPS
         tsec = lambda i: w0 + i * step
