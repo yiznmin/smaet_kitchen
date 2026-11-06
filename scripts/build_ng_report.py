@@ -51,7 +51,7 @@ USER_CORR = ROOT / "results/m6/ng/details_corrected/user_corrections_20261106.cs
 
 
 def user_corrections():
-    """§8.87:使用者回查的真值修正 → {事件 8 碼: dict(exclude, gt_ng1, note)}(多人畫面排除、NG1 標錯改正例)。"""
+    """§8.87:使用者回查的真值修正 → {事件 8 碼: dict(exclude, gt_ng1, gt_ng2, note)}(多人畫面排除、NG1 標錯改正例)。"""
     if not USER_CORR.exists():
         return {}
     return {r["event"]: r for r in csv.DictReader(open(USER_CORR, encoding="utf-8-sig"))}
@@ -60,8 +60,10 @@ def user_corrections():
 def apply_user(x, u):
     """套用使用者修正到 details_corrected/events.csv 的一列;回傳新 dict。"""
     x = dict(x)
-    if u.get("gt_ng1"):
-        x["gt_ng1"] = u["gt_ng1"]
+    for col in ("gt_ng1", "gt_ng2"):
+        if u.get(col):
+            x[col] = u[col]
+    if u.get("gt_ng1") or u.get("gt_ng2"):
         x["correction"] = (x.get("correction") or "") + ("、" if x.get("correction") else "") + u["note"]
     return x
 
@@ -69,11 +71,13 @@ def apply_user(x, u):
 def window_preds(st, s_ev, e_ev, w0, ev_end, step, tol_s=1.0):
     """§8.86 事件層判定:事件範圍(±1 秒)內每一次接觸各自判 NG1 / NG2(逐次接觸,同正式偵測)。
 
-    NG2 的碰觸開始要 ≤ 事件結束 + tol_s(同 §8.21 主分析容忍)。回傳 (NG1 事件, NG2 事件)。
+    NG2 的碰觸開始要 ≤ 事件結束 + tol_s(§8.89 起 = grace_s + 1 秒)。回傳 (NG1 事件, NG2 事件)。
     """
     eps = {n for n, (a, b) in enumerate(st["eps"]) if a <= e_ev + 10 and b >= s_ev - 10}
     n1 = [ev for ev in st["events"] if ev["type"] == "NG1" and ev["ep"] in eps]
     n2 = [ev for ev in st["events"] if ev["type"] == "NG2" and ev["ep"] in eps and w0 + ev["at"] * step <= ev_end + tol_s]
+    for ev in n1 + n2:
+        ev["counted"] = True                             # 報告影片:未採計的違規另外加註
     return n1, n2, eps
 
 def ng12_status(r, cfg, T):
@@ -168,7 +172,8 @@ def ng12():
                 base["sys_touched"] = "、".join(v.touched)
         base["_ov"] = ng12_status(r, cfg, T)
         base["_ov"]["team"] = (s_ev, e_ev)
-        n1, n2, _ = window_preds(base["_ov"], s_ev, e_ev, w0, e["end"], step)   # §8.86 逐次接觸
+        n1, n2, _ = window_preds(base["_ov"], s_ev, e_ev, w0, e["end"], step,
+                              hh["grace_s"] + 1.0)                 # §8.86 逐次接觸;§8.89 容忍 grace_s + 1 秒
         preds = {"NG1": int(bool(n1)), "NG2": int(bool(n2))}
         base["sys_ng2_at"] = round(tsec(n2[0]["at"]), 2) if n2 else ""
         for ng in ("NG1", "NG2"):

@@ -28,7 +28,7 @@ import eval_ng_trash_events as M                                          # noqa
 OUT = ROOT / "results/m6/ng/ng12_per_contact"
 if "--user" in sys.argv:                                     # §8.87:套用使用者真值修正
     OUT = ROOT / "results/m6/ng/ng12_per_contact_user"
-TOL_S = 1.0
+TOL_S = 1.0                                                  # §8.89 起實際容忍 = grace_s + TOL_S
 
 
 def prf(y, p):
@@ -59,7 +59,7 @@ def main():
         st = B.ng12_status(r, cfg, r["T"])
         w0 = e["f0"] / B.FPS
         s_ev, e_ev = int((e["start"] - w0) / step), int((e["end"] - w0) / step)
-        n1, n2, eps = B.window_preds(st, s_ev, e_ev, w0, e["end"], step, TOL_S)
+        n1, n2, eps = B.window_preds(st, s_ev, e_ev, w0, e["end"], step, cfg["hand_hygiene"]["grace_s"] + TOL_S)
         rows.append(dict(event=k, key=e["key"], note=e["note"], team_ng=e["ng"], n_contacts=len(eps),
                          gt_ng1=x["gt_ng1"], old_ng1=int(x["pred_ng1"]), new_ng1=int(bool(n1)),
                          gt_ng2=x["gt_ng2"], old_ng2=int(x["pred_ng2"]), new_ng2=int(bool(n2)),

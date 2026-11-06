@@ -173,7 +173,7 @@ def ng12_lines(st, i, t_of):
         cnt, parts = {}, []
         for e in done:
             cnt[e["type"]] = cnt.get(e["type"], 0) + 1
-            parts.append(f"{e['type']} #{cnt[e['type']]} {hms(t_of(e['at']))} {e['text']}")
+            parts.append(f"{e['type']} #{cnt[e['type']]} {hms(t_of(e['at']))} {e['text']}" + ("" if e.get("counted") else "(不採計)"))
         l5 = ("違規紀錄:" + "  /  ".join(parts[-4:]) + (f"(共 {len(done)} 筆)" if len(done) > 4 else ""), (255, 60, 60))
     else:
         l5 = ("違規紀錄:無", (180, 180, 180))
@@ -273,7 +273,8 @@ def render(job):
             alert = [e for e in st["events"] if e["at"] <= i < e["at"] + int(2.0 * FPS / STRIDE)]
             if alert:
                 cv2.rectangle(body, (0, 0), (width - 1, H - 1), (0, 0, 255), 12)
-                bn = banner("  ".join(f"{e['type']} 違規:{e['text']}" for e in alert))
+                bn = banner("  ".join(f"{e['type']} 違規:{e['text']}" + ("" if e.get("counted") else "(團隊範圍外,不採計)")
+                                      for e in alert))
                 paste_at(body, bn, H // 2 - bn.shape[0] // 2, max(0, (width - bn.shape[1]) // 2))
             elif st["wash"][i]:
                 cv2.rectangle(body, (0, 0), (width - 1, H - 1), (255, 128, 0), 6)
