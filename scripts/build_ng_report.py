@@ -27,7 +27,8 @@ sys.path.insert(0, str(ROOT / "scripts"))
 import eval_ng_clips as E                                                 # noqa: E402
 import eval_ng_details as D                                               # noqa: E402
 import eval_ng_trash_events as M                                          # noqa: E402
-from m6_events.violation import HandHygieneFSM, intervals                 # noqa: E402
+from m6_events.ng import _episodes, _touches, detect_ng                   # noqa: E402
+from m6_events.violation import HandHygieneFSM, dilate, intervals         # noqa: E402
 
 OUT = ROOT / "results/m6/ng/report"
 FPS = 30
@@ -46,6 +47,57 @@ def cat_of(gt, pred):
 
 
 # ── NG1 / NG2 ────────────────────────────────────────────────────
+
+def ng12_status(r, cfg, T):
+    """影片畫面用的逐步狀態:每次接觸垃圾桶各自計算(邏輯同 m6_events.ng.detect_ng,判定不變)。
+
+    顯示上「髒手」從接觸開始;接觸期間與結束後 grace_s 秒內是緩衝期間(碰觸不計 NG2,同正式規則)。
+    NG1 觸發點 = 接觸結束後 ng1_wash_within_s 秒期限到仍未洗滿;NG2 觸發點 = 髒手期間該次碰觸開始。
+    """
+    step, hh, ng = cfg["step_s"], cfg["hand_hygiene"], cfg["ng"]
+    k = lambda sec: int(round(sec / step))
+    need, grace = max(1, k(hh["wash_s"])), k(hh["grace_s"])
+    wash, touch = np.asarray(r["wash"], bool), r["touch"]
+    contacts = r["trig_base"] or []
+    near_wash = dilate(wash, k(ng["ignore_wash_s"])) if ng["ignore_wash_s"] > 0 else np.zeros(T, bool)
+    nan = lambda: np.full(T, np.nan)
+    st = dict(contact=np.zeros(T, bool), dirty=np.zeros(T, bool), grace=np.zeros(T, bool), cleared=np.zeros(T, bool),
+              since=nan(), wash_acc=nan(), ng1_left=nan(), ep=np.full(T, -1), eps=[], events=[], wash=wash,
+              need_s=hh["wash_s"], touch=[[cfg["touch_classes"][j] for j in np.flatnonzero(touch[i])] for i in range(T)])
+    for s0, s1 in contacts:
+        st["contact"][s0:s1] = True
+    eps = _episodes(contacts, k(ng["merge_s"]))
+    for n, (a, b, parts) in enumerate(eps):
+        nxt = eps[n + 1][0] if n + 1 < len(eps) else T
+        g0, w_end = min(b + grace, T), min(T, b + k(ng["ng1_wash_within_s"]))
+        st["eps"].append((a, b))
+        stop, acc = nxt, 0                                     # 髒手結束:洗手累計滿 wash_s 或下一次接觸
+        for i in range(g0, nxt):
+            acc += int(wash[i])
+            st["wash_acc"][i] = acc * step
+            if acc >= need:
+                stop = i
+                break
+        st["dirty"][a:stop] = True
+        st["grace"][a:g0] = True
+        st["since"][a:stop] = (np.arange(a, stop) - a) * step
+        st["ep"][a:nxt] = n
+        st["cleared"][stop:min(nxt, stop + k(2.0))] = stop < nxt
+        st["ng1_left"][b:min(w_end, stop)] = (w_end - np.arange(b, min(w_end, stop))) * step
+        if wash[g0:w_end].sum() < need:
+            st["events"].append(dict(type="NG1", at=w_end, text="5 秒內未洗手"))
+        for ts, te_ in _touches(touch.any(1), g0, stop, k(ng["touch_gap_s"]), k(ng["touch_min_s"])):
+            if near_wash[ts:te_].all():
+                continue
+            cls = [cfg["touch_classes"][j] for j in np.flatnonzero(touch[ts:te_].any(0))]
+            st["events"].append(dict(type="NG2", at=ts, text="碰 " + "、".join(cls)))
+    st["events"].sort(key=lambda e: e["at"])
+    # 與正式偵測核對事件數(同一份序列)
+    ref = detect_ng(dict(T=T, contacts=contacts, wash=wash, touch=touch), cfg)
+    for t in ("NG1", "NG2"):
+        assert sum(e["type"] == t for e in ref) == sum(e["type"] == t for e in st["events"]), t
+    return st
+
 
 def ng12():
     cfg = yaml.safe_load((E.INTEG / "configs/violation_rules.yaml").read_text(encoding="utf-8"))
@@ -73,10 +125,6 @@ def ng12():
                     correction=x["correction"], ev_start=e["start"], ev_end=e["end"], w0=w0,
                     dur=e["dur"], sys_contact="", sys_wash_first="", sys_wash5_s="", sys_ng2_at=x["ng2_at"], sys_touched="")
         T = r["T"]
-        contact = np.zeros(T, bool)
-        for s0, s1 in (r["trig_base"] or []):
-            contact[s0:s1] = True
-        dirty_arr, ng2_step = np.zeros(T, bool), None
         if tr:
             a, b = tr[0][0], tr[-1][1]
             base["sys_contact"] = f"{hms(tsec(a))}–{hms(tsec(b))}"
@@ -89,16 +137,8 @@ def ng12():
             v = HandHygieneFSM(hh["wash_s"], step, cfg["touch_classes"]).run(dirty, r["wash"], r["touch"])
             if v.result == "違規":
                 base["sys_touched"] = "、".join(v.touched)
-                ng2_step = v.at
-            acc, stop = 0, T                                         # 髒手:dirty 起,到洗手累計滿 wash_s
-            for i in range(dirty, T):
-                acc += int(r["wash"][i])
-                if acc >= int(round(hh["wash_s"] / step)):
-                    stop = i
-                    break
-            dirty_arr[dirty:stop] = True
-        base["_ov"] = dict(contact=contact, wash=np.asarray(r["wash"], bool), dirty=dirty_arr, ng2_step=ng2_step,
-                           touch=[[cfg["touch_classes"][j] for j in np.flatnonzero(r["touch"][i])] for i in range(T)])
+        base["_ov"] = ng12_status(r, cfg, T)
+        base["_ov"]["team"] = (s_ev, e_ev)
         for ng in ("NG1", "NG2"):
             gt = x[f"gt_{ng.lower()}"]
             if gt == "":                                  # 團隊未回答 NG2 → 該類排除
@@ -229,6 +269,7 @@ def main():
     ap.add_argument("--workers", type=int, default=6)
     args = ap.parse_args()
     jobs = []
+    want = lambda ng: not args.only or ng in args.only     # --only 也限制寫哪些清單(NG4 正式清單由 build_ng4_report.py 產生)
     r12 = ng12()
     for ng, rows in r12.items():
         for n, r in enumerate(rows, 1):
@@ -243,19 +284,17 @@ def main():
             else:
                 stop = max(r["ev_end"], float(r["sys_ng2_at"] or 0)) + 4
             dur = min(stop - r["w0"], r["dur"])
-            label = (f"{ng} {r['category']} | {pid} {r['note']} | 團隊 {r['team_ng']}"
-                     f"{'(依團隊回覆修正)' if r['correction'] else ''} → 真值 {'有' if r['gt'] else '無'}{ng},"
-                     f"系統 {'有' if r['pred'] else '無'}\n事件 {hms(r['ev_start'])}–{hms(r['ev_end'])} | "
-                     f"系統碰垃圾桶 {r['sys_contact'] or '無'} | 系統髒手後第一次洗手 {r['sys_wash_first'] or '無'}"
-                     + (f"(5 秒內洗手 {r['sys_wash5_s']} 秒)" if r["sys_wash5_s"] != "" else "")
-                     + (f" | 系統髒手碰觸 {hms(float(r['sys_ng2_at']))} {r['sys_touched']}" if r["sys_ng2_at"] else ""))
+            label = (f"{ng} {r['category']} | {pid} {r['note'] or ''} | 團隊標註 {hms(r['ev_start'])}–{hms(r['ev_end'])} "
+                     f"→ 真值 {'有' if r['gt'] else '無'}{ng}{'(依團隊回覆修正)' if r['correction'] else ''} / "
+                     f"系統 {'有' if r['pred'] else '無'}{ng}")
             src, cdir = M.CUT / r["key"], M.CACHE / r["key"]
             zn = {"output0": ["垃圾桶區"], "Aoutput1": ["垃圾桶區"], "Boutput1": ["洗手台"]}
             jobs.append(dict(out=OUT / r["video"], n_frames=int(dur * FPS), start_frame=0, offset=r["w0"], label=label,
                              kind="ng12", status=r["_ov"],
                              views=[dict(name=v, video=src / f"{v}.mp4", cache=cdir / f"{v}.npz",
                                          zones={z: zone(v, z) for z in zn[v]}) for v in zn]))
-        write_csv(OUT / ng / "清單.csv", rows)
+        if want(ng):
+            write_csv(OUT / ng / "清單.csv", rows)
 
     r3 = ng3()
     for n, r in enumerate(r3, 1):
@@ -276,7 +315,8 @@ def main():
         h, f_, fd, _ = r["_param"]
         jobs.append(dict(out=OUT / r["video"], n_frames=int((r["dur"] + 0.5) * FPS), start_frame=0, offset=off,
                          label=label, kind="ng3", views=ins, ng3_param=(h, f_, fd), thr={"人": 0.3, "手": h, "食材": fd}))
-    write_csv(OUT / "NG3" / "清單.csv", r3)
+    if want("NG3"):
+        write_csv(OUT / "NG3" / "清單.csv", r3)
 
     r4 = ng4()
     for n, r in enumerate(r4, 1):
@@ -294,7 +334,8 @@ def main():
                          views=[dict(name=v, video=src / f"{v}.mp4", cache=cdir / f"{v}.npz",
                                      zones={"洗手台": zone(v, "洗手台")} if v == "Boutput1" else {})
                                 for v in ("Aoutput1", "Aoutput2", "Boutput1")]))
-    write_csv(OUT / "NG4" / "清單.csv", r4)
+    if want("NG4"):
+        write_csv(OUT / "NG4" / "清單.csv", r4)
 
     for ng, rows in list(r12.items()) + [("NG3", r3), ("NG4", r4)]:
         cnt = {}

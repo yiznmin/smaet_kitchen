@@ -12,7 +12,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 from m3.classes import NAME_TO_CLASS
 from m4_track.det_cache import DetCache
-from m6_events.violation import at, in_poly, steps
+from m6_events.violation import at, in_poly, intervals, steps
 
 FONT = "C:/Windows/Fonts/msjh.ttc"
 W, H, S = 640, 360, 0.5                    # 每台輸出大小、原影片 1280×720 縮放比
@@ -41,16 +41,139 @@ def paste(canvas, img, y):
     canvas[y:y + h, :w] = img[:h, :w]
 
 
-def draw_boxes(frame, cache, idx, step, thr):
-    """frame 已縮放成 640×360;畫該步通過門檻的框。回傳該步偵測(原座標)。"""
+def draw_boxes(frame, cache, idx, step, thr, show_conf=True, touched=()):
+    """frame 已縮放成 640×360;畫該步通過門檻的框。回傳該步偵測(原座標)。
+
+    touched:系統這一步判定碰觸的類別;這些類別中和手框(往外擴 50%)重疊的框加粗並標「碰觸」。
+    """
     xy, cf, cl = at(cache, idx, step)
+    hk = (cl == NAME_TO_CLASS["手"]) & (cf > thr.get("手", 0.2))
+    hs = xy[hk]
+    if len(hs):
+        w, h = hs[:, 2] - hs[:, 0], hs[:, 3] - hs[:, 1]
+        hs = np.c_[hs[:, 0] - 0.5 * w, hs[:, 1] - 0.5 * h, hs[:, 2] + 0.5 * w, hs[:, 3] + 0.5 * h]
     for name, t in thr.items():
         k = (cl == NAME_TO_CLASS[name]) & (cf > t)
         for b, c in zip(xy[k], cf[k]):
             x1, y1, x2, y2 = (b * S).astype(int)
-            cv2.rectangle(frame, (x1, y1), (x2, y2), COLOR[name], 2 if name != "人" else 1)
-            cv2.putText(frame, f"{c:.2f}", (x1 + 2, max(10, y1 - 3)), cv2.FONT_HERSHEY_SIMPLEX, 0.4, COLOR[name], 1)
+            hit = name in touched and len(hs) and bool(((np.minimum(b[2], hs[:, 2]) > np.maximum(b[0], hs[:, 0]))
+                                                        & (np.minimum(b[3], hs[:, 3]) > np.maximum(b[1], hs[:, 1]))).any())
+            cv2.rectangle(frame, (x1, y1), (x2, y2), COLOR[name], 4 if hit else (2 if name != "人" else 1))
+            if hit:
+                tag = text_img(f"碰觸 {name}", 14, COLOR[name][::-1], 90)
+                yy = max(0, y1 - tag.shape[0])
+                xx = max(0, min(x1, frame.shape[1] - tag.shape[1]))
+                frame[yy:yy + tag.shape[0], xx:xx + tag.shape[1]] = tag
+            elif show_conf:
+                cv2.putText(frame, f"{c:.2f}", (x1 + 2, max(10, y1 - 3)), cv2.FONT_HERSHEY_SIMPLEX, 0.4, COLOR[name], 1)
     return xy, cf, cl
+
+
+# ── NG1 / NG2 畫面(時間軸、橫幅)──────────────────────────────────
+HEAD12 = 26 * 5 + 6                       # 5 行資訊
+TL_ROWS = [("團隊標註", (150, 150, 150)), ("接觸垃圾桶", (0, 0, 255)), ("髒手", (0, 140, 255)),
+           ("洗手", (255, 128, 0)), ("碰觸", (0, 200, 0)), ("違規觸發", (0, 0, 255))]
+TL_LW, TL_RH = 120, 18
+LEGEND12 = ("框:人(灰) 手(黃) 食材(綠) 刀具(紫) 砧板(藍) 鍋鏟(橘) 鍋子(青) 容器(粉),粗框 = 系統判定碰觸 | "
+            "畫面外框:橘 = 髒手、藍 = 洗手中、紅 = 違規觸發")
+
+
+def hms(t):
+    return f"{int(t // 3600):02d}:{int(t % 3600 // 60):02d}:{t % 60:04.1f}"
+
+
+def tl_x(i, n, width):
+    return TL_LW + int(min(max(i, 0), n) / max(n, 1) * (width - TL_LW - 10))
+
+
+def timeline_img(st, n, width):
+    """整段片段的時間軸(靜態部分):每列一種狀態,違規觸發畫紅三角形 + NG 類別。"""
+    h = TL_RH * len(TL_ROWS) + 8 + 24
+    im = np.zeros((h, width, 3), np.uint8)
+    T = len(st["dirty"])
+    rows = [np.zeros(T, bool), st["contact"], st["dirty"], st["wash"], np.array([bool(x) for x in st["touch"]])]
+    a, b = st["team"]
+    rows[0][max(a, 0):max(b, 0)] = True
+    for r, ((name, col), m) in enumerate(zip(TL_ROWS, rows + [None])):
+        y = 4 + r * TL_RH
+        paste_at(im, text_img(name, 14, (220, 220, 220), TL_LW - 4), y - 3, 0)
+        cv2.rectangle(im, (TL_LW, y + 2), (width - 10, y + TL_RH - 2), (40, 40, 40), -1)
+        if m is None:
+            for e in st["events"]:
+                if e["at"] > n:                              # 片段結束後才觸發 → 不畫
+                    continue
+                x = tl_x(e["at"], n, width)
+                cv2.fillPoly(im, [np.array([[x, y + 1], [x - 6, y + TL_RH - 1], [x + 6, y + TL_RH - 1]])], col)
+                tx = x + 8 if x < width - 60 else x - 48
+                cv2.putText(im, e["type"], (tx, y + TL_RH - 3), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 1)
+            continue
+        for s, e in intervals(m[:n + 1]):
+            cv2.rectangle(im, (tl_x(s, n, width), y + 2), (max(tl_x(e, n, width), tl_x(s, n, width) + 1), y + TL_RH - 2), col, -1)
+    paste_at(im, text_img(LEGEND12, 14, (200, 200, 200), width), h - 22, 0)
+    return im
+
+
+def paste_at(canvas, img, y, x):
+    h = min(img.shape[0], canvas.shape[0] - y)
+    w = min(img.shape[1], canvas.shape[1] - x)
+    canvas[y:y + h, x:x + w] = img[:h, :w]
+
+
+def banner(text, size=40):
+    """違規橫幅:紅字、黑底,寬度依字數。"""
+    font = ImageFont.truetype(FONT, size)
+    w = int(font.getlength(text)) + 24
+    im = Image.new("RGB", (w, size + 16), (0, 0, 0))
+    ImageDraw.Draw(im).text((12, 4), text, fill=(255, 40, 40), font=font)
+    return np.asarray(im)[:, :, ::-1].copy()
+
+
+def ng12_lines(st, i, t_of):
+    """回傳 [(文字, RGB 顏色)] 4 行:接觸污染源、髒手計時、碰觸物件、違規紀錄。"""
+    T = len(st["dirty"])
+    i = min(max(i, 0), T - 1)
+    ep = st["ep"][i]
+    if st["contact"][i]:
+        a = st["eps"][ep][0] if ep >= 0 else i
+        l2 = (f"接觸污染源:接觸垃圾桶中(第 {ep + 1} 次,{hms(t_of(a))} 起)", (255, 80, 80))
+    elif ep >= 0:
+        a, b = st["eps"][ep]
+        l2 = (f"接觸污染源:第 {ep + 1} 次接觸垃圾桶 {hms(t_of(a))}–{hms(t_of(b))}", (255, 255, 255))
+    else:
+        l2 = ("接觸污染源:尚未接觸", (180, 180, 180))
+    l2 = (l2[0] + f"      目前 {hms(t_of(i))}", l2[1])
+    if st["dirty"][i]:
+        p = [f"髒手 {st['since'][i]:.1f} 秒(從接觸開始)"]
+        if st["grace"][i]:
+            p.append("緩衝期間:碰觸不計 NG2")
+        acc = st["wash_acc"][i]
+        p.append(f"洗手累計 {0 if np.isnan(acc) else acc:.1f} / {st['need_s']:.1f} 秒")
+        left = st["ng1_left"][i]
+        if not np.isnan(left):
+            p.append(f"NG1 洗手期限剩 {left:.1f} 秒")
+        elif not st["grace"][i]:
+            p.append("NG1 洗手期限已過")
+        l3 = ("手部狀態:" + " | ".join(p), (255, 160, 0))
+    elif st["cleared"][i]:
+        l3 = (f"手部狀態:已洗手 {st['need_s']:.1f} 秒,解除髒手", (80, 160, 255))
+    else:
+        l3 = ("手部狀態:乾淨", (120, 220, 120))
+    tc = st["touch"][i]
+    if not tc:
+        l4 = ("碰觸物件:無", (180, 180, 180))
+    else:
+        why = ("緩衝期間,不計 NG2" if st["grace"][i] else "髒手碰觸 → NG2") if st["dirty"][i] else "手乾淨,不算違規"
+        l4 = (f"碰觸物件:{'、'.join(tc)}({why})", (120, 255, 120))
+    done = [e for e in st["events"] if e["at"] <= i]
+    if done:
+        cnt, parts = {}, []
+        for e in done:
+            cnt[e["type"]] = cnt.get(e["type"], 0) + 1
+            parts.append(f"{e['type']} #{cnt[e['type']]} {hms(t_of(e['at']))} {e['text']}")
+        l5 = ("違規紀錄:" + "  /  ".join(parts[-4:]) + (f"(共 {len(done)} 筆)" if len(done) > 4 else ""), (255, 60, 60))
+    else:
+        l5 = ("違規紀錄:無", (180, 180, 180))
+    return [l2, l3, l4, l5]
 
 
 def draw_zone(frame, poly, name):
@@ -95,17 +218,24 @@ def render(job):
     idxs = [steps(c) for c in caches]
     n = len(caps)
     width = W * n
-    out_h = H + HEAD_H
+    ng12 = job["kind"] == "ng12"
+    st = job.get("status", {})
+    n_steps = job["n_frames"] // STRIDE
+    tl = timeline_img(st, n_steps, width) if ng12 else None
+    head_h = HEAD12 if ng12 else HEAD_H
+    out_h = H + head_h + (tl.shape[0] if ng12 else 0)
+    t_of = lambda i: job["offset"] + i * STRIDE / FPS
     ff = subprocess.Popen(["ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "bgr24", "-s", f"{width}x{out_h}",
                            "-r", str(FPS), "-i", "-", "-an", "-c:v", "libx264", "-preset", "veryfast", "-crf", "26",
                            "-pix_fmt", "yuv420p", str(job["out"])], stdin=subprocess.PIPE)
     lines = job["label"].split("\n")
-    head_static = np.zeros((HEAD_H, width, 3), np.uint8)
-    for k, line in enumerate(lines[:2]):
-        paste(head_static, text_img(line, 20, (255, 255, 0), width), 26 * k)
-    paste(head_static, text_img(LEGEND, 16, (220, 220, 220), width), 26 * 2)
-    st = job.get("status", {})
-    last = [None] * n
+    head_static = np.zeros((head_h, width, 3), np.uint8)
+    if ng12:
+        paste(head_static, text_img(lines[0], 20, (255, 255, 0), width), 0)
+    else:
+        for k, line in enumerate(lines[:2]):
+            paste(head_static, text_img(line, 20, (255, 255, 0), width), 26 * k)
+        paste(head_static, text_img(LEGEND, 16, (220, 220, 220), width), 26 * 2)
     for fi in range(job["start_frame"], job["start_frame"] + job["n_frames"]):
         frames = []
         for c in caps:
@@ -119,7 +249,8 @@ def render(job):
             for zn, poly in v["zones"].items():
                 draw_zone(fr, poly, zn)
             thr = job.get("thr", THR)
-            xy, cf, cl = draw_boxes(fr, cache, idx, step, thr)
+            tc = (st["touch"][min(step, len(st["touch"]) - 1)] if st["touch"] else []) if ng12 else ()
+            xy, cf, cl = draw_boxes(fr, cache, idx, step, thr, show_conf=not ng12, touched=tuple(tc))
             if job["kind"] == "ng3":
                 hit, heads = ng3_hit(xy, cf, cl, *job["ng3_param"])
                 for (x1, y1, x2, y2) in heads:
@@ -129,19 +260,27 @@ def render(job):
                     msgs.append(f"{v['name']} 手在頭部區且手邊有食材")
             cv2.putText(fr, v["name"], (6, H - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
         # 狀態列
-        if job["kind"] == "ng12":
-            i = step
-            seq = lambda a: bool(a[i]) if 0 <= i < len(a) else False
-            parts = []
-            parts.append("碰垃圾桶:是" if seq(st["contact"]) else "碰垃圾桶:否")
-            parts.append("洗手中:是" if seq(st["wash"]) else "洗手中:否")
-            tc = st["touch"][i] if 0 <= i < len(st["touch"]) else []
-            parts.append("碰觸:" + ("、".join(tc) if tc else "否"))
-            parts.append("髒手:是" if seq(st["dirty"]) else "髒手:否")
-            if st.get("ng2_step") is not None and abs(i - st["ng2_step"]) <= 3:
-                parts.append("← 系統判 NG2 的碰觸")
-            msgs = ["  |  ".join(parts)]
-        elif job["kind"] == "ng4":
+        if ng12:
+            i = min(step, len(st["dirty"]) - 1)
+            head = head_static.copy()
+            for k, (txt, col) in enumerate(ng12_lines(st, i, t_of), 1):
+                paste(head, text_img(txt, 20, col, width), 26 * k)
+            body = np.hstack(frames)
+            alert = [e for e in st["events"] if e["at"] <= i < e["at"] + int(2.0 * FPS / STRIDE)]
+            if alert:
+                cv2.rectangle(body, (0, 0), (width - 1, H - 1), (0, 0, 255), 12)
+                bn = banner("  ".join(f"{e['type']} 違規:{e['text']}" for e in alert))
+                paste_at(body, bn, H // 2 - bn.shape[0] // 2, max(0, (width - bn.shape[1]) // 2))
+            elif st["wash"][i]:
+                cv2.rectangle(body, (0, 0), (width - 1, H - 1), (255, 128, 0), 6)
+            elif st["dirty"][i]:
+                cv2.rectangle(body, (0, 0), (width - 1, H - 1), (0, 140, 255), 6)
+            bar = tl.copy()
+            x = tl_x(step, n_steps, width)
+            cv2.line(bar, (x, 0), (x, TL_RH * len(TL_ROWS) + 6), (255, 255, 255), 2)
+            ff.stdin.write(np.vstack([head, body, bar]).tobytes())
+            continue
+        if job["kind"] == "ng4":
             t = job["offset"] + fi / FPS
             act = [d for d in st["dets"] if d[0] <= t <= d[1]]
             msgs = ["系統 NG4 偵測中:" + ("、".join(sorted({d[2] for d in act})) if act else "無")]
