@@ -1,7 +1,7 @@
 """NG1–NG4 結果報告用:逐筆清單 + 片段影片(依 正確 / 誤報 / 漏報 分資料夾)。
 
 只讀既有評估結果與快取,不改任何判定:
-- NG1 / NG2:results/m6/ng/details_corrected/events.csv(登記 §8.20–8.21,主分析),系統時間由同一份快取重算(邏輯同 eval_ng_details.py)
+- NG1 / NG2:真值 results/m6/ng/details_corrected/events.csv(登記 §8.20–8.21);系統判定 §8.86 起改逐次接觸(window_preds)
 - NG3:results/m6/ng/cv_per_clip.csv 依 eval_ng_clips.cross_validate 重建每個片段的 CV 預測(登記 §8.6–8.7,規則版)
 - NG4:results/m6/ng/ng4/truth.csv、detections.csv(登記 §8.13–8.14,預設 w 1、p 1)
 
@@ -48,6 +48,16 @@ def cat_of(gt, pred):
 
 # ── NG1 / NG2 ────────────────────────────────────────────────────
 
+def window_preds(st, s_ev, e_ev, w0, ev_end, step, tol_s=1.0):
+    """§8.86 事件層判定:事件範圍(±1 秒)內每一次接觸各自判 NG1 / NG2(逐次接觸,同正式偵測)。
+
+    NG2 的碰觸開始要 ≤ 事件結束 + tol_s(同 §8.21 主分析容忍)。回傳 (NG1 事件, NG2 事件)。
+    """
+    eps = {n for n, (a, b) in enumerate(st["eps"]) if a <= e_ev + 10 and b >= s_ev - 10}
+    n1 = [ev for ev in st["events"] if ev["type"] == "NG1" and ev["ep"] in eps]
+    n2 = [ev for ev in st["events"] if ev["type"] == "NG2" and ev["ep"] in eps and w0 + ev["at"] * step <= ev_end + tol_s]
+    return n1, n2, eps
+
 def ng12_status(r, cfg, T):
     """影片畫面用的逐步狀態:每次接觸垃圾桶各自計算(邏輯同 m6_events.ng.detect_ng,判定不變)。
 
@@ -85,12 +95,12 @@ def ng12_status(r, cfg, T):
         st["cleared"][stop:min(nxt, stop + k(2.0))] = stop < nxt
         st["ng1_left"][b:min(w_end, stop)] = (w_end - np.arange(b, min(w_end, stop))) * step
         if wash[g0:w_end].sum() < need:
-            st["events"].append(dict(type="NG1", at=w_end, text="5 秒內未洗手"))
+            st["events"].append(dict(type="NG1", at=w_end, ep=n, text="5 秒內未洗手"))
         for ts, te_ in _touches(touch.any(1), g0, stop, k(ng["touch_gap_s"]), k(ng["touch_min_s"])):
             if near_wash[ts:te_].all():
                 continue
             cls = [cfg["touch_classes"][j] for j in np.flatnonzero(touch[ts:te_].any(0))]
-            st["events"].append(dict(type="NG2", at=ts, text="碰 " + "、".join(cls)))
+            st["events"].append(dict(type="NG2", at=ts, ep=n, text="碰 " + "、".join(cls)))
     st["events"].sort(key=lambda e: e["at"])
     # 與正式偵測核對事件數(同一份序列)
     ref = detect_ng(dict(T=T, contacts=contacts, wash=wash, touch=touch), cfg)
@@ -139,12 +149,15 @@ def ng12():
                 base["sys_touched"] = "、".join(v.touched)
         base["_ov"] = ng12_status(r, cfg, T)
         base["_ov"]["team"] = (s_ev, e_ev)
+        n1, n2, _ = window_preds(base["_ov"], s_ev, e_ev, w0, e["end"], step)   # §8.86 逐次接觸
+        preds = {"NG1": int(bool(n1)), "NG2": int(bool(n2))}
+        base["sys_ng2_at"] = round(tsec(n2[0]["at"]), 2) if n2 else ""
         for ng in ("NG1", "NG2"):
             gt = x[f"gt_{ng.lower()}"]
             if gt == "":                                  # 團隊未回答 NG2 → 該類排除
-                rows[ng].append(dict(base, category="排除", gt="未知", pred=x[f"pred_{ng.lower()}"]))
+                rows[ng].append(dict(base, category="排除", gt="未知", pred=preds[ng]))
                 continue
-            gt, pred = int(gt), int(x[f"pred_{ng.lower()}"])
+            gt, pred = int(gt), preds[ng]
             row = dict(base, gt=gt, pred=pred, category=CAT[cat_of(gt, pred)])
             if ng == "NG1":
                 row["team_ng1_ok"] = x["gt_ng1_ok"]
