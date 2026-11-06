@@ -144,6 +144,10 @@ def ng12_lines(st, i, t_of):
     l2 = (l2[0] + f"      目前 {hms(t_of(i))}", l2[1])
     if st["dirty"][i]:
         p = [f"髒手 {st['since'][i]:.1f} 秒(從接觸開始)"]
+        b, lim = st["eps"][ep][1], st.get("ng1_s", 5.0)
+        if i >= b:                                       # NG1 計時從接觸結束起算
+            d = (i - b) * STRIDE / FPS
+            p.append(f"接觸結束後 {d:.1f} / {lim:.0f} 秒" + ("(已超過)" if d > lim else ""))
         if st["grace"][i]:
             p.append("緩衝期間:碰觸不計 NG2")
         acc = st["wash_acc"][i]

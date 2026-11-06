@@ -73,7 +73,7 @@ def ng12_status(r, cfg, T):
     nan = lambda: np.full(T, np.nan)
     st = dict(contact=np.zeros(T, bool), dirty=np.zeros(T, bool), grace=np.zeros(T, bool), cleared=np.zeros(T, bool),
               since=nan(), wash_acc=nan(), ng1_left=nan(), ep=np.full(T, -1), eps=[], events=[], wash=wash,
-              need_s=hh["wash_s"], touch=[[cfg["touch_classes"][j] for j in np.flatnonzero(touch[i])] for i in range(T)])
+              need_s=hh["wash_s"], ng1_s=ng["ng1_wash_within_s"], touch=[[cfg["touch_classes"][j] for j in np.flatnonzero(touch[i])] for i in range(T)])
     for s0, s1 in contacts:
         st["contact"][s0:s1] = True
     eps = _episodes(contacts, k(ng["merge_s"]))
