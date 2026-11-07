@@ -22,7 +22,7 @@ FPS, STRIDE = 30, 3
 COLOR = {"人": (200, 200, 200), "手": (0, 255, 255), "食材": (0, 200, 0), "刀具": (255, 0, 255),
          "砧板": (255, 160, 0), "鍋鏟": (0, 128, 255), "鍋子": (255, 255, 0), "容器": (180, 105, 255)}
 THR = {"人": 0.3, "手": 0.2, "食材": 0.4, "刀具": 0.4, "砧板": 0.4, "鍋鏟": 0.4, "鍋子": 0.4, "容器": 0.4}
-ZONE_COLOR = {"垃圾桶區": (0, 0, 255), "洗手台": (255, 128, 0)}
+ZONE_COLOR = {"垃圾桶區": (0, 0, 255), "洗手台": (255, 128, 0), "洗手台_NG4": (255, 128, 0)}
 LEGEND = "框:人(灰) 手(黃) 食材(綠) 刀具(紫) 砧板(藍) 鍋鏟(橘) 鍋子(青) 容器(粉);zone:垃圾桶區(紅) 洗手台(藍)"
 
 
@@ -209,6 +209,113 @@ def ng3_hit(xy, cf, cl, h, f, fd, pad=0.5):
     return bool(((x2 > x1) & (y2 > y1)).any()), heads
 
 
+# ── NG4 詳細畫面 ──────────────────────────────────────────────────
+NG4_THR = {"手": 0.2, "食材": 0.4, "砧板": 0.4, "容器": 0.4, "鍋子": 0.4}
+LEGEND4 = ("框:手(黃) 食材(綠) 砧板(藍) 容器(粉) 鍋子(青),白粗框 = 系統認定的新放下食材 | 洗手台範圍(藍線) | "
+           "外框:藍 = 清洗中、黃 = 判位置中、紅 = NG4、綠 = 合格")
+PLACE_TXT = {"砧板或容器": "砧板 / 容器", "桌面": "桌面", "無法判斷": "無法判斷"}
+
+
+def tl_generic(rows, marks, n, width, legend):
+    """通用時間軸:rows = [(名稱, BGR, 布林陣列)];marks = [(列, 步, BGR, 文字)]。"""
+    h = TL_RH * len(rows) + 8 + 24
+    im = np.zeros((h, width, 3), np.uint8)
+    for r, (name, col, m) in enumerate(rows):
+        y = 4 + r * TL_RH
+        paste_at(im, text_img(name, 14, (220, 220, 220), TL_LW - 4), y - 3, 0)
+        cv2.rectangle(im, (TL_LW, y + 2), (width - 10, y + TL_RH - 2), (40, 40, 40), -1)
+        for s, e in intervals(np.asarray(m, bool)[:n + 1]):
+            cv2.rectangle(im, (tl_x(s, n, width), y + 2), (max(tl_x(e, n, width), tl_x(s, n, width) + 1), y + TL_RH - 2),
+                          col, -1)
+    for r, i, col, txt in marks:
+        if not 0 <= i <= n:
+            continue
+        y, x = 4 + r * TL_RH, tl_x(i, n, width)
+        cv2.fillPoly(im, [np.array([[x, y + 1], [x - 6, y + TL_RH - 1], [x + 6, y + TL_RH - 1]])], col)
+        tag = text_img(txt, 12, (255, 255, 255), 80)
+        paste_at(im, tag, y - 1, x + 8 if x < width - 90 else x - 88)
+    paste_at(im, text_img(legend, 14, (200, 200, 200), width), h - 22, 0)
+    return im
+
+
+def ng4_timeline(st, n, width):
+    T = st["T"]
+    team, segs, puts = np.zeros(T, bool), np.zeros(T, bool), np.zeros(T, bool)
+    a, b = st["team_wash"]
+    team[max(a, 0):max(b, 0)] = True
+    for s, e in st["segs"]:
+        segs[s:e] = True
+    for p in st["puts"]:
+        puts[p["put"]:p["j1"]] = True
+    anyf = np.zeros((T, 2), bool)
+    for f in st["flag"].values():
+        anyf |= f
+    rows = [("人工標註清洗", (150, 150, 150), team), ("系統清洗食材", (255, 128, 0), segs),
+            ("放在砧板容器", (0, 200, 0), anyf[:, 0]), ("放在桌面", (0, 0, 255), anyf[:, 1]),
+            ("判位置", (0, 220, 255), puts), ("判定", (0, 0, 0), np.zeros(T, bool))]
+    marks = [(0, st["team_put"], (255, 255, 255), "標註放下")]
+    for p in st["puts"]:
+        marks.append((5, p["j1"], (0, 0, 255) if p["ng4"] else (0, 200, 0), "NG4" if p["ng4"] else "合格"))
+    return tl_generic(rows, marks, n, width, LEGEND4)
+
+
+def ng4_lines(st, i, t_of):
+    """回傳 4 行 [(文字, RGB)]:清洗、新食材位置、判位置、判定紀錄。"""
+    sec = lambda k: k * STRIDE / FPS
+    seg = [(n, s, e) for n, (s, e) in enumerate(st["segs"]) if s <= i < e]
+    after = [(n, s, e) for n, (s, e) in enumerate(st["segs"]) if e <= i < e + st["max_gap"]]
+    if seg:
+        n, s, e = seg[-1]
+        l2 = (f"清洗:清洗食材中(第 {n + 1} 段,{hms(t_of(s))} 起,已 {sec(i - s):.1f} 秒)"
+              + (" | 手拿食材在水槽" if st["raw"][i] else ""), (80, 160, 255))
+    elif after:
+        n, s, e = after[-1]
+        l2 = (f"清洗:第 {n + 1} 段 {hms(t_of(s))}–{hms(t_of(e))} 結束,找放下中(剩 {sec(e + st['max_gap'] - i):.1f} 秒)",
+              (255, 255, 255))
+    else:
+        l2 = ("清洗:未偵測到清洗食材", (180, 180, 180))
+    l2 = (l2[0] + f"      目前 {hms(t_of(i))}", l2[1])
+    pv = []
+    for vn, f in st["flag"].items():
+        if vn in st["shown"]:
+            if f[i, 1]:
+                pv.append(f"{vn} 在桌面")
+            elif f[i, 0]:
+                pv.append(f"{vn} 在砧板 / 容器")
+    l3 = (("新放下的食材:" + "、".join(pv)) if pv else "新放下的食材:無", (120, 255, 120) if pv else (180, 180, 180))
+    cur = [p for p in st["puts"] if p["put"] <= i < p["j1"]]
+    done = [p for p in st["puts"] if p["j1"] <= i]
+    if cur:
+        p = cur[-1]
+        l4 = (f"判位置:{hms(t_of(p['put']))} 偵測到放下,判位置中(剩 {sec(p['j1'] - i):.1f} 秒)", (255, 220, 0))
+    elif done and i < done[-1]["j1"] + int(3.0 * FPS / STRIDE):
+        p = done[-1]
+        vote = (f"砧板 / 容器票:{'、'.join(p['sup_views']) or '無'};桌面票:{'、'.join(p['counter_views']) or '無'}")
+        l4 = (f"判位置:放在 {PLACE_TXT[p['place']]}({vote})", (255, 220, 0))
+    else:
+        l4 = ("判位置:無", (180, 180, 180))
+    if done:
+        parts, k = [], 0
+        for p in done:
+            if p["ng4"]:
+                k += 1
+                parts.append(f"NG4 #{k} {hms(t_of(p['j1']))} 食材放{PLACE_TXT[p['place']]}({p['status']})")
+            else:
+                parts.append(f"合格 {hms(t_of(p['j1']))} 食材放砧板 / 容器")
+        l5 = ("判定紀錄:" + "  /  ".join(parts[-4:]), (255, 60, 60) if k else (120, 255, 120))
+    else:
+        l5 = ("判定紀錄:無", (180, 180, 180))
+    return [l2, l3, l4, l5]
+
+
+def banner_c(text, rgb, size=40):
+    font = ImageFont.truetype(FONT, size)
+    w = int(font.getlength(text)) + 24
+    im = Image.new("RGB", (w, size + 16), (0, 0, 0))
+    ImageDraw.Draw(im).text((12, 4), text, fill=rgb, font=font)
+    return np.asarray(im)[:, :, ::-1].copy()
+
+
 def render(job):
     """job:
     out, label(字幕前兩行), offset(片段第 0 幀的原影片秒數), start_frame, n_frames,
@@ -222,19 +329,19 @@ def render(job):
     idxs = [steps(c) for c in caches]
     n = len(caps)
     width = W * n
-    ng12 = job["kind"] == "ng12"
+    ng12, ng4d = job["kind"] == "ng12", job["kind"] == "ng4d"
     st = job.get("status", {})
     n_steps = job["n_frames"] // STRIDE
-    tl = timeline_img(st, n_steps, width) if ng12 else None
-    head_h = HEAD12 if ng12 else HEAD_H
-    out_h = H + head_h + (tl.shape[0] if ng12 else 0)
+    tl = timeline_img(st, n_steps, width) if ng12 else ng4_timeline(st, n_steps, width) if ng4d else None
+    head_h = HEAD12 if (ng12 or ng4d) else HEAD_H
+    out_h = H + head_h + (tl.shape[0] if tl is not None else 0)
     t_of = lambda i: job["offset"] + i * STRIDE / FPS
     ff = subprocess.Popen(["ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "bgr24", "-s", f"{width}x{out_h}",
                            "-r", str(FPS), "-i", "-", "-an", "-c:v", "libx264", "-preset", "veryfast", "-crf", "26",
                            "-pix_fmt", "yuv420p", str(job["out"])], stdin=subprocess.PIPE)
     lines = job["label"].split("\n")
     head_static = np.zeros((head_h, width, 3), np.uint8)
-    if ng12:
+    if ng12 or ng4d:
         paste(head_static, text_img(lines[0], 20, (255, 255, 0), width), 0)
     else:
         for k, line in enumerate(lines[:2]):
@@ -254,7 +361,18 @@ def render(job):
                 draw_zone(fr, poly, zn)
             thr = job.get("thr", THR)
             tc = (st["touch"][min(step, len(st["touch"]) - 1)] if st["touch"] else []) if ng12 else ()
-            xy, cf, cl = draw_boxes(fr, cache, idx, step, thr, show_conf=not ng12, touched=tuple(tc))
+            xy, cf, cl = draw_boxes(fr, cache, idx, step, thr, show_conf=not (ng12 or ng4d), touched=tuple(tc))
+            if ng4d and step < st["T"]:
+                for b in st["cand"].get(v["name"], {}).get(step, []):     # 系統認定的新放下食材
+                    x1, y1, x2, y2 = (np.asarray(b[:4]) * S).astype(int)
+                    cv2.rectangle(fr, (x1, y1), (x2, y2), (255, 255, 255), 4)
+                    tag = text_img("新放下食材", 14, (255, 255, 255), 90)
+                    yy, xx = max(0, y1 - tag.shape[0]), max(0, min(x1, W - tag.shape[1]))
+                    fr[yy:yy + tag.shape[0], xx:xx + tag.shape[1]] = tag
+                f = st["flag"].get(v["name"])
+                if f is not None and (f[step, 0] or f[step, 1]):
+                    txt, col = ("在桌面", (255, 60, 60)) if f[step, 1] else ("在砧板 / 容器", (80, 255, 80))
+                    paste_at(fr, text_img(txt, 18, col, 140), 4, W - 140)
             if job["kind"] == "ng3":
                 hit, heads = ng3_hit(xy, cf, cl, *job["ng3_param"])
                 for (x1, y1, x2, y2) in heads:
@@ -283,6 +401,32 @@ def render(job):
             bar = tl.copy()
             x = tl_x(step, n_steps, width)
             cv2.line(bar, (x, 0), (x, TL_RH * len(TL_ROWS) + 6), (255, 255, 255), 2)
+            ff.stdin.write(np.vstack([head, body, bar]).tobytes())
+            continue
+        if ng4d:
+            i = min(step, st["T"] - 1)
+            head = head_static.copy()
+            for k, (txt, col) in enumerate(ng4_lines(st, i, t_of), 1):
+                paste(head, text_img(txt, 20, col, width), 26 * k)
+            body = np.hstack(frames)
+            alert = [p for p in st["puts"] if p["j1"] <= i < p["j1"] + int(2.0 * FPS / STRIDE)]
+            if alert:
+                p = alert[-1]
+                if p["ng4"]:
+                    txt = ("NG4 違規:食材放桌面(確定)" if p["place"] == "桌面" else "NG4 待確認:放置位置無法判斷")
+                    bgr, rgb = (0, 0, 255), (255, 40, 40)
+                else:
+                    txt, bgr, rgb = "合格:食材放砧板 / 容器", (0, 200, 0), (60, 230, 60)
+                cv2.rectangle(body, (0, 0), (width - 1, H - 1), bgr, 12)
+                bn = banner_c(txt, rgb)
+                paste_at(body, bn, H // 2 - bn.shape[0] // 2, max(0, (width - bn.shape[1]) // 2))
+            elif any(p["put"] <= i < p["j1"] for p in st["puts"]):
+                cv2.rectangle(body, (0, 0), (width - 1, H - 1), (0, 220, 255), 6)
+            elif any(s <= i < e for s, e in st["segs"]):
+                cv2.rectangle(body, (0, 0), (width - 1, H - 1), (255, 128, 0), 6)
+            bar = tl.copy()
+            x = tl_x(step, n_steps, width)
+            cv2.line(bar, (x, 0), (x, TL_RH * 6 + 6), (255, 255, 255), 2)
             ff.stdin.write(np.vstack([head, body, bar]).tobytes())
             continue
         if job["kind"] == "ng4":

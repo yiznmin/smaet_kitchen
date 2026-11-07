@@ -294,12 +294,13 @@ def _judge(flags, t, p, step):
     return place, sup, cnt
 
 
-def find_puts_during(views, T, name, ws, we, p, step):
+def find_puts_during(views, T, name, ws, we, p, step, trace=None):
     """§8.40:清洗期間也找放下,一段清洗可有多次放下(連續洗好幾樣食材)。
 
     - 從清洗開始 + wash_min_s 起找,直到清洗結束 + max_gap_s;
     - 舊框 = 清洗開始前 base_s 秒洗手台外已有的框(清洗中才放下的都算新的);
     - 找到一次放下後,把判位置窗口內看到的新框併入舊框,再往後找下一次(每段最多 max_puts 次)。
+    trace(選用,報告影片用):記錄每步各鏡頭的位置旗標、新框與每次放下的判定窗口,不影響判定。
     """
     k = lambda s: max(1, int(round(s / step)))
     off = int(round(p.get("judge_offset_s", 0.0) / step))
@@ -366,6 +367,11 @@ def find_puts_during(views, T, name, ws, we, p, step):
                         stat[n] = (_iou(bx[n], bx[n - lag]) >= p["put_still_iou"]).any()
                 f[~stat] = False
             flags[vn], boxes[vn] = f, bx
+        if trace is not None:                                   # 後面的迭代從 cur + stop 起覆寫,保留實際生效的那次
+            for vn in views:
+                trace["flag"][vn][cur:hi] = flags[vn]
+                for n, b in enumerate(boxes[vn]):
+                    trace["cand"][vn][cur + n] = b
         t = None
         for vn, f in flags.items():
             sm = hysteresis(f[:, 0] | f[:, 1], *p["smooth"])
@@ -378,6 +384,9 @@ def find_puts_during(views, T, name, ws, we, p, step):
         place, sup, cnt = _judge(flags, t, p, step)
         out.append(dict(put=cur + t, place=place, sup_views=sup, counter_views=cnt))
         stop = t + off + k(p["judge_s"])
+        if trace is not None:
+            trace["puts"].append(dict(ws=ws, we=we, put=cur + t, j0=cur + t + off, j1=min(T, cur + stop), place=place,
+                                      sup_views=sup, counter_views=cnt))
         for vn, v in views.items():                             # 這次放下的東西併入舊框,避免重複抓到
             seen = [b for b in boxes[vn][t:stop] if len(b)]
             if seen:
@@ -393,16 +402,20 @@ def find_puts_during(views, T, name, ws, we, p, step):
     return out
 
 
-def detect_ng4(caches, sinks, step=0.1, params=None, t0=0.0, apps=None):
+def detect_ng4(caches, sinks, step=0.1, params=None, t0=0.0, apps=None, trace=None):
     """caches:{鏡頭: DetCache};sinks:{鏡頭: 洗手台多邊形}(沒有的鏡頭不用給)。
     apps(§8.67,選用):{鏡頭: {步: (食材框, 直方圖)}},給了且 params 有 app_dist 才做外觀比對。
 
     回傳每一次「清洗 → 放下」事件(含合格的),ng4 欄位表示是否違規;時間為秒(已加 t0)。
+    trace(選用,dict):填入逐步中間結果供報告影片顯示(T、raw 清洗訊號、各物件的清洗段 / 位置旗標 / 新框 / 放下);
+    只在 during_wash 路徑記錄,不影響判定。
     """
     p = dict(DEFAULT, **(params or {}))
     views = {v: _View(caches[v], sinks.get(v), p, (apps or {}).get(v)) for v in p["views"] if v in caches}
     T = min(len(steps(c.c)[0]) for c in views.values())
     raw = wash_series(views, T, p)
+    if trace is not None:
+        trace.update(T=T, raw=raw, objects=list(p["objects"]), views=list(views))
     k = lambda s: max(1, int(round(s / step)))
     sec = lambda i: round(t0 + i * step, 2)
     out = []
@@ -413,7 +426,12 @@ def detect_ng4(caches, sinks, step=0.1, params=None, t0=0.0, apps=None):
                 for v in views.values():
                     v.ref = ref
             if p.get("during_wash"):                            # §8.40:清洗期間也找放下
-                puts = find_puts_during(views, T, name, ws, we, p, step)
+                tr = None
+                if trace is not None:
+                    tr = trace.setdefault(name, dict(segs=[], puts=[], flag={vn: np.zeros((T, 2), bool) for vn in views},
+                                                     cand={vn: {} for vn in views}))
+                    tr["segs"].append((ws, we))
+                puts = find_puts_during(views, T, name, ws, we, p, step, tr)
             else:
                 r = find_put(views, T, name, ws, we, p, step)
                 puts = [r] if r else []
