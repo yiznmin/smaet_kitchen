@@ -316,6 +316,53 @@ def banner_c(text, rgb, size=40):
     return np.asarray(im)[:, :, ::-1].copy()
 
 
+# ── NG3 詳細畫面 ──────────────────────────────────────────────────
+LEGEND3 = ("框:手(黃) | 黃圈 = 臉中心與判定範圍(0.5 × 肩寬),手框碰到圈內 = 手在臉範圍(圈變紅) | "
+           "外框:橘 = 手在臉範圍、紅 = NG3 違規(連續 0.3 秒以上)")
+
+
+def ng3_timeline(st, n, width):
+    T = st["T"]
+    gt = np.full(T, bool(st["y"]))
+    segs = np.zeros(T, bool)
+    for s, e in st["segs"]:
+        segs[s:e] = True
+    rows = [("真值有碰臉", (150, 150, 150), gt)]
+    rows += [(f"{v} 手近臉", (0, 140, 255), st["raws"][v]) for v in st["views"]]
+    rows += [("碰臉事件", (0, 0, 255), segs), ("違規觸發", (0, 0, 0), np.zeros(T, bool))]
+    marks = [(len(rows) - 1, s + st["mn"], (0, 0, 255), "NG3") for s, e in st["segs"]]
+    return tl_generic(rows, marks, n, width, LEGEND3)
+
+
+def ng3_lines(st, i, t_of):
+    sec = lambda k: k * STRIDE / FPS
+    fv = [f"{v} {'看到臉' if st['faces'][v].get(i) else '看不到臉'}" for v in st["views"]]
+    l2 = ("臉部偵測:" + " / ".join(fv) + f"      片段時間 {hms(t_of(i))}", (255, 255, 255))
+    dv = []
+    for v in st["views"]:
+        d = st["ratio"][v][i]
+        dv.append(f"{v} {'—' if np.isnan(d) else f'{d:.2f}'}")
+    l3 = (f"手到臉中心距離(肩寬倍數,{st['r']} 以內算手在臉範圍):" + " / ".join(dv),
+          (255, 160, 0) if any(st["raws"][v][i] for v in st["views"]) else (180, 180, 180))
+    seg = [(s, e) for s, e in st["segs"] if s <= i < e]
+    if seg:
+        s, e = seg[0]
+        conf = i >= s + st["mn"]
+        l4 = (f"碰臉狀態:碰臉中(第 {st['segs'].index(seg[0]) + 1} 次,{hms(t_of(s))} 起,已 {sec(i - s + 1):.1f} 秒"
+              + (",已成立 NG3)" if conf else ",連續 0.3 秒以上才成立)"), (255, 60, 60) if conf else (255, 160, 0))
+    elif st["raw"][i]:
+        l4 = ("碰臉狀態:手在臉範圍(未連續 0.3 秒,不算)", (255, 160, 0))
+    else:
+        l4 = ("碰臉狀態:無", (180, 180, 180))
+    done = [(n, s, e) for n, (s, e) in enumerate(st["segs"]) if s + st["mn"] <= i]
+    if done:
+        parts = [f"NG3 #{n + 1} {hms(t_of(s))}–{hms(t_of(e))} 手碰臉" for n, s, e in done]
+        l5 = ("違規紀錄:" + "  /  ".join(parts[-4:]) + (f"(共 {len(done)} 次)" if len(done) > 4 else ""), (255, 60, 60))
+    else:
+        l5 = ("違規紀錄:無", (180, 180, 180))
+    return [l2, l3, l4, l5]
+
+
 def render(job):
     """job:
     out, label(字幕前兩行), offset(片段第 0 幀的原影片秒數), start_frame, n_frames,
@@ -329,11 +376,12 @@ def render(job):
     idxs = [steps(c) for c in caches]
     n = len(caps)
     width = W * n
-    ng12, ng4d = job["kind"] == "ng12", job["kind"] == "ng4d"
+    ng12, ng4d, ng3d = job["kind"] == "ng12", job["kind"] == "ng4d", job["kind"] == "ng3d"
     st = job.get("status", {})
     n_steps = job["n_frames"] // STRIDE
-    tl = timeline_img(st, n_steps, width) if ng12 else ng4_timeline(st, n_steps, width) if ng4d else None
-    head_h = HEAD12 if (ng12 or ng4d) else HEAD_H
+    tl = (timeline_img(st, n_steps, width) if ng12 else ng4_timeline(st, n_steps, width) if ng4d
+          else ng3_timeline(st, n_steps, width) if ng3d else None)
+    head_h = HEAD12 if (ng12 or ng4d or ng3d) else HEAD_H
     out_h = H + head_h + (tl.shape[0] if tl is not None else 0)
     t_of = lambda i: job["offset"] + i * STRIDE / FPS
     ff = subprocess.Popen(["ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "bgr24", "-s", f"{width}x{out_h}",
@@ -341,7 +389,7 @@ def render(job):
                            "-pix_fmt", "yuv420p", str(job["out"])], stdin=subprocess.PIPE)
     lines = job["label"].split("\n")
     head_static = np.zeros((head_h, width, 3), np.uint8)
-    if ng12 or ng4d:
+    if ng12 or ng4d or ng3d:
         paste(head_static, text_img(lines[0], 20, (255, 255, 0), width), 0)
     else:
         for k, line in enumerate(lines[:2]):
@@ -361,7 +409,15 @@ def render(job):
                 draw_zone(fr, poly, zn)
             thr = job.get("thr", THR)
             tc = (st["touch"][min(step, len(st["touch"]) - 1)] if st["touch"] else []) if ng12 else ()
-            xy, cf, cl = draw_boxes(fr, cache, idx, step, thr, show_conf=not (ng12 or ng4d), touched=tuple(tc))
+            xy, cf, cl = draw_boxes(fr, cache, idx, step, thr, show_conf=not (ng12 or ng4d or ng3d), touched=tuple(tc))
+            if ng3d and step < st["T"]:
+                hit = bool(st["raws"].get(v["name"], np.zeros(st["T"], bool))[step])
+                for (cx, cy), rad in st["faces"].get(v["name"], {}).get(step, []):
+                    col = (0, 0, 255) if hit else (0, 255, 255)
+                    cv2.circle(fr, (int(cx * S), int(cy * S)), max(2, int(rad * S)), col, 2)
+                    cv2.circle(fr, (int(cx * S), int(cy * S)), 3, col, -1)
+                if hit:
+                    paste_at(fr, text_img("手在臉範圍", 18, (255, 80, 80), 120), 4, W - 120)
             if ng4d and step < st["T"]:
                 for b in st["cand"].get(v["name"], {}).get(step, []):     # 系統認定的新放下食材
                     x1, y1, x2, y2 = (np.asarray(b[:4]) * S).astype(int)
@@ -401,6 +457,24 @@ def render(job):
             bar = tl.copy()
             x = tl_x(step, n_steps, width)
             cv2.line(bar, (x, 0), (x, TL_RH * len(TL_ROWS) + 6), (255, 255, 255), 2)
+            ff.stdin.write(np.vstack([head, body, bar]).tobytes())
+            continue
+        if ng3d:
+            i = min(step, st["T"] - 1)
+            head = head_static.copy()
+            for k, (txt, col) in enumerate(ng3_lines(st, i, t_of), 1):
+                paste(head, text_img(txt, 20, col, width), 26 * k)
+            body = np.hstack(frames)
+            alert = [s for s, e in st["segs"] if s + st["mn"] <= i < s + st["mn"] + int(2.0 * FPS / STRIDE)]
+            if alert:
+                cv2.rectangle(body, (0, 0), (width - 1, H - 1), (0, 0, 255), 12)
+                bn = banner("NG3 違規:手碰臉")
+                paste_at(body, bn, H // 2 - bn.shape[0] // 2, max(0, (width - bn.shape[1]) // 2))
+            elif st["raw"][i]:
+                cv2.rectangle(body, (0, 0), (width - 1, H - 1), (0, 140, 255), 6)
+            bar = tl.copy()
+            x = tl_x(step, n_steps, width)
+            cv2.line(bar, (x, 0), (x, TL_RH * (len(st["views"]) + 3) + 6), (255, 255, 255), 2)
             ff.stdin.write(np.vstack([head, body, bar]).tobytes())
             continue
         if ng4d:
