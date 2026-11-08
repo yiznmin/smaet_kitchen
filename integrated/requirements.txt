@@ -26,3 +26,4 @@ psutil
 # 選用:
 #   onnxruntime-gpu   M2 分支 B 的分類器(目前沒有權重,不裝也能跑)
 #   h5py、tqdm        scripts/train_reid_chirla.py(CHIRLA Re-ID 訓練)
+#   transformers      M6 NG3 手碰臉的 ViTPose 姿態(run_violations.py --video-dir 現算時才需要;驗證時為 5.16.1)

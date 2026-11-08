@@ -8,7 +8,9 @@
 
 用法:
     python scripts/eval_ng3_review.py
+    python scripts/eval_ng3_review.py --integrated   # 核對 integrated/src/m6_events/ng3.py 與評估逐片段一致
 """
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -41,6 +43,29 @@ def lopo(d, tags):
     return prf(pairs_y, pairs_p), pd.Series(chosen).value_counts().to_dict()
 
 
+def check_integrated(d):
+    """用正式偵測 detect_ng3 重算每個片段,和評估欄位 FIXED 逐片段比對;回傳不一致的片段。"""
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import yaml
+    import eval_ng3_face as F
+    from m4_track.det_cache import DetCache
+    from m6_events.ng3 import detect_ng3
+    cfg = yaml.safe_load((ROOT / "integrated/configs/violation_rules.yaml").read_text(encoding="utf-8"))
+    n3 = {k: v for k, v in cfg["ng3"].items() if k != "enable"}
+    C = F.E.load_clips()
+    bad, n_ev = [], 0
+    for key, want in zip(d.key, d[FIXED]):
+        c = C[key]
+        vs = [v for v in n3["views"] if v in c["caches"] and F.pose_path(c, v).exists()]
+        ev = detect_ng3({v: DetCache(c["caches"][v]) for v in vs}, {v: dict(np.load(F.pose_path(c, v))) for v in vs},
+                        cfg["step_s"], n3)
+        n_ev += len(ev)
+        if int(bool(ev)) != int(want):
+            bad.append((key, int(want), len(ev)))
+    print(f"正式偵測核對:{len(d)} 片段,不一致 {len(bad)};事件 {n_ev} 筆", bad[:10])
+    return bad
+
+
 def main():
     d = pd.read_csv(SRC, encoding="utf-8-sig")
     d = d[~d.note.fillna("").str.contains("擦鼻子")].copy()       # §8.85 排除擦鼻子(衛生紙擦鼻子不算碰臉)
@@ -66,6 +91,8 @@ def main():
     print(f"檢視結果:有碰臉 {sum(v == 1 for v in res.values())} / 沒碰臉 {sum(v == 2 for v in res.values())} / "
           f"看不出來 {sum(v == 3 for v in res.values())}")
     print(s.to_string())
+    if "--integrated" in sys.argv:
+        check_integrated(new)
 
 
 if __name__ == "__main__":
