@@ -10,6 +10,7 @@
     python scripts/eval_ng3_review.py
     python scripts/eval_ng3_review.py --integrated   # 核對 integrated/src/m6_events/ng3.py 與評估逐片段一致
     python scripts/eval_ng3_review.py --r4           # §8.94 門檻 / 補空隙 / 多鏡頭融合 12 組
+    python scripts/eval_ng3_review.py --r5           # §8.96 另一台看清楚兩隻手才否決
 """
 import sys
 from pathlib import Path
@@ -55,8 +56,12 @@ def check_integrated(d):
     cfg = yaml.safe_load((ROOT / "integrated/configs/violation_rules.yaml").read_text(encoding="utf-8"))
     n3 = {k: v for k, v in cfg["ng3"].items() if k != "enable"}
     C = F.E.load_clips()
+    col = d[FIXED]
+    if n3.get("gap_fill_s", 0) or n3.get("fusion", "any") != "any":         # §8.97 起:比對 r5 對應設定
+        r5 = pd.read_csv(ROOT / "results/m6/ng/ng3_r5/per_clip.csv", encoding="utf-8-sig").set_index("key")
+        col = r5.loc[d.key, tag4(dict(min_s=n3["min_s"], gap_fill_s=float(n3["gap_fill_s"]), fusion=n3["fusion"]))].values
     bad, n_ev = [], 0
-    for key, want in zip(d.key, d[FIXED]):
+    for key, want in zip(d.key, col):
         c = C[key]
         vs = [v for v in n3["views"] if v in c["caches"] and F.pose_path(c, v).exists()]
         ev = detect_ng3({v: DetCache(c["caches"][v]) for v in vs}, {v: dict(np.load(F.pose_path(c, v))) for v in vs},
@@ -69,25 +74,27 @@ def check_integrated(d):
 
 
 GRID4 = [dict(min_s=m, gap_fill_s=g, fusion=f) for f in ("any", "veto", "agree") for m in (0.3, 0.2) for g in (0.0, 0.2)]
+GRID5 = [dict(min_s=0.3, gap_fill_s=g, fusion=f) for f in ("any", "veto2", "agree2") for g in (0.0, 0.2)]
 
 
 def tag4(g):
     return f"m{g['min_s']}_g{g['gap_fill_s']}_{g['fusion']}"
 
 
-def run_r4(d):
-    """§8.94:每個片段算一次各鏡頭距離比值,再套 12 組設定;參與者留一選格點。"""
+def run_r4(d, grid=None, out_name="ng3_r4"):
+    """§8.94 / §8.96:每個片段算一次各鏡頭距離比值與手框數,再套各組設定;參與者留一選格點。"""
+    grid = grid or GRID4
     sys.path.insert(0, str(ROOT / "scripts"))
     import yaml
     import eval_ng3_face as F
     from m4_track.det_cache import DetCache
-    from m6_events.ng3 import DEFAULT, face_ratio, fill_gaps, fuse, touch_segments
+    from m6_events.ng3 import DEFAULT, face_ratio_nh, fill_gaps, fuse, touch_segments
     from m6_events.violation import steps
     cfg = yaml.safe_load((ROOT / "integrated/configs/violation_rules.yaml").read_text(encoding="utf-8"))
     base = dict(DEFAULT, **{k: v for k, v in cfg["ng3"].items() if k != "enable"})
     step = cfg["step_s"]
     C = F.E.load_clips()
-    tags = [tag4(g) for g in GRID4]
+    tags = [tag4(g) for g in grid]
     rows = []
     for _, r in d.iterrows():
         c = C[r.key]
@@ -96,17 +103,18 @@ def run_r4(d):
         if vs:
             dcs = {v: DetCache(c["caches"][v]) for v in vs}
             T = min(len(steps(x)[0]) for x in dcs.values())
-            ratios = {v: face_ratio(dcs[v], dict(np.load(F.pose_path(c, v))), T, base) for v in vs}
-        for g, t in zip(GRID4, tags):
+            rn = {v: face_ratio_nh(dcs[v], dict(np.load(F.pose_path(c, v))), T, base) for v in vs}
+            ratios, nhs = {v: rn[v][0] for v in vs}, {v: rn[v][1] for v in vs}
+        for g, t in zip(grid, tags):
             if not vs:
                 row[t] = 0
                 continue
             pp = dict(base, **g)
-            raw = fill_gaps(fuse(ratios, pp), int(round(pp["gap_fill_s"] / step)))
+            raw = fill_gaps(fuse(ratios, pp, nhs), int(round(pp["gap_fill_s"] / step)))
             row[t] = int(bool(touch_segments(raw, step, pp["min_s"], pp["merge_s"])))
         rows.append(row)
     x = pd.DataFrame(rows)
-    out = ROOT / "results/m6/ng/ng3_r4"
+    out = ROOT / "results/m6/ng" / out_name
     out.mkdir(parents=True, exist_ok=True)
     x.to_csv(out / "per_clip.csv", index=False, encoding="utf-8-sig")
     assert (x[tags[0]] == d[FIXED].values).all(), "第一組(現行)應與評估一致"
@@ -166,6 +174,8 @@ def main():
         check_integrated(new)
     if "--r4" in sys.argv:
         run_r4(new)
+    if "--r5" in sys.argv:
+        run_r4(new, GRID5, "ng3_r5")
 
 
 if __name__ == "__main__":
