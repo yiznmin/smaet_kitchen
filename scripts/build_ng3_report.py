@@ -37,6 +37,7 @@ PER = ROOT / "results/m6/ng/ng3_face_r3_review/per_clip.csv"
 SRC = ROOT / "results/m6/ng/ng3_face_r3/per_clip.csv"
 REVIEW = Path("D:/yizhen/NG3_碰臉誤報人工檢視_20261105/人工檢視表.xlsx")
 FPS = 30
+USER_EX = {}                                                              # 使用者回查排除:{片段: 說明}
 
 
 def link(c, v):
@@ -99,6 +100,9 @@ def main():
     rv = pd.read_excel(REVIEW, sheet_name="人工檢視表")
     rv = dict(zip(rv["片段"], rv.iloc[:, 8].astype(int)))
     C = F.E.load_clips()
+    u = pd.read_csv(ROOT / "results/m6/ng/details_corrected/ng3_user_corrections_20261109.csv", encoding="utf-8-sig",
+                    dtype=str).fillna("")
+    USER_EX.update({k: n for k, e, n in zip(u.key, u.exclude, u.note) if e})
     if OUT.exists() and not OLD.exists() and not (OUT / "誤報分類.csv").exists():
         shutil.move(str(OUT), str(OLD))                          # 第一次執行:舊規則報告移走保留
     rows, jobs, n = [], [], 0
@@ -108,7 +112,8 @@ def main():
         base = dict(key=key, pid=c["pid"], team_ng=c["ng"], team_cat=c["cat"], note=c["note"] or "",
                     dur_s=round(c["dur"], 1), review={1: "有碰臉", 2: "沒碰臉", 3: "看不出來"}.get(rv.get(key), ""))
         if key not in per.index:
-            why = "擦鼻子(衛生紙擦鼻子不算碰臉)" if "擦鼻子" in str(c["note"]) else "人工檢視看不出來"
+            why = ("擦鼻子(衛生紙擦鼻子不算碰臉)" if "擦鼻子" in str(c["note"]) else
+                   USER_EX[key] if key in USER_EX else "人工檢視看不出來")
             rows.append(dict(base, category=f"排除({why})", gt="", pred="", sys_events="", video=""))
             continue
         y = int(per.loc[key, "y"])
