@@ -12,6 +12,7 @@
     python scripts/eval_ng3_review.py --r4           # §8.94 門檻 / 補空隙 / 多鏡頭融合 12 組
     python scripts/eval_ng3_review.py --r5           # §8.96 另一台看清楚兩隻手才否決
     python scripts/eval_ng3_review.py --r6           # §8.98 放寬距離門檻 / 最短持續(F2 選格點)
+    python scripts/eval_ng3_review.py --r7           # §8.100 min_s 0.2 下重測另一台否決
 """
 import sys
 from pathlib import Path
@@ -77,11 +78,14 @@ def check_integrated(d):
 
 GRID4 = [dict(min_s=m, gap_fill_s=g, fusion=f) for f in ("any", "veto", "agree") for m in (0.3, 0.2) for g in (0.0, 0.2)]
 GRID6 = [dict(r=r, min_s=m, gap_fill_s=0.2, fusion="any") for m in (0.3, 0.2) for r in (0.5, 0.6, 0.75, 1.0)]
+GRID7 = [dict(r=0.5, min_s=0.2, gap_fill_s=0.2, fusion="any"), dict(r=0.5, min_s=0.2, gap_fill_s=0.2, fusion="veto2", veto_r=1.0),
+         dict(r=0.5, min_s=0.2, gap_fill_s=0.2, fusion="veto2", veto_r=0.75), dict(r=0.5, min_s=0.2, gap_fill_s=0.2, fusion="agree2")]
 GRID5 = [dict(min_s=0.3, gap_fill_s=g, fusion=f) for f in ("any", "veto2", "agree2") for g in (0.0, 0.2)]
 
 
 def tag4(g):
-    return (f"r{g['r']}_" if "r" in g else "") + f"m{g['min_s']}_g{g['gap_fill_s']}_{g['fusion']}"
+    return ((f"r{g['r']}_" if "r" in g else "") + f"m{g['min_s']}_g{g['gap_fill_s']}_{g['fusion']}"
+            + (f"{g['veto_r']}" if "veto_r" in g else ""))
 
 
 def run_r4(d, grid=None, out_name="ng3_r4", metric="F1"):
@@ -120,7 +124,7 @@ def run_r4(d, grid=None, out_name="ng3_r4", metric="F1"):
     out = ROOT / "results/m6/ng" / out_name
     out.mkdir(parents=True, exist_ok=True)
     x.to_csv(out / "per_clip.csv", index=False, encoding="utf-8-sig")
-    if out_name != "ng3_r6":
+    if out_name not in ("ng3_r6", "ng3_r7"):
         assert (x[tags[0]] == d[FIXED].values).all(), "第一組(現行)應與評估一致"
     grid = pd.DataFrame([dict(setting=t, **prf(x.y, x[t])) for t in tags])
     cv, ch = lopo(x, tags, metric)
@@ -136,6 +140,7 @@ def run_r4(d, grid=None, out_name="ng3_r4", metric="F1"):
     for t in tags[1:]:
         ch_ = x[x[t] != x[tags[0]]]
         if len(ch_):
+            ch_.to_csv(out / f"變動_{t}.csv", index=False, encoding="utf-8-sig")
             print(t, "新增抓到", ch_[(ch_[t] == 1)].apply(lambda r: f"{r.key}({'真有' if r.y else '真無'})", axis=1).tolist()[:8],
                   "少抓", ch_[(ch_[t] == 0)].apply(lambda r: f"{r.key}({'真有' if r.y else '真無'})", axis=1).tolist()[:8])
 
@@ -182,6 +187,8 @@ def main():
         run_r4(new, GRID5, "ng3_r5")
     if "--r6" in sys.argv:
         run_r4(new, GRID6, "ng3_r6", "F2")
+    if "--r7" in sys.argv:
+        run_r4(new, GRID7, "ng3_r7", "F2")
 
 
 if __name__ == "__main__":
