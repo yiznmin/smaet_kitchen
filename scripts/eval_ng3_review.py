@@ -11,6 +11,7 @@
     python scripts/eval_ng3_review.py --integrated   # 核對 integrated/src/m6_events/ng3.py 與評估逐片段一致
     python scripts/eval_ng3_review.py --r4           # §8.94 門檻 / 補空隙 / 多鏡頭融合 12 組
     python scripts/eval_ng3_review.py --r5           # §8.96 另一台看清楚兩隻手才否決
+    python scripts/eval_ng3_review.py --r6           # §8.98 放寬距離門檻 / 最短持續(F2 選格點)
 """
 import sys
 from pathlib import Path
@@ -32,14 +33,14 @@ def prf(y, p):
     tp, fp, fn = int((y & p).sum()), int((~y & p).sum()), int((y & ~p).sum())
     R, P = tp / max(tp + fn, 1), tp / max(tp + fp, 1)
     return dict(n=len(y), TP=tp, FP=fp, FN=fn, TN=len(y) - tp - fp - fn, R=round(R, 3), P=round(P, 3),
-                F1=round(2 * R * P / max(R + P, 1e-9), 3))
+                F1=round(2 * R * P / max(R + P, 1e-9), 3), F2=round(5 * R * P / max(4 * P + R, 1e-9), 3))
 
 
-def lopo(d, tags):
+def lopo(d, tags, metric="F1"):
     pairs_y, pairs_p, chosen = [], [], []
     for pid in sorted(d.pid.unique()):
         tr, te = d[d.pid != pid], d[d.pid == pid]
-        best = max(tags, key=lambda t: (prf(tr.y, tr[t])["F1"], -tags.index(t)))
+        best = max(tags, key=lambda t: (prf(tr.y, tr[t])[metric], -tags.index(t)))
         chosen.append(best)
         pairs_y += te.y.tolist()
         pairs_p += te[best].tolist()
@@ -58,8 +59,9 @@ def check_integrated(d):
     C = F.E.load_clips()
     col = d[FIXED]
     if n3.get("gap_fill_s", 0) or n3.get("fusion", "any") != "any":         # §8.97 起:比對 r5 對應設定
-        r5 = pd.read_csv(ROOT / "results/m6/ng/ng3_r5/per_clip.csv", encoding="utf-8-sig").set_index("key")
-        col = r5.loc[d.key, tag4(dict(min_s=n3["min_s"], gap_fill_s=float(n3["gap_fill_s"]), fusion=n3["fusion"]))].values
+        r6 = pd.read_csv(ROOT / "results/m6/ng/ng3_r6/per_clip.csv", encoding="utf-8-sig").set_index("key")   # §8.99
+        col = r6.loc[d.key, tag4(dict(r=n3["r"], min_s=n3["min_s"], gap_fill_s=float(n3["gap_fill_s"]),
+                                      fusion=n3["fusion"]))].values
     bad, n_ev = [], 0
     for key, want in zip(d.key, col):
         c = C[key]
@@ -74,14 +76,15 @@ def check_integrated(d):
 
 
 GRID4 = [dict(min_s=m, gap_fill_s=g, fusion=f) for f in ("any", "veto", "agree") for m in (0.3, 0.2) for g in (0.0, 0.2)]
+GRID6 = [dict(r=r, min_s=m, gap_fill_s=0.2, fusion="any") for m in (0.3, 0.2) for r in (0.5, 0.6, 0.75, 1.0)]
 GRID5 = [dict(min_s=0.3, gap_fill_s=g, fusion=f) for f in ("any", "veto2", "agree2") for g in (0.0, 0.2)]
 
 
 def tag4(g):
-    return f"m{g['min_s']}_g{g['gap_fill_s']}_{g['fusion']}"
+    return (f"r{g['r']}_" if "r" in g else "") + f"m{g['min_s']}_g{g['gap_fill_s']}_{g['fusion']}"
 
 
-def run_r4(d, grid=None, out_name="ng3_r4"):
+def run_r4(d, grid=None, out_name="ng3_r4", metric="F1"):
     """§8.94 / §8.96:每個片段算一次各鏡頭距離比值與手框數,再套各組設定;參與者留一選格點。"""
     grid = grid or GRID4
     sys.path.insert(0, str(ROOT / "scripts"))
@@ -117,9 +120,10 @@ def run_r4(d, grid=None, out_name="ng3_r4"):
     out = ROOT / "results/m6/ng" / out_name
     out.mkdir(parents=True, exist_ok=True)
     x.to_csv(out / "per_clip.csv", index=False, encoding="utf-8-sig")
-    assert (x[tags[0]] == d[FIXED].values).all(), "第一組(現行)應與評估一致"
+    if out_name != "ng3_r6":
+        assert (x[tags[0]] == d[FIXED].values).all(), "第一組(現行)應與評估一致"
     grid = pd.DataFrame([dict(setting=t, **prf(x.y, x[t])) for t in tags])
-    cv, ch = lopo(x, tags)
+    cv, ch = lopo(x, tags, metric)
     folds_y, folds_p = x.y, None
     summ = pd.DataFrame([dict(item="現行 " + tags[0], **prf(x.y, x[tags[0]])), dict(item="LOPO", chosen=str(ch), **cv)])
     grid.to_csv(out / "grid.csv", index=False, encoding="utf-8-sig")
@@ -176,6 +180,8 @@ def main():
         run_r4(new)
     if "--r5" in sys.argv:
         run_r4(new, GRID5, "ng3_r5")
+    if "--r6" in sys.argv:
+        run_r4(new, GRID6, "ng3_r6", "F2")
 
 
 if __name__ == "__main__":
