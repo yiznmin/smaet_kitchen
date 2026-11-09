@@ -8,6 +8,8 @@
      veto = 任一台成立且沒有任一台「看得到臉與手、距離 > veto_r × 肩寬」;agree = 看得到臉與手的鏡頭都要成立。
      veto2 / agree2(§8.96):同上,但只有「看清楚」(看到臉且手框 ≥ 2 個)的鏡頭能否決(碰臉的手被擋住時不誤否決)。
      clear_conf(§8.102):「看清楚」另要求信心第二高的手框 ≥ clear_conf(0 = 不限)。
+  5. (§8.104)wrist_r > 0:手框到同幀任一人手腕關鍵點(9、10)≤ wrist_r × 肩寬才算手(排除牆面 / 地板誤偵);
+     face_front:臉中心須含鼻子或眼睛(0–2),只看到耳朵(後腦勺)不算看到臉。
   4. 長度 ≤ gap_fill_s 的空隙先補起來(§8.94);連續 ≥ min_s 秒才算一次碰臉;兩次間隔 < merge_s 秒合併。
 輸入:各鏡頭 M3 偵測快取 + 同鏡頭姿態快取(npz:step、box、kp[N, 17, 3];見 m6_events/pose.py)。
 """
@@ -16,18 +18,33 @@ import numpy as np
 from m6_events.violation import HAND, at, intervals, steps
 
 DEFAULT = dict(views=["output0", "Aoutput1"], r=0.5, kp_thr=0.3, thr_hand=0.2, min_s=0.3, merge_s=2.0, pose_every=2,
-               gap_fill_s=0.0, fusion="any", veto_r=1.0, clear_conf=0.0)
+               gap_fill_s=0.0, fusion="any", veto_r=1.0, clear_conf=0.0, wrist_r=0.0, face_front=False)
 
 
-def faces(pz, i, kp_thr):
-    """姿態快取第 i 步的 [(臉中心 xy, 肩寬)];該步沒有關鍵點回傳 []。"""
+def faces(pz, i, kp_thr, front=False):
+    """姿態快取第 i 步的 [(臉中心 xy, 肩寬)];該步沒有關鍵點回傳 []。front:須看到鼻子或眼睛。"""
     out = []
     for k in pz["kp"][pz["step"] == i]:
         head = k[:5][k[:5, 2] >= kp_thr]
+        if front and not (k[:3, 2] >= kp_thr).any():
+            continue
         if len(head) and k[5, 2] >= kp_thr and k[6, 2] >= kp_thr:
             sw = float(np.linalg.norm(k[5, :2] - k[6, :2]))
             if sw >= 1:
                 out.append((head[:, :2].mean(0), sw))
+    return out
+
+
+def wrists(pz, i, kp_thr):
+    """姿態快取第 i 步的 [(手腕 xy, 肩寬)](左右手腕 9、10,分數 ≥ kp_thr;肩寬要看得到)。"""
+    out = []
+    for k in pz["kp"][pz["step"] == i]:
+        if k[5, 2] < kp_thr or k[6, 2] < kp_thr:
+            continue
+        sw = float(np.linalg.norm(k[5, :2] - k[6, :2]))
+        if sw < 1:
+            continue
+        out += [(k[j, :2], sw) for j in (9, 10) if k[j, 2] >= kp_thr]
     return out
 
 
@@ -47,11 +64,17 @@ def face_ratio_nh(dc, pz, T, p):
         i = int(i)
         if i >= T:
             continue
-        fs = faces(pz, i, p["kp_thr"])
+        fs = faces(pz, i, p["kp_thr"], p.get("face_front", False))
         if not fs:
             continue
         xy, cf, cl = at(dc, idx, i)
         m = (cl == HAND) & (cf >= p["thr_hand"])
+        if p.get("wrist_r", 0) > 0:                                  # 手框要有手腕關鍵點佐證
+            ws = wrists(pz, i, p["kp_thr"])
+            ok = np.zeros(len(m), bool)
+            for w, sw in ws:
+                ok |= hand_face_dist(xy, w) / sw <= p["wrist_r"]
+            m &= ok
         H = xy[m]
         nh[i:min(T, i + p["pose_every"])] = len(H)
         if len(H) >= 2:
