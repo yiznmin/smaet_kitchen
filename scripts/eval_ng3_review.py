@@ -15,6 +15,7 @@
     python scripts/eval_ng3_review.py --r7           # §8.100 min_s 0.2 下重測另一台否決
     python scripts/eval_ng3_review.py --r8           # §8.102 看清楚 = 兩隻手框信心都 ≥ clear_conf
     python scripts/eval_ng3_review.py --r9           # §8.104 手腕佐證 / 正面臉
+    python scripts/eval_ng3_review.py --r10          # §8.106 短暫觸發要求距離 ≤ 0.4
 """
 import sys
 from pathlib import Path
@@ -70,6 +71,9 @@ def check_integrated(d):
         if n3.get("wrist_r", 0):                                           # §8.105
             g.update(wrist_r=float(n3["wrist_r"]))
             name = "ng3_r9"
+        if n3.get("short_r", 0):                                           # §8.107
+            g.update(short_r=float(n3["short_r"]))
+            name = "ng3_r10"
         rr = pd.read_csv(ROOT / f"results/m6/ng/{name}/per_clip.csv", encoding="utf-8-sig").set_index("key")
         col = rr.loc[d.key, tag4(g)].values
     bad, n_ev = [], 0
@@ -93,13 +97,16 @@ GRID8 = [dict(r=0.5, min_s=0.2, gap_fill_s=0.2, fusion="any")] + [
     dict(r=0.5, min_s=0.2, gap_fill_s=0.2, fusion="veto2", veto_r=1.0, clear_conf=c) for c in (0.2, 0.3, 0.4, 0.5)]
 GRID9 = [dict(r=0.5, min_s=0.2, gap_fill_s=0.2, fusion="veto2", veto_r=1.0, clear_conf=0.4, wrist_r=w, face_front=f)
          for f in (False, True) for w in (0.0, 0.3, 0.5, 1.0)]
+GRID10 = [dict(r=0.5, min_s=0.2, gap_fill_s=0.2, fusion="veto2", veto_r=1.0, clear_conf=0.4, wrist_r=1.0, short_r=x)
+          for x in (0.0, 0.4)]
 GRID5 = [dict(min_s=0.3, gap_fill_s=g, fusion=f) for f in ("any", "veto2", "agree2") for g in (0.0, 0.2)]
 
 
 def tag4(g):
     return ((f"r{g['r']}_" if "r" in g else "") + f"m{g['min_s']}_g{g['gap_fill_s']}_{g['fusion']}"
             + (f"{g['veto_r']}" if "veto_r" in g else "") + (f"_c{g['clear_conf']}" if "clear_conf" in g else "")
-            + (f"_w{g['wrist_r']}" if "wrist_r" in g else "") + ("_front" if g.get("face_front") else ""))
+            + (f"_w{g['wrist_r']}" if "wrist_r" in g else "") + ("_front" if g.get("face_front") else "")
+            + (f"_s{g['short_r']}" if "short_r" in g else ""))
 
 
 def run_r4(d, grid=None, out_name="ng3_r4", metric="F1"):
@@ -109,7 +116,7 @@ def run_r4(d, grid=None, out_name="ng3_r4", metric="F1"):
     import yaml
     import eval_ng3_face as F
     from m4_track.det_cache import DetCache
-    from m6_events.ng3 import DEFAULT, face_ratio_nh, fill_gaps, fuse, touch_segments
+    from m6_events.ng3 import DEFAULT, face_ratio_nh, fill_gaps, fuse, keep_short, touch_segments
     from m6_events.violation import steps
     cfg = yaml.safe_load((ROOT / "integrated/configs/violation_rules.yaml").read_text(encoding="utf-8"))
     base = dict(DEFAULT, **{k: v for k, v in cfg["ng3"].items() if k != "enable"})
@@ -137,13 +144,13 @@ def run_r4(d, grid=None, out_name="ng3_r4", metric="F1"):
             rn = memo[mk]
             ratios, nhs, c2s = {v: rn[v][0] for v in vs}, {v: rn[v][1] for v in vs}, {v: rn[v][2] for v in vs}
             raw = fill_gaps(fuse(ratios, pp, nhs, c2s), int(round(pp["gap_fill_s"] / step)))
-            row[t] = int(bool(touch_segments(raw, step, pp["min_s"], pp["merge_s"])))
+            row[t] = int(bool(keep_short(touch_segments(raw, step, pp["min_s"], pp["merge_s"]), raw, ratios, step, pp)))
         rows.append(row)
     x = pd.DataFrame(rows)
     out = ROOT / "results/m6/ng" / out_name
     out.mkdir(parents=True, exist_ok=True)
     x.to_csv(out / "per_clip.csv", index=False, encoding="utf-8-sig")
-    if out_name not in ("ng3_r6", "ng3_r7", "ng3_r8", "ng3_r9"):
+    if out_name not in ("ng3_r6", "ng3_r7", "ng3_r8", "ng3_r9", "ng3_r10"):
         assert (x[tags[0]] == d[FIXED].values).all(), "第一組(現行)應與評估一致"
     grid = pd.DataFrame([dict(setting=t, **prf(x.y, x[t])) for t in tags])
     cv, ch = lopo(x, tags, metric)
@@ -212,6 +219,8 @@ def main():
         run_r4(new, GRID8, "ng3_r8", "F2")
     if "--r9" in sys.argv:
         run_r4(new, GRID9, "ng3_r9", "F2")
+    if "--r10" in sys.argv:
+        run_r4(new, GRID10, "ng3_r10", "F2")
 
 
 if __name__ == "__main__":

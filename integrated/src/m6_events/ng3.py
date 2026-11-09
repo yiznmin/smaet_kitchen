@@ -10,6 +10,8 @@
      clear_conf(§8.102):「看清楚」另要求信心第二高的手框 ≥ clear_conf(0 = 不限)。
   5. (§8.104)wrist_r > 0:手框到同幀任一人手腕關鍵點(9、10)≤ wrist_r × 肩寬才算手(排除牆面 / 地板誤偵);
      face_front:臉中心須含鼻子或眼睛(0–2),只看到耳朵(後腦勺)不算看到臉。
+  6. (§8.106)short_r > 0:段落內最長連續成立 < short_s 秒(短暫觸發)時,各鏡頭成立步的最短距離須 ≤ short_r × 肩寬,
+     否則視為手快速經過臉旁、不算。
   4. 長度 ≤ gap_fill_s 的空隙先補起來(§8.94);連續 ≥ min_s 秒才算一次碰臉;兩次間隔 < merge_s 秒合併。
 輸入:各鏡頭 M3 偵測快取 + 同鏡頭姿態快取(npz:step、box、kp[N, 17, 3];見 m6_events/pose.py)。
 """
@@ -18,7 +20,8 @@ import numpy as np
 from m6_events.violation import HAND, at, intervals, steps
 
 DEFAULT = dict(views=["output0", "Aoutput1"], r=0.5, kp_thr=0.3, thr_hand=0.2, min_s=0.3, merge_s=2.0, pose_every=2,
-               gap_fill_s=0.0, fusion="any", veto_r=1.0, clear_conf=0.0, wrist_r=0.0, face_front=False)
+               gap_fill_s=0.0, fusion="any", veto_r=1.0, clear_conf=0.0, wrist_r=0.0, face_front=False,
+               short_s=0.3, short_r=0.0)
 
 
 def faces(pz, i, kp_thr, front=False):
@@ -142,6 +145,23 @@ def touch_segments(raw, step, min_s, merge_s):
     return [(s, e) for s, e in merged]
 
 
+def keep_short(segs, raw, ratios, step, p):
+    """§8.106:短暫觸發段落須貼得更近(最短距離 ≤ short_r)才保留。"""
+    if not p.get("short_r", 0):
+        return segs
+    k = int(round(p.get("short_s", 0.3) / step))
+    R = np.array(list(ratios.values()))
+    out = []
+    for s, e in segs:
+        if max(b - a for a, b in intervals(raw[s:e])) < k:
+            with np.errstate(invalid="ignore"):
+                near = np.where(R[:, s:e] <= p["r"], R[:, s:e], np.nan)
+            if not np.isfinite(near).any() or np.nanmin(near) > p["short_r"]:
+                continue
+        out.append((s, e))
+    return out
+
+
 def detect_ng3(caches, poses, step=0.1, params=None, t0=0.0, trace=None):
     """caches:{鏡頭: DetCache};poses:{鏡頭: 姿態 npz(dict-like)}。只用兩者都有的 views 鏡頭。
 
@@ -157,7 +177,7 @@ def detect_ng3(caches, poses, step=0.1, params=None, t0=0.0, trace=None):
     with np.errstate(invalid="ignore"):
         raws = {v: ratios[v] <= p["r"] for v in vs}
     raw = fill_gaps(fuse(ratios, p, nhs, c2s), int(round(p.get("gap_fill_s", 0) / step)))
-    segs = touch_segments(raw, step, p["min_s"], p["merge_s"])
+    segs = keep_short(touch_segments(raw, step, p["min_s"], p["merge_s"]), raw, ratios, step, p)
     if trace is not None:
         trace.update(T=T, raws=raws, raw=raw, segs=segs, views=vs, ratios=ratios)
     sec = lambda i: round(t0 + i * step, 2)
