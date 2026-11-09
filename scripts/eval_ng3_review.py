@@ -19,6 +19,7 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "results/m6/ng/ng3_face_r3/per_clip.csv"
 REVIEW = Path("D:/yizhen/NG3_碰臉誤報人工檢視_20261105/人工檢視表.xlsx")
+USER = ROOT / "results/m6/ng/details_corrected/ng3_user_corrections_20261109.csv"   # §8.93 使用者回查(優先於第三人檢視)
 OUT = ROOT / "results/m6/ng/ng3_face_r3_review"
 FIXED = "r0.5_hand_m0.0_any"
 RES_COL = "檢視結果(1 有碰臉 / 2 沒碰臉 / 3 看不出來)"
@@ -75,6 +76,15 @@ def main():
     d["y_old"] = d.y.astype(int)
     d["review"] = d.key.map(res)
     d.loc[d.review == 1, "y"] = 1
+    d["user"] = ""
+    if USER.exists():
+        for _, u in pd.read_csv(USER, encoding="utf-8-sig", dtype=str).fillna("").iterrows():
+            m = d.key == u.key
+            if u.exclude:
+                d.loc[m, "review"] = 3                     # 視同排除
+            if u.gt_ng3:
+                d.loc[m, "y"] = int(u.gt_ng3)
+            d.loc[m, "user"] = u.note
     new = d[d.review != 3].copy()
     new["y"] = new.y.astype(int)
     OUT.mkdir(parents=True, exist_ok=True)

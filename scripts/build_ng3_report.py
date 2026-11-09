@@ -118,7 +118,8 @@ def main():
         n += 1
         name = f"{n:03d}_{key}.mp4"
         r = dict(base, gt=y, pred=pred, category=cat,
-                 gt_source="人工檢視改正例" if rv.get(key) == 1 else "團隊標註",
+                 gt_source=("使用者回查改正例" if isinstance(per.loc[key, "user"], str) and per.loc[key, "user"]
+                            else "人工檢視改正例" if rv.get(key) == 1 else "團隊標註"),
                  sys_events="、".join(f"{e['start']:.1f}–{e['end']:.1f} 秒({e['views']})" for e in ev) or "無",
                  video=f"NG3/{cat}/{name}")
         rows.append(r)
@@ -127,7 +128,7 @@ def main():
             continue
         team = f"團隊 {c['ng']} {c['cat']}" + (f" {c['note']}" if c["note"] else "")
         label = (f"NG3 {cat} | {c['pid']} | {team} | 真值 {'有' if y else '無'}碰臉"
-                 f"{'(人工檢視修正)' if rv.get(key) == 1 else ''} / 系統 {'有' if pred else '無'} NG3")
+                 f"{'(修正)' if r['gt_source'] != '團隊標註' else ''} / 系統 {'有' if pred else '無'} NG3")
         jobs.append(dict(out=OUT / cat / name, n_frames=int(c["dur"] * FPS), start_frame=0, offset=0.0, label=label,
                          kind="ng3d", status=st, thr={"手": n3["thr_hand"]},
                          views=[dict(name=v, video=link(c, v), cache=c["caches"][v], zones={}) for v in st["views"]]))
