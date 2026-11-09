@@ -7,6 +7,7 @@
   3. 鏡頭(fusion,§8.94):any = views 任一台成立即成立(看得到臉的 output0、Aoutput1);
      veto = 任一台成立且沒有任一台「看得到臉與手、距離 > veto_r × 肩寬」;agree = 看得到臉與手的鏡頭都要成立。
      veto2 / agree2(§8.96):同上,但只有「看清楚」(看到臉且手框 ≥ 2 個)的鏡頭能否決(碰臉的手被擋住時不誤否決)。
+     clear_conf(§8.102):「看清楚」另要求信心第二高的手框 ≥ clear_conf(0 = 不限)。
   4. 長度 ≤ gap_fill_s 的空隙先補起來(§8.94);連續 ≥ min_s 秒才算一次碰臉;兩次間隔 < merge_s 秒合併。
 輸入:各鏡頭 M3 偵測快取 + 同鏡頭姿態快取(npz:step、box、kp[N, 17, 3];見 m6_events/pose.py)。
 """
@@ -15,7 +16,7 @@ import numpy as np
 from m6_events.violation import HAND, at, intervals, steps
 
 DEFAULT = dict(views=["output0", "Aoutput1"], r=0.5, kp_thr=0.3, thr_hand=0.2, min_s=0.3, merge_s=2.0, pose_every=2,
-               gap_fill_s=0.0, fusion="any", veto_r=1.0)
+               gap_fill_s=0.0, fusion="any", veto_r=1.0, clear_conf=0.0)
 
 
 def faces(pz, i, kp_thr):
@@ -38,10 +39,10 @@ def hand_face_dist(H, fc):
 
 
 def face_ratio_nh(dc, pz, T, p):
-    """單一鏡頭逐步 (d, nh):d = 手到臉中心最短距離 / 肩寬(沒看到臉或手 = nan);nh = 手框數(沒看到臉 = 0)。
-    姿態每 pose_every 步一幀,延續到下一幀。"""
+    """單一鏡頭逐步 (d, nh, c2):d = 手到臉中心最短距離 / 肩寬(沒看到臉或手 = nan);nh = 手框數(沒看到臉 = 0);
+    c2 = 信心第二高的手框信心(不足 2 個 = 0)。姿態每 pose_every 步一幀,延續到下一幀。"""
     idx = steps(dc)
-    out, nh = np.full(T, np.nan), np.zeros(T, int)
+    out, nh, c2 = np.full(T, np.nan), np.zeros(T, int), np.zeros(T)
     for i in np.unique(pz["step"]):
         i = int(i)
         if i >= T:
@@ -50,12 +51,15 @@ def face_ratio_nh(dc, pz, T, p):
         if not fs:
             continue
         xy, cf, cl = at(dc, idx, i)
-        H = xy[(cl == HAND) & (cf >= p["thr_hand"])]
+        m = (cl == HAND) & (cf >= p["thr_hand"])
+        H = xy[m]
         nh[i:min(T, i + p["pose_every"])] = len(H)
+        if len(H) >= 2:
+            c2[i:min(T, i + p["pose_every"])] = np.sort(cf[m])[-2]
         if not len(H):
             continue
         out[i:min(T, i + p["pose_every"])] = min((hand_face_dist(H, fc) / sw).min() for fc, sw in fs)
-    return out, nh
+    return out, nh, c2
 
 
 def face_ratio(dc, pz, T, p):
@@ -69,14 +73,17 @@ def face_touch_raw(dc, pz, T, p):
         return face_ratio(dc, pz, T, p) <= p["r"]
 
 
-def fuse(ratios, p, nhs=None):
-    """多鏡頭融合(§8.94、§8.96)。ratios:{鏡頭: float[T]};nhs:{鏡頭: int[T]} 手框數(veto2 / agree2 需要)。"""
+def fuse(ratios, p, nhs=None, c2s=None):
+    """多鏡頭融合(§8.94、§8.96、§8.102)。ratios:{鏡頭: float[T]};nhs:{鏡頭: int[T]} 手框數;
+    c2s:{鏡頭: float[T]} 第二高手框信心(veto2 / agree2 需要)。"""
     R = np.array(list(ratios.values()))
     f = p.get("fusion", "any")
     with np.errstate(invalid="ignore"):
         near = (R <= p["r"]).any(0)
         if f in ("veto2", "agree2"):                            # 只有看清楚(手框 ≥ 2)的鏡頭能否決
             clear = np.array([nhs[v] for v in ratios]) >= 2
+            if p.get("clear_conf", 0) > 0:
+                clear &= np.array([c2s[v] for v in ratios]) >= p["clear_conf"]
             R = np.where(clear, R, np.nan)
             f = f[:-1]
         if f == "veto":
@@ -123,10 +130,10 @@ def detect_ng3(caches, poses, step=0.1, params=None, t0=0.0, trace=None):
         return []
     T = min(len(steps(caches[v])[0]) for v in vs)
     rn = {v: face_ratio_nh(caches[v], poses[v], T, p) for v in vs}
-    ratios, nhs = {v: rn[v][0] for v in vs}, {v: rn[v][1] for v in vs}
+    ratios, nhs, c2s = {v: rn[v][0] for v in vs}, {v: rn[v][1] for v in vs}, {v: rn[v][2] for v in vs}
     with np.errstate(invalid="ignore"):
         raws = {v: ratios[v] <= p["r"] for v in vs}
-    raw = fill_gaps(fuse(ratios, p, nhs), int(round(p.get("gap_fill_s", 0) / step)))
+    raw = fill_gaps(fuse(ratios, p, nhs, c2s), int(round(p.get("gap_fill_s", 0) / step)))
     segs = touch_segments(raw, step, p["min_s"], p["merge_s"])
     if trace is not None:
         trace.update(T=T, raws=raws, raw=raw, segs=segs, views=vs, ratios=ratios)
