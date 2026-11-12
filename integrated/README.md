@@ -29,7 +29,15 @@ integrated/
 │   ├── m4_track/              M4 單鏡頭追蹤、偵測快取
 │   ├── m5_reid/               M5 跨鏡頭身份
 │   └── m6_events/             M6 違規判定(NG1~NG4、人體姿態)
-├── scripts/                   M3 維護工具(訓練、掃門檻、單張推論)
+├── scripts/                   導入新場地用的工具(見第 5 節)
+│   ├── draw_zones.py          畫各鏡頭區域、量座標
+│   ├── extract_frames.py      從影片抽出要標註的畫面
+│   ├── make_labeler.py        產生瀏覽器版物件標註頁
+│   ├── build_dataset.py       合併標註、切分訓練資料集
+│   ├── train_m3_rfdetr.py     訓練 M3
+│   ├── sweep_thresholds.py    掃 M3 各類門檻
+│   ├── m3_on_frame.py         對圖片 / 影片幀跑 M3 並畫框
+│   └── build_topology.py      產生人員追蹤用的相機拓撲
 └── weights/
     ├── m3_nano_r2_armA/       M3 微調權重(廚房 11 類)
     └── pretrained/            RF-DETR COCO 預訓權重、DINOv2
@@ -156,65 +164,148 @@ python run_violations.py --video-dir <影片資料夾> --out outputs/ng
 
 ## 5. 導入新場地需要做的事
 
-本系統的鏡頭配置、區域、相機拓撲與 M3 權重都是依示範廚房建立的。導入企業自己的廚房時,依序完成:
+本系統的鏡頭配置、區域、相機拓撲與 M3 權重都是依示範廚房建立的。導入企業自己的廚房時,依下列順序完成:
+
+| 步驟 | 項目 | 必要性 | 使用工具 |
+|---|---|---|---|
+| 5.1 | 鏡頭配置與時間同步 | 必要 | — |
+| 5.2 | 畫各鏡頭的區域 | 必要 | `scripts/draw_zones.py` |
+| 5.3 | 設定俯視鏡頭的 A / B 側分界 | 必要 | `scripts/draw_zones.py`(量座標) |
+| 5.4 | 重新訓練 M3 | 必要(授權與準確度) | `extract_frames.py` → `make_labeler.py` → `build_dataset.py` → `train_m3_rfdetr.py` |
+| 5.5 | 調整規則參數 | 選擇性 | 編輯 `configs/violation_rules.yaml` |
+| 5.6 | 建立相機拓撲 | 只有人員追蹤需要 | `scripts/build_topology.py` |
+| 5.7 | 試跑驗收 | 必要 | `run_violations.py` |
+
+工具產生的標註頁都是本機 HTML,用瀏覽器打開即可操作,不需安裝其他軟體,也不會上傳任何畫面。
 
 ### 5.1 鏡頭配置與時間同步
 
-- 違規判定需要:一台俯視全景(看得到垃圾桶與洗手台、人站的位置)、看得到臉與手的近拍鏡頭、水槽上方的近拍鏡頭。
-- 各鏡頭影片時間必須同步。
-- 鏡頭名稱若與示範不同,修改 `configs/violation_rules.yaml` 的 `cameras`、`zones`、`trash_event`、`hand_hygiene`、`ng3.views`、`ng4` 各節中的鏡頭名稱,以及 `run_violations.py` 開頭的 `CAMERAS`。
+違規判定需要以下鏡頭(名稱為示範廚房的命名):
 
-### 5.2 重畫區域
+| 鏡頭 | 位置 | 用途 |
+|---|---|---|
+| `output0` | 俯視全景,看得到垃圾桶、洗手台與人站的位置 | 人站在哪一側、站在垃圾桶前、手在洗手台 |
+| `Aoutput1` | 近拍,看得到垃圾桶與廚師的臉、手 | 手碰垃圾桶、手碰臉 |
+| `Aoutput1`~`Aoutput3`、`Boutput1`~`Boutput2` | A / B 兩側工作區的近拍 | 手碰食材、器具;放置位置 |
+| `Boutput1`、`Boutput2` | 水槽上方 | 洗手、清洗食材 / 器具 |
 
-`configs/zones/epfl_<鏡頭>.json` 是示範廚房的區域,換場地必須依新畫面重畫。格式:
+- 影片為 30 fps,檔名為 `<鏡頭名稱>.mp4`。
+- 各鏡頭的時間必須同步:同一個動作在各支影片中要出現在同一秒。檢查方式是找一個明顯的瞬間(例如開關燈、拍手),確認各支影片中該瞬間的時間相同;不同時,先用剪輯工具(例如 ffmpeg)把各支裁成同一個起點。
+- 鏡頭名稱或數量與示範不同時,修改:
+  - `configs/violation_rules.yaml` 的 `cameras`、`zones`、`trash_event`、`hand_hygiene.close_cams`、`ng3.views`、`ng4.views`、`ng4.sink_cams`、`ng4.wash_views`。
+  - `run_violations.py` 開頭的 `CAMERAS`。
 
-```json
-{
-  "width": 1280, "height": 720,
-  "zones": [
-    {"name": "垃圾桶區", "points": [[x1, y1], [x2, y2], [x3, y3], [x4, y4]]},
-    {"name": "洗手台",   "points": [[...], ...]}
-  ]
-}
+### 5.2 畫各鏡頭的區域
+
+需要畫的區域:
+
+| 鏡頭 | 區域名稱 | 範圍 |
+|---|---|---|
+| `output0` | `垃圾桶區` | 垃圾桶本體及前方站立處 |
+| `output0` | `洗手台` | 洗手的水槽 |
+| `Aoutput1` | `垃圾桶區` | 垃圾桶開口(手伸進去丟東西的位置) |
+| `Aoutput1`、`Aoutput2` | `洗手台_NG4` | 畫面中的水槽(排除還在水槽內清洗的東西) |
+| `Boutput1`、`Boutput2` | `洗手台`、`洗手台_NG4` | 畫面中的水槽 |
+
+步驟(每台鏡頭各做一次):
+
+1. 產生標註頁。`--frame` 挑一張區域沒被人擋住的畫面:
+   ```
+   python scripts/draw_zones.py <影片資料夾>/output0.mp4 --frame 300 --camera output0
+   ```
+2. 用瀏覽器打開 `outputs/zones/output0_zones.html`:
+   - 左鍵沿區域邊界點一圈(至少 3 點)。
+   - 從「名稱」下拉選單選區域名稱,按「完成區域」。
+   - 該鏡頭的區域都畫完後按「匯出」,瀏覽器會下載 `output0.json`。
+3. 把下載的檔案放到 `configs/zones/`,並修改 `configs/violation_rules.yaml` 的 `zones`,讓該鏡頭指向它:
+   ```yaml
+   zones:
+     output0: configs/zones/output0.json
+   ```
+4. 檢查:把區域疊回畫面輸出圖片,確認位置正確:
+   ```
+   python scripts/draw_zones.py <影片資料夾>/output0.mp4 --frame 300 --preview configs/zones/output0.json
+   ```
+   輸出 `outputs/zones/output0_preview.png`,區域以編號標示,編號對應的名稱會印在終端機。
+
+### 5.3 設定俯視鏡頭的 A / B 側分界
+
+系統用俯視鏡頭(`output0`)中人框中心的 x 座標判斷廚師在哪一側工作,再挑該側的近拍鏡頭判斷碰觸:
+
+- x 小於 `x_a`:A 側(用 `Aoutput1`~`Aoutput3`)。
+- x 大於 `x_b`:B 側(用 `Boutput1`、`Boutput2`)。
+- 介於兩者之間:兩側的近拍鏡頭都用。
+
+量法:
+
+1. 從 `output0` 影片中各挑一張廚師站在 A 側工作區最靠中間處、以及 B 側工作區最靠中間處的畫面(記下幀號)。
+2. 用 5.2 的標註頁打開這兩幀(`--frame <幀號>`),把游標移到廚師身體中線,讀畫面上方顯示的 x 座標。
+3. A 側那張的 x 填入 `x_a`,B 側那張的 x 填入 `x_b`:
+   ```yaml
+   cameras:
+     side_x: {x_a: 480.9, x_b: 729.3}
+   ```
+
+### 5.4 重新訓練 M3
+
+目前的權重只用示範廚房的畫面訓練,而且訓練資料的授權不允許商業使用(見第 6 節),所以必須用企業自己的影片重新訓練。參考:目前權重用了 540 張標註圖(約 5,000 個框)。
+
+**1. 抽圖**:從各鏡頭、不同時段、不同廚師的影片抽出要標註的畫面。
+
+```
+python scripts/extract_frames.py --videos <a.mp4> <b.mp4> ... --n 50 --out datasets/kitchen/images
 ```
 
-- 座標為影片原始解析度的像素。
-- 區域名稱需與 `violation_rules.yaml` 使用的名稱相同:`垃圾桶區`、`洗手台`、`洗手台_NG4`。
-- `violation_rules.yaml` 的 `cameras.side_x` 是俯視鏡頭中 A / B 兩側工作區的分界 x 座標,也要依新畫面重設。
+每支影片均勻挑 `--n` 張有動作的畫面,檔名為 `<影片名>_<幀號>.jpg`。
 
-### 5.3 重建相機拓撲(人員追蹤用)
+**2. 標註**:產生標註頁,在瀏覽器裡畫框。
 
-拓撲描述鏡頭之間的移動時間與畫面重疊關係,格式與 `pipeline_config.yaml` 的 `camera_topology` 區塊相同:
+```
+python scripts/make_labeler.py --img-dir datasets/kitchen/images --out outputs/labeler/labeler.html --batch 200
+```
 
-- `links`:相鄰鏡頭之間走路所需時間(平均與標準差,秒),由實際量測人員在鏡頭間移動的時間得到。
-- `overlapping`:畫面有重疊的鏡頭組。
-- `cameras`:各鏡頭名稱與時鐘偏移。
+- 每頁 200 張,產生 `labeler_1.html`、`labeler_2.html`…,可分給多人同時標。
+- 操作方式:
+  - 拖拉滑鼠畫框。
+  - 數字鍵 1~9 或下拉選單切換類別。
+  - 左右方向鍵換張。
+  - 右鍵點框可刪除。
+- 每張圖中看得到的 11 類物件都要標;漏標的物件會被模型學成「不是物件」。
+- 標完按「匯出」,下載 `coco_1.json`、`coco_2.json`…。關掉頁面前一定要匯出,頁面不會自動存檔。
 
-寫成獨立 yaml 檔,執行時用 `--topology` 指定,或寫入 `pipeline_config.yaml` 的 `camera_topology`。
+**3. 建立資料集**:合併所有匯出檔,切成 train / valid / test。
 
-### 5.4 重新訓練 M3(建議)
+```
+python scripts/build_dataset.py --labels coco_1.json coco_2.json ... --img-dir datasets/kitchen/images --out datasets/kitchen/m3
+```
 
-目前的微調權重只在示範廚房的畫面上訓練,換場地後偵測準確度可能下降,且有授權限制(見第 6 節)。建議用企業自己的影片標註後重新訓練:
+終端機會列出各類別的框數;沒有任何標註的類別訓練後偵測不到。
 
-1. 從影片截圖,以 COCO 格式標註 11 類(類別順序見 `src/m3/classes.py`)。
-2. 另建訓練用虛擬環境(與推論環境的 supervision 版本衝突):
-   ```
-   pip install "rfdetr[train,loggers]==1.9.4"
-   ```
-3. 訓練(資料集格式:`<資料集>/{train,valid,test}/_annotations.coco.json`):
-   ```
-   python scripts/train_m3_rfdetr.py --dataset <資料集資料夾> --out <輸出資料夾>
-   ```
-4. 掃各類門檻,把結果填回 `pipeline_config.yaml` 的 `m3.class_thresholds`:
-   ```
-   python scripts/sweep_thresholds.py --weights <權重.pth> --variant nano --valid <資料集>/valid
-   ```
-5. 抽查效果,畫框輸出供目視檢查:
-   ```
-   python scripts/m3_on_frame.py --weights <權重.pth> --images <圖片>
-   python scripts/m3_on_frame.py --weights <權重.pth> --video <影片> --frames <幀號…>
-   ```
-6. 換掉 `run_violations.py` 開頭的 `DET_WEIGHTS` 與執行 `run_pipeline.py` 時的 `--weights`。
+**4. 訓練**:另建訓練用虛擬環境(與推論環境的 supervision 版本衝突,不可裝在同一個環境),需要 GPU。
+
+```
+pip install "rfdetr[train,loggers]==1.9.4"
+python scripts/train_m3_rfdetr.py --dataset datasets/kitchen/m3 --out weights/m3_kitchen
+```
+
+完成後權重為 `weights/m3_kitchen/checkpoint_best_total.pth`。
+
+**5. 掃各類門檻**:回到推論環境執行,結果填回 `pipeline_config.yaml` 的 `m3.class_thresholds`。
+
+```
+python scripts/sweep_thresholds.py --weights weights/m3_kitchen/checkpoint_best_total.pth --variant nano --valid datasets/kitchen/m3/valid
+```
+
+**6. 抽查效果**:對幾張圖或影片幀畫框,目視檢查。
+
+```
+python scripts/m3_on_frame.py --weights weights/m3_kitchen/checkpoint_best_total.pth --video <影片> --frames 300 600 900
+```
+
+**7. 換上新權重**:
+- 修改 `run_violations.py` 開頭的 `DET_WEIGHTS`。
+- 刪除舊的偵測快取 `<out>/det_cache/`,否則會沿用舊權重的結果。
+- 執行 `run_pipeline.py` 時改用 `--weights weights/m3_kitchen/checkpoint_best_total.pth`。
 
 ### 5.5 調整規則參數
 
@@ -229,7 +320,40 @@ python run_violations.py --video-dir <影片資料夾> --out outputs/ng
 | 視為「碰到食材 / 器具」的類別 | `touch_classes` | 食材、刀具、砧板、鍋鏟、鍋子、容器 |
 | 洗過後放在哪些物件上算合格 | `ng4.supports` | 砧板、容器、鍋子 |
 
-建議先在幾段已知有無違規的影片上試跑,確認結果符合預期後再正式使用。
+只改規則參數不需要重算偵測快取與姿態,重跑 `run_violations.py` 會直接讀既有快取,很快就有結果。
+
+### 5.6 建立相機拓撲(只有人員追蹤需要)
+
+拓撲描述鏡頭之間走路要多久、哪些鏡頭畫面重疊,M5 用它判斷不同鏡頭裡的人是不是同一個。只做違規判定可跳過這一步。
+
+1. 產生空白表格:
+   ```
+   python scripts/build_topology.py --template configs/topology_links.csv
+   ```
+2. 依平面圖填表,每條可以走過去的路徑填一列,雙向各填一列:
+   ```
+   from,to,walk_distance_m,overlapping
+   cam1,cam2,8.0,no
+   cam2,cam1,8.0,no
+   cam1,cam3,,yes
+   ```
+   - `walk_distance_m`:兩台鏡頭視野邊界之間的步行路徑距離(公尺)。要繞過中島、桌子等障礙物,不是直線距離。
+   - `overlapping`:兩台鏡頭的畫面有重疊就填 `yes`,距離留空。
+3. 產生拓撲檔(移動時間 = 距離 / 0.9 公尺每秒):
+   ```
+   python scripts/build_topology.py --csv configs/topology_links.csv --out configs/topology.yaml
+   ```
+4. 執行人員追蹤時指定:`python run_pipeline.py ... --topology configs/topology.yaml`。鏡頭名稱要與 `--cameras` 相同。
+
+### 5.7 試跑驗收
+
+1. 準備幾段已知內容的影片:有違規的(碰垃圾桶後沒洗手、手碰臉、洗過的東西放桌面等)和沒有違規的各幾段。
+2. 執行 `run_violations.py`,對照 `ng_events.jsonl` 與實際情況。
+3. 結果不符時,依序檢查:
+   - 區域預覽圖的位置是否正確(5.2)。
+   - `side_x` 是否正確(5.3)。
+   - 用 `m3_on_frame.py` 看 M3 有沒有偵測到相關物件(5.4)。
+   - 規則參數是否符合規範(5.5)。
 
 ---
 
