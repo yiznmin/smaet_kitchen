@@ -41,7 +41,7 @@ integrated/
 │   └── render_violations.py   把每件違規剪成對照影片
 └── weights/
     ├── m3_nano_r2_armA/       M3 微調權重(廚房 11 類)
-    └── pretrained/            RF-DETR COCO 預訓權重、DINOv2
+    └── pretrained/            RF-DETR COCO 預訓權重、DINOv2、ViTPose 人體姿態模型
 ```
 
 `weights/` 底下的權重檔不在 git 版本控制內(單檔超過上限),需與本資料夾一起以檔案方式交付。
@@ -63,7 +63,7 @@ M3 可偵測的 11 類:人、刀具、砧板、食材、鍋鏟、鍋子、手、
    pip install -r requirements.txt
    ```
 4. Windows 終端機執行前先設定 `set PYTHONIOENCODING=utf-8`,否則中文輸出會出錯。
-5. 第一次跑 NG3 時會從 Hugging Face 下載人體姿態模型 `usyd-community/vitpose-base-simple`,需要連網一次;其餘預訓權重已放在 `weights/pretrained/`,不需下載。
+5. 所有模型權重都已放在 `weights/` 底下(含 NG3 用的人體姿態模型 `weights/pretrained/vitpose-base-simple/`),執行時不需連網。
 
 ---
 

@@ -18,7 +18,7 @@ scipy>=1.10
 pyyaml>=6.0
 pillow
 psutil
-transformers==5.16.1        # NG3 手碰臉的 ViTPose 人體姿態;首次執行從 Hugging Face 下載 usyd-community/vitpose-base-simple
+transformers==5.16.1        # NG3 手碰臉的 ViTPose 人體姿態(模型在 weights/pretrained/vitpose-base-simple/)
 
 # 只有訓練 M3 時才需要(scripts/train_m3_rfdetr.py)。建議裝在另一個虛擬環境:
 #   pip install "rfdetr[train,loggers]==1.9.4"

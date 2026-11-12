@@ -1,15 +1,15 @@
 """NG3 用的人體姿態:ViTPose 對 M3 人框估 17 個 COCO 關鍵點(臉中心、肩寬、手腕)。
 
 輸出 npz:step(int32[N],偵測快取的步)、box(float32[N, 4],人框 xyxy)、kp(float32[N, 17, 3],x、y、分數)。
-每 every 步(預設 2 = 0.2 秒)估一幀。需要 transformers 與 CUDA;
-模型 usyd-community/vitpose-base-simple 第一次使用時從 Hugging Face 下載。"""
+每 every 步(預設 2 = 0.2 秒)估一幀。需要 transformers 與 CUDA。
+模型(usyd-community/vitpose-base-simple,Apache-2.0)放在 weights/pretrained/vitpose-base-simple/,離線讀取、不連網。"""
 from pathlib import Path
 
 import numpy as np
 
 from m6_events.violation import PERSON, steps
 
-MODEL = "usyd-community/vitpose-base-simple"
+MODEL = Path(__file__).resolve().parents[2] / "weights/pretrained/vitpose-base-simple"
 
 
 class PoseEstimator:
@@ -17,8 +17,11 @@ class PoseEstimator:
         import torch
         from transformers import AutoProcessor, VitPoseForPoseEstimation
         self.torch, self.device = torch, device
-        self.proc = AutoProcessor.from_pretrained(model)
-        self.model = VitPoseForPoseEstimation.from_pretrained(model).to(device).eval()
+        if not Path(model).is_dir():
+            raise FileNotFoundError(f"找不到 ViTPose 模型資料夾 {model}(應含 config.json、model.safetensors、"
+                                    "preprocessor_config.json)")
+        self.proc = AutoProcessor.from_pretrained(str(model), local_files_only=True)
+        self.model = VitPoseForPoseEstimation.from_pretrained(str(model), local_files_only=True).to(device).eval()
 
     def run(self, video, dc, out_path, every=2, thr_person=0.3):
         """video:影片路徑(OpenCV 開得了的 ASCII 路徑);dc:同一支影片的 DetCache。"""
