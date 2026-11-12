@@ -57,7 +57,7 @@ class Homography:
 
     @classmethod
     def from_matrix(cls, matrix, camera_id=None):
-        """直接給 3×3 矩陣(2026-10-13,平面圖幾何接入)。
+        """直接給 3×3 矩陣。
 
         外部擬合好的投影(例如多來源聯合最佳化的結果)沒有對應的點對可以重算,
         所以**沒有殘差可量** → sigma_m 回 None,σ 必須由設定檔明確給。
@@ -144,7 +144,7 @@ def load_homographies(cameras_cfg):
           world_points: [[0.0, 0.0], [6.0, 0.0], [6.0, 4.0], [0.0, 4.0]]
 
     沒填 homography 的鏡頭就不在回傳的 dict 裡 → 那些鏡頭的 world_xy 是 None,
-    重疊路徑退回常數證據(已知過度自信,見第六輪 R8)。
+    重疊路徑退回常數證據 overlap_llr(只知道「那台鏡頭裡有人」,分不出是誰)。
     """
     out = {}
     for cam, cfg in (cameras_cfg or {}).items():

@@ -7,7 +7,7 @@
   LLR = log p(Δt | H1) − log λ_bg  +  log p(cos | 同人) − log p(cos | 不同人)
         └──────── 時間證據 ────────┘  └────────── 外觀證據 ──────────┘
 
-  λ_bg = 真正的新人在該鏡頭出現的速率(次/秒),可由場地實測。
+  λ_bg = 真正的新人在該鏡頭出現的速率(次/秒),可由場地資料估計。
 
 效果:
   · 時間窗寬度由轉場分布自身形狀 + λ_bg 決定
@@ -35,8 +35,7 @@ class TransitModel:
     """轉場時間分布。子類實作 _logpdf,物理下限由基底統一把關。
 
     ⚠ 物理下限必須是**硬約束**,不能被外觀證據推翻。
-      v2 靠 k_sigma 擋住荒謬的短轉場;v3 改成 LLR 後若不另外設下限,
-      「離開後 0.02 秒就抵達 4 秒路程的鏡頭」會因為外觀夠像而被接受。
+      若不另外設下限,「離開後 0.02 秒就抵達 4 秒路程的鏡頭」可能因為外觀夠像而被接受。
       人再快也不可能瞬移 —— 這種約束屬於物理,不屬於證據權衡。
     """
 
@@ -62,7 +61,7 @@ class TransitModel:
 class GaussianTransit(TransitModel):
     """單高斯。最簡單,但廚房裡人會中途停下來做事,真實分布是長尾的。
 
-    保留它主要是為了與 v2 對照、以及在完全沒有實測資料時當起手值。
+    可在完全沒有轉場時間資料時當起手值。
     """
 
     def __init__(self, mean_s, std_s, max_z=6.0, hard_min_ratio=None):
@@ -106,7 +105,7 @@ class LoiterMixtureTransit(TransitModel):
 
         判定式要求 p(Δt) > exp(門檻 − (−log λ_bg));若這個峰值本身就低於那個值,
         **任何逗留時間都過不了門**,換分布形狀也救不了(重尾改善的是很久之後,
-        不是峰值高度)。見 docs/M5_模擬預先登記_逗留_20260825.md §2。
+        不是峰值高度)。
         """
         if self.dist == "lognormal":
             return self.p / (self.tau * self.log_sigma * math.sqrt(2 * math.pi))
@@ -134,10 +133,9 @@ class LoiterMixtureTransit(TransitModel):
 
 
 class HistogramParzenTransit(TransitModel):
-    """直接從實測的轉場時間樣本估分布(st-ReID 的作法)。
+    """直接從觀測到的轉場時間樣本估分布(st-ReID 的作法)。
 
-    這是最終要用的版本 —— 業主的影片跑過校準模式後,把觀測到的 Δt 餵進來,
-    就不必再猜 μ/σ,也不必假設分布形狀。樣本不足時退回 fallback。
+    有現場影片的轉場時間樣本時,不必再猜 μ/σ,也不必假設分布形狀。樣本不足時退回 fallback。
     """
 
     def __init__(self, samples, bandwidth=None, fallback=None, floor_logp=None):
@@ -179,8 +177,7 @@ class HistogramParzenTransit(TransitModel):
 class UnknownPathTransit(TransitModel):
     """走了拓撲沒建模的路徑(繞路)。
 
-    v2/v3 原本對「沒有連結的鏡頭對」直接回 NEG_INF → 繞路的廚師 100% 開新 chef_id。
-    實測顯示繞路佔全部碎裂的 25%(該情境碎裂率 90.4%)。
+    若對「沒有連結的鏡頭對」直接回 NEG_INF,繞路的廚師一定會被開新 chef_id。
 
     但也不能無條件接受:若任何鏡頭對都同樣可信,候選數會爆炸、誤併率上升。
     所以給它「寬分布 + 負先驗」:
@@ -188,7 +185,7 @@ class UnknownPathTransit(TransitModel):
       · median 是典型直達時間的數倍 —— 繞路比直達久
       · logprior < 0 —— 有連結的路徑永遠優先於沒連結的
 
-    ⚠ 這條路徑必然抬高誤併率,是取捨不是免費午餐。代價由模擬量化。
+    ⚠ 這條路徑必然抬高誤併率,是取捨不是免費午餐。
     """
 
     def __init__(self, median_s, log_sigma=0.8, logprior=-2.0, hard_min_ratio=None):
@@ -212,14 +209,12 @@ class UnknownPathTransit(TransitModel):
 class SameCameraTransit(TransitModel):
     """同一台鏡頭、極短間隔重新出現 —— 幾乎一定是 M4 軌跡中斷,不是真的離開又回來。
 
-    v2/v3 原本 `cam_from == cam_to → 拒絕`,所以 M4 斷軌後重現必定開新 chef_id。
-    實測顯示這佔全部碎裂的 18%(該情境碎裂率 89.0%),而廚房遮擋極頻繁。
+    若同鏡頭一律拒絕,M4 斷軌後重現必定開新 chef_id;而廚房遮擋極頻繁。
 
     分布用指數(短間隔機率高、長間隔迅速衰減),並在 max_gap_s 之後硬性截止
     —— 超過那個時間就該當成真的離場再回來,走正常轉場路徑。
 
-    ⚠ 目前只用時間。identity_st.py 的 bbox 參數仍未接上;若接上,加入
-      「斷軌前後 bbox 接近」會顯著收緊這條路徑、降低誤併。已登記為可強化點。
+    ⚠ 本類只用時間;斷軌前後的位置證據由 PositionLR 另外提供。
     """
 
     hard_min_ratio = 0.0                   # 同鏡頭斷軌沒有「走路距離」的物理下限
@@ -251,28 +246,14 @@ def make_transit(mean_s, std_s, kind="loiter", **kw):
 class AppearanceLR:
     """外觀相似度的對數概似比:log p(cos|同人) − log p(cos|不同人)。
 
-    兩個分布直接用實測的 cross-view 統計擬合,不需要人工指定權重。
+    兩個分布用跨鏡頭配對的 cosine 統計擬合,不需要人工指定權重。
     鑑別力越差,兩個分布越重疊,LLR 越接近 0 → 該特徵自動失去發言權。
 
-    ⚠ 這些統計來自 EPFL(每個場次一人 → 「身份」等於「錄影場次」),同一人的
-      crop 全部同衣服同光照,所以 same 的平均偏高、可分性偏樂觀。實際部署要用
-      業主現場資料重估。詳見 docs/M5_可行性驗證與模型選型.md。
+    ⚠ MEASURED 的分布由示範資料估計;換 embedder 或場地需用現場資料重新估計。
     """
 
-    # 實測值。⚠ **兩組來源、兩種難度,不可直接比大小**:
-    #
-    #  · dinov2 / osnet —— EPFL 6 身份 / 449 crops,見 reid_epfl_*.json。
-    #    EPFL 有 session confound(一個場次一人 → 同一人所有 crop 同衣服同光照),
-    #    而且九台鏡頭**同步且重疊** → 同一時刻不同視角。數字偏樂觀。
-    #
-    #  · chirla_* —— CHIRLA benchmark 的 **multi_camera** scenario,
-    #    gallery×query 的**跨實體相機**配對(closed-set,排除負號 distractor),
-    #    18,121 組同人 / 152,659 組不同人。7 台分佈在不同房間的鏡頭,接近 M5 的部署情境。
-    #    ⚠ 論文寫「非重疊」但實測不成立(cam2/cam3 同一個房間),所以這組分布
-    #      **混合了重疊與非重疊兩種路徑**,比純轉場路徑樂觀。
-    #      見 docs/CHIRLA_鏡頭佈局實測_20260903.md。
-    #    由 scripts/calib_appearance_chirla.py 產生(2026-09-03),
-    #    原始資料在 results/m5_reid/appearance_calib_chirla.json。
+    # 各 embedder 的同人 / 不同人 cosine 分布,由示範資料估計;換 embedder 或場地需重新估計。
+    # 不同組來自不同資料,難度不同,不可直接比大小。
     #
     # ⚠ 每一組的 sigma_same 與 sigma_diff **刻意相同(合併 σ)**,不是懶得分開量。
     #   兩個 σ 不等時高斯 LLR 變成二次式,在遠離平均處會外插出幾十 nats
@@ -280,18 +261,17 @@ class AppearanceLR:
     #   「剛好等於同人平均的 cosine 反而是不同人的證據」,自相矛盾。
     #   合併 σ 下 llr(mu_same) = d'^2 / 2,乾淨且與世界端的單一 σ 同步。
     #
-    # 括號內是 d' = (mu_same - mu_diff) / sigma,**跨資料集比較請只看它**。
+    # 鑑別力 d' = (mu_same - mu_diff) / sigma。設定檔的 appearance_profile 選用其中一組(預設 dinov2)。
+    # 除 dinov2 外的各組權重未隨本資料夾交付,僅保留分布供對照。
     MEASURED = {
-        "dinov2": dict(mu_same=0.490, mu_diff=0.465, sigma_same=0.10, sigma_diff=0.10),      # d'=0.25
-        "osnet": dict(mu_same=0.618, mu_diff=0.488, sigma_same=0.12, sigma_diff=0.12),       # d'=1.08
-        # 可出貨(CC-BY-4.0 資料 + ImageNet 權重)
+        "dinov2": dict(mu_same=0.490, mu_diff=0.465, sigma_same=0.10, sigma_diff=0.10),
+        "osnet": dict(mu_same=0.618, mu_diff=0.488, sigma_same=0.12, sigma_diff=0.12),
         "chirla_armS": dict(mu_same=0.3989, mu_diff=0.3769,
-                            sigma_same=0.1865, sigma_diff=0.1865),                            # d'=0.118
+                            sigma_same=0.1865, sigma_diff=0.1865),
         "chirla_armS0": dict(mu_same=0.7682, mu_diff=0.7599,
-                             sigma_same=0.0634, sigma_diff=0.0634),                           # d'=0.131
-        # ⚠ 研究限定(起始權重訓練於 Market-1501),對照用,不可出貨
+                             sigma_same=0.0634, sigma_diff=0.0634),
         "chirla_armR": dict(mu_same=0.7398, mu_diff=0.6833,
-                            sigma_same=0.1342, sigma_diff=0.1342),                            # d'=0.421
+                            sigma_same=0.1342, sigma_diff=0.1342),
     }
 
     def __init__(self, mu_same, sigma_same, mu_diff, sigma_diff, clip=None):
@@ -321,8 +301,7 @@ class AppearanceLR:
     def max_abs_llr(self, lo=0.0, hi=1.0, n=401):
         """外觀在**實際會出現的** cosine 範圍內能提供的最大證據量(nats)。
 
-        這個數字就是「這個 embedder 的發言權上限」,可直接與時間證據比大小
-        (時間證據峰值約 5 nats,見 scripts/analyze_gate_capacity.py)。
+        這個數字就是「這個 embedder 的發言權上限」,可直接與時間證據比大小。
 
         ⚠ 範圍預設 [0,1] 而非 [-1,1]:L2 正規化的深度特徵之間 cosine 幾乎不會
           到負值,而高斯尾部在 cos=-1 處會給出巨大但永遠用不到的 LLR,把它算進來
@@ -344,9 +323,8 @@ class PositionLR:
     ⚠ **只在同一台鏡頭內有意義。** 跨鏡頭的影像座標是不同的座標系,沒有外參
       校正就不可比 —— 硬比會得到隨機結果。所以本類只用在 M4 斷軌的重關聯上。
 
-    為什麼需要它:實測(2026-08-25 預先登記那輪)顯示,同鏡頭重關聯**只用時間**
-    會讓誤併率翻倍(4.8%→10.2%)—— 因為同一台鏡頭裡有多位廚師時,時間分不出
-    斷軌的片段屬於誰。位置可以。
+    為什麼需要它:同鏡頭重關聯若只用時間,同一台鏡頭裡有多位廚師時,
+    時間分不出斷軌的片段屬於誰。位置可以。
 
     模型(尺度不變,用「人身高」當單位,所以不需要知道實際公尺數):
       · 同一人:短暫斷軌期間位移小。速度約 0.5 身高/秒(廚房步速 0.9 m/s ÷ 1.7 m),
@@ -402,9 +380,9 @@ class PositionLR:
 class GroundPlaneLR:
     """兩台鏡頭推得的**世界座標**距離,對數概似比。
 
-    這是唯一能回答「重疊視野裡的是**哪一個**人」的證據。
-    在它之前,重疊路徑只能說「那台鏡頭裡有人」,於是 K 位廚師同時在場時
-    只能亂猜 —— 第五輪實測誤併 6.8% 就是這麼來的。
+    選用功能,預設關閉(需要各鏡頭的 homography 校正)。
+    它能回答「重疊視野裡的是**哪一個**人」;沒有它時,重疊路徑只能說
+    「那台鏡頭裡有人」,K 位廚師同時在場時分不出是誰。
 
         LLR = log A − log(2πσ²) − d²/(2σ²)
         d = 兩台鏡頭推得的世界座標距離(公尺)
@@ -418,15 +396,14 @@ class GroundPlaneLR:
     ⚠ σ 必須遠小於「兩人之間的典型距離」(廚房約 1~2 m),否則分不出誰是誰。
       A=30 m² 時:σ=0.2 給 +4.8/−23.3 nats(極強);σ=1.5 給 +0.75/+0.25(幾乎無)。
 
-    ⚠ 它取代 `overlap_llr = 5.0` 這個常數 —— 那是編的,性質同 v2 那個
-      被批評的魔數 0.35。這是架構裡最後一個沒有物理依據的參數。
+    ⚠ 開啟時它取代 `overlap_llr` 常數(該常數沒有物理依據,只表示「那台鏡頭裡有人」)。
     """
 
     def __init__(self, sigma_m=0.4, area_m2=30.0, clip=8.0, speed_mps=0.9,
                  pairwise=True):
         # ⚠ sigma_m 是**單台鏡頭**的標定誤差。我們比的是兩台鏡頭的觀測**差值**,
         #   其標準差是 √2 倍。用單台的 σ 會高估鑑別力 → 真的同一人被判成
-        #   「位置對不上」。實測時真的那位只拿到 +0.20 nats(應該 +2.5)。
+        #   「位置對不上」。
         self.sigma = float(sigma_m) * (math.sqrt(2.0) if pairwise else 1.0)
         self.speed = float(speed_mps)      # 兩次觀測之間人可能走多遠
         self.area = float(area_m2)
@@ -447,7 +424,7 @@ class GroundPlaneLR:
         return self.llr_dist(math.hypot(xy_a[0] - xy_b[0], xy_a[1] - xy_b[1]), dt)
 
     def llr_dist(self, d, dt=0.0):
-        """直接給距離(2026-10-13)。
+        """直接給距離。
 
         有平面圖時距離不是直線 —— 牆是障礙物,要走出入口(見 m5_reid/floorplan.py)。
         把「怎麼量距離」與「距離換成多少證據」拆開,後者的數學一個字沒動。
@@ -469,17 +446,13 @@ class CrossViewLR:
 
     ## 為什麼需要它
 
-    `GroundPlaneLR` 是唯一能回答「重疊視野裡的是**哪一個**人」的證據,但它要
-    homography 才能算世界座標。CHIRLA 沒有相機標定參數 → 退回 `overlap_llr = 5.0`
-    這個常數,而那個常數**在數學上不可能拒絕任何候選**:
+    選用功能,預設關閉。
 
-        5.0 − log(k) + app_llr < 1.609  →  需要 k > 29.7
-        而 CHIRLA 單台鏡頭同時最多 9 人
+    `GroundPlaneLR` 能回答「重疊視野裡的是**哪一個**人」,但它要 homography 才能算
+    世界座標。沒有相機標定時只能退回 `overlap_llr` 常數,而那個常數幾乎不可能拒絕
+    任何候選(5.0 − log(k) + app_llr < 1.609 需要同一台鏡頭裡有約 30 人以上)。
 
-    2026-09-04 實測的後果:重疊路徑 `p_break = 2.71%`(幾乎從不拒絕)、
-    `p_false_merge = 80.80%`、`p_correct = 16.49%`(≈ 1/6,與隨機挑一個無法區分)。
-
-    ## 關鍵觀察:沒有標定,但**有真值身份**就能估出單應性
+    ## 關鍵觀察:沒有標定,但**有已知身份的配對**就能估出單應性
 
     同一時刻兩台看到同一個人 → 那就是一組地面對應點(取 bbox 底邊中點)。
     夠多組就能用 RANSAC 解出 **H_AB**(A 的像素平面 → B 的像素平面)。
@@ -487,20 +460,19 @@ class CrossViewLR:
     ⚠ 這**不是**度量標定 —— 沒有公尺、沒有外參。它只回答一個問題:
       「這兩個觀測落在地面的同一點嗎?」而那正是我們要的。
 
-    ⚠ **逐對估,不串接。** H_1→R = H_1→3 · H_3→R 會累積誤差,而 CHIRLA 有些
-      鏡頭對的共現只有 3 次,串進來會污染整條鏈。逐對估的代價是沒有全域座標,
-      好處是每一對帶著自己實測的 σ,品質差的那對自己弱。
+    ⚠ **逐對估,不串接。** H_1→R = H_1→3 · H_3→R 會累積誤差,共現次數少的鏡頭對
+      串進來會污染整條鏈。逐對估的代價是沒有全域座標,好處是每一對帶著自己量到的 σ,
+      品質差的那對自己弱。
 
         LLR = log A − log(2πσ²) − d²/(2σ²)
 
         d = 把 A 的腳點經 H_AB 投到 B 之後,與 B 的腳點的殘差(B 的像素)
-        σ = 該鏡頭對的**實測**殘差尺度(像素)
+        σ = 該鏡頭對量到的殘差尺度(像素)
         A = 該對的共視區面積(B 的像素²),「不同人」時腳點大致散布的範圍
 
     ⚠⚠ **σ 不可以再乘 √2。** 它是直接從「真正同一人」的殘差分布量出來的,
       **已經包含兩台鏡頭的誤差**。GroundPlaneLR 的 σ 是單台標定誤差所以要乘,
-      這裡不是。本專案已經在 `GroundPlaneLR`(第六輪)與 `VelocityLR`(第七輪)
-      各踩過一次這個坑,不要有第三次。
+      這裡不是。
     """
 
     def __init__(self, H, sigma_px, area_px2, clip=8.0, speed_px_per_s=0.0):
@@ -568,29 +540,23 @@ class CrossViewLR:
 class TransitPlaceLR:
     """轉場的**出入口位置**證據 —— 「你是從通往這裡的那個門出去的嗎?」
 
-    ## 為什麼需要它(2026-09-05 的量化診斷)
+    選用功能,預設關閉。
+
+    ## 為什麼需要它
 
     轉場路徑上唯一的實質證據是轉場時間:
 
         transit_llr = log p(Δt | 同一人) − log λ_bg
 
-    CHIRLA 拓撲實測 `λ_bg = 0.0482`(每 20.7 秒一位新人,誠實估自推導集),
-    所以要過門檻 1.609 需要 **pdf(Δt) > 0.24 /秒**。而實際擬合出來的分布:
-
-        camera_6→camera_7   峰值 pdf 0.70  → 只有 Δt∈[0.20, 1.30]s 過得了
-        camera_2→camera_6   峰值 pdf 0.198 → **任何 Δt 都過不了**(差一點點)
-        camera_7→camera_5   峰值 pdf 0.05  → **任何 Δt 都過不了**
-        unknown_path        最佳 −1.33     → **任何 Δt 都過不了**
-
-    **轉場路徑不是「證據弱」,是對多數鏡頭對而言數學上不可能綁定。**
-    實測後果:轉場路徑碎裂 54.42% —— 拒掉近半的**真**配對。
-    而外觀只能加 ±0.03 nats,補不上這個缺口。
+    要過門檻 ln(cost_false_merge_over_break) 需要 pdf(Δt) > exp(門檻) × λ_bg。
+    移動時間長、變異大的鏡頭對,分布峰值可能本身就低於這個值 →
+    **任何 Δt 都過不了**,而外觀證據通常太弱,補不上這個缺口。
 
     ## 這條證據的資訊從哪來
 
     人不是從房間的任意位置消失、再從任意位置出現的 —— 他們**走門**。
     同一條連結 A→B 的真實轉場,離開 A 的腳點會聚在「通往 B 的那個門」,
-    進入 B 的腳點會聚在對應的入口。兩者都可從推導集的真值學出來。
+    進入 B 的腳點會聚在對應的入口。兩者都可從已知身份的轉場樣本學出來。
 
         LLR = [log N(退場點; μ_exit, Σ_exit) + log A_from]
             + [log N(入場點; μ_enter, Σ_enter) + log A_to]
@@ -619,8 +585,8 @@ class TransitPlaceLR:
         self.eps = min(max(float(p_offdoor), 1e-4), 0.5)
         self.mu_e = _np.asarray(mu_exit, dtype=float).reshape(2)
         self.mu_n = _np.asarray(mu_enter, dtype=float).reshape(2)
-        # 正則化:資料少時共變異數可能接近奇異,加一點對角項。
-        # 3px 是腳點量化誤差的下限,與 chirla_build_crossview 的 σ 下限同源。
+        # 正則化:資料少時共變異數可能接近奇異,加一點對角項(_inv 內加 9 = 3px²)。
+        # 3px 是腳點量化誤差的下限。
         self.ic_e, self.ld_e = self._inv(cov_exit)
         self.ic_n, self.ld_n = self._inv(cov_enter)
         self.log_area_from = math.log(max(float(area_from), 1.0))
@@ -676,9 +642,9 @@ class TransitPlaceLR:
 class VelocityLR:
     """速度證據 —— 專門解「兩個人站在同一個位置」的情況。
 
-    第六輪量化:剩下的誤併有 **76% 發生在兩人相距 < 0.5 m**(中位數 0.11 m)。
-    位置在 σ=0.05m 的近乎完美校正下仍分不出 —— 那是物理極限。
+    選用功能,預設關閉(需要 homography 校正)。
 
+    兩人站得很近時,即使地面校正近乎完美,位置證據也分不出 —— 那是物理極限。
     但那兩個人**是從不同方向走過來的**。速度與位置正交,而且全景鏡頭
     本來就在連續追蹤,軌跡資料是現成的。
 
@@ -697,11 +663,9 @@ class VelocityLR:
     def __init__(self, sigma_pos_m=0.1, window_s=0.5, max_speed_mps=1.5, clip=6.0):
         # 單次速度估計的噪聲:位置差分 → σ_pos·√2 / 窗長
         single = sigma_pos_m * math.sqrt(2.0) / max(window_s, 1e-6)
-        # ⚠ 我們比的是**兩個**速度觀測的差,所以再乘 √2。
-        #   第六輪的 GroundPlaneLR 犯過同一個錯(用單次觀測的 σ 去比差值),
-        #   這裡又犯一次 —— 記錄下來:**凡是比較兩個有噪聲的量,
-        #   差值的標準差都是單次的 √2 倍**。少了它會系統性高估鑑別力,
-        #   結果把真的同一人判成「對不上」。
+        # ⚠ 我們比的是**兩個**速度觀測的差,所以再乘 √2:
+        #   **凡是比較兩個有噪聲的量,差值的標準差都是單次的 √2 倍**。
+        #   少了它會系統性高估鑑別力,把真的同一人判成「對不上」。
         self.sigma_v = single * math.sqrt(2.0)
         self.area = math.pi * float(max_speed_mps) ** 2
         self.clip = float(clip)
@@ -727,11 +691,10 @@ class VelocityLR:
 class DirectionLR:
     """走對門沒有?出入口 zone 的對數概似比。
 
-    這是 CLM 四線索(拓撲、轉場時間、移動方向、外觀)裡最後一個被實作的。
-    前兩輪失敗的共同模式是:所有旋鈕都沿著**時間軸**放寬,而「逗留的人」與
-    「不相干的人剛好出現」在時間軸上就是重疊的 → 必然零和交換。
+    選用功能,預設關閉。
 
-    方向與 Δt 正交:
+    只沿著**時間軸**放寬條件時,「逗留的人」與「不相干的人剛好出現」在時間軸上
+    是重疊的,放寬一邊必然惡化另一邊。方向與 Δt 正交:
       · 走對門的人 **不管走了多久** 都更可能是同一人 → 對逗留者提供固定證據
       · 走錯門的人 **時間再吻合也拿到負證據** → 壓低誤併
 
@@ -739,8 +702,7 @@ class DirectionLR:
         P(符合 | 走這條連結) = q,其餘 zone 均分 (1−q)
         P(任一 zone | 背景)  = 1/n_zones
 
-    ⚠ 模擬用離散 zone 標籤;真實部署要從 bbox 經 which_zone() 判定,
-      會多一層幾何誤差 → 模擬結果是**樂觀上界**。
+    ⚠ zone 由 bbox 經 which_zone() 判定,會多一層幾何誤差。
     """
 
     def __init__(self, q=0.85, n_zones=3, clip=6.0):
@@ -779,8 +741,8 @@ class DirectionLR:
 def decision_threshold(cost_false_merge_over_break=5.0, prior_odds=1.0):
     """把「誤併比碎裂嚴重幾倍」直接轉成 LLR 門檻(nats)。
 
-    誤併(把兩人綁成一個 chef_id)會替沒洗手的人偽造一筆洗手紀錄 → 靜默漏報,
-    下游 M7 只驗物件重疊、不驗身份,M8 直接寫進 DB,沒有任何一關能發現。
+    誤併(把兩人綁成一個 chef_id)會把一個人的行為算到另一個人身上(例如替沒洗手的人
+    偽造一筆洗手紀錄),而且下游很難發現。
     碎裂(同一人被拆成兩個 chef_id)則可被「chef_id 數 > 排班人數」自動偵測。
     這個不對稱就是門檻要往保守側偏的理由,也是這個參數的物理意義。
     """

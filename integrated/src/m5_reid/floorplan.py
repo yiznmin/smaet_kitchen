@@ -113,7 +113,7 @@ class PlanMap:
         (ay, ax), (by, bx) = self.snap(a), self.snap(b)
         u, v = ay * self.nx + ax, by * self.nx + bx
         if u not in self._rows:
-            # ⚠ 快取以「來源格」為鍵,上界 = 可行走格數(CHIRLA 約數千格),不會無限成長。
+            # ⚠ 快取以「來源格」為鍵,上界 = 可行走格數,不會無限成長。
             self._rows[u] = dijkstra(self._graph, indices=u)
         d = self._rows[u][v]
         return float(d) if np.isfinite(d) else float(np.linalg.norm(a - b))

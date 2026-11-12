@@ -26,32 +26,31 @@ class SpatioTemporalIdentityManager(IdentityManager):
         self._pending_exit = {} # (cam, track) -> (cam, t_sec, frame_id, bbox)
         self._world = {}        # chef_id -> (世界座標, 時間)
         self._vel = {}          # chef_id -> 最近觀測到的速度向量(m/s)
-        # F4 CrossViewLR 用:(chef_id, camera) -> (bbox, t)。
+        # CrossViewLR 用:(chef_id, camera) -> (bbox, t)。
         # ⚠ 鍵含 camera 是必要的 —— 一位 chef 可能同時被多台重疊鏡頭看著,
-        #   而我們要比的是「他在**那一台**上的腳點」。
-        # ⚠ 記憶體有界性:上界是 活躍 chef 數 × 鏡頭數。track 移除與 _forget
-        #   都會清,見 on_track_removed 與 _forget。
+        #   而要比的是「他在**那一台**上的腳點」。
+        # ⚠ 記憶體上界是 活躍 chef 數 × 鏡頭數。track 移除與 _forget 都會清。
         self._bbox = {}
         # 診斷:每次綁定決策有幾個候選通過物理可能性檢查。索引 5 代表「5 個以上」。
-        # 這是本架構最關鍵的觀測量 —— 若幾乎總是 1,外觀品質對結果沒有影響。
+        # 若幾乎總是 1,外觀品質對結果沒有影響。
         self._cand_hist = [0] * 6
         self.last_candidates = 0
-        self.last_cands = []             # 四層歸因用的候選快照,見 on_new_track
-        # F1 margin test 的診斷。_n_margin_blocked 是「本來會綁、被 margin 擋下改開新
-        # 身份」的次數 —— 它就是這個修法把多少誤併換成了碎裂,必須看得見。
+        self.last_cands = []             # 最近一次決策的候選快照,供除錯檢視,不影響決策
+        # 差距檢查(margin_nats)的診斷:本來會綁、因差距不足改開新身份的次數。
         self._n_margin_blocked = 0
         self.last_margin = None
-        # F2 同鏡頭互斥的驗收量:開啟後這個數字必須是 0。
+        # 同一台鏡頭上一位 chef 同時綁兩條 track 的次數;開啟 same_cam_exclusive 後應為 0。
         self._n_same_cam_conflicts = 0
-        # P1 累積投票的狀態與診斷。全部是計數器或有界 deque(maxlen=window),
-        # 所以不影響「活躍清單記憶體不無限成長」那條規格驗收。
+        # 累積投票(revote,選用功能,預設關閉)的狀態與診斷。
+        # 全部是計數器或有界 deque(maxlen=window),記憶體不會隨執行時間成長。
         self._votes = {}                 # (cam, track) -> deque[chef_id]
         self._vote_calls = {}            # (cam, track) -> 收到幾次 update
         self._n_revotes = 0              # 實際投出的票數
         self._n_revote_switch = 0        # 因投票而改判的次數
         self._n_revote_no_emb = 0        # 到了取樣點卻沒有 embedding → 沒投成
-        # P2 全域指派用的緩衝。camera -> [待指派的 track]。resolve_frame() 會清空。
-        # ⚠ runner 沒呼叫 resolve_frame 的話票投不出去 —— revote_pending 讓它看得見。
+        # 全域指派(revote.assignment = hungarian)用的緩衝。camera -> [待指派的 track]。
+        # resolve_frame() 會清空。⚠ 呼叫端沒呼叫 resolve_frame 的話票投不出去,
+        #   revote_pending 診斷會顯示這個狀況。
         self._pending_vote = {}
         self._n_resolved = 0
 
@@ -67,14 +66,14 @@ class SpatioTemporalIdentityManager(IdentityManager):
         """chef 逾 TTL 被永久移除時,連帶清掉時空狀態。
 
         沒有這個的話 _exit 會隨累計人次單調成長(tick() 只清 self.gone),
-        直接違反 spec「連續運作下活躍清單記憶體不無限成長」。
+        長時間連續運作時記憶體會不斷增加。
         """
         self._exit.pop(chef_id, None)
         self._cam.pop(chef_id, None)
         self._world.pop(chef_id, None)
         self._vel.pop(chef_id, None)
-        # F4:_bbox 的鍵是 (chef, camera),要把該 chef 的所有鏡頭一起清掉,
-        # 否則它會隨累計人次單調成長 —— 與上面那段註解防的是同一件事。
+        # _bbox 的鍵是 (chef, camera),要把該 chef 的所有鏡頭一起清掉,
+        # 否則它也會隨累計人次單調成長。
         for k in [k for k in self._bbox if k[0] == chef_id]:
             del self._bbox[k]
 
@@ -83,17 +82,17 @@ class SpatioTemporalIdentityManager(IdentityManager):
         s.update({"_exit": len(self._exit), "_cam": len(self._cam),
                   "_pending_exit": len(self._pending_exit), "_world": len(self._world),
                   "_vel": len(self._vel),
-                  # F1/F2 的診斷。都是計數器不是集合,所以不影響記憶體有界性驗收。
+                  # 診斷計數器(不是集合,不影響記憶體用量)。
                   "margin_blocked": self._n_margin_blocked,
                   "same_cam_conflicts": self._n_same_cam_conflicts,
-                  # P1:_votes 的每個 deque 有 maxlen,_vote_calls 隨活躍 track 數
-                  # 成長並在 track 移除時清掉 —— 兩者都不違反記憶體有界性。
+                  # 累積投票:_votes 的每個 deque 有 maxlen,_vote_calls 隨活躍 track 數
+                  # 成長並在 track 移除時清掉,兩者記憶體都有上界。
                   "revotes": self._n_revotes,
                   "revote_switch": self._n_revote_switch,
                   "revote_no_emb": self._n_revote_no_emb,
                   "_votes": len(self._votes),
-                  # P2:pending 應該在每輪 resolve_frame 後歸零。持續 > 0 表示
-                  # runner 沒呼叫 resolve_frame,票根本沒投出去。
+                  # 全域指派:pending 應該在每輪 resolve_frame 後歸零。持續 > 0 表示
+                  # 呼叫端沒呼叫 resolve_frame,票沒有投出去。
                   "revote_pending": sum(len(v) for v in self._pending_vote.values()),
                   "revote_resolved": self._n_resolved})
         return s
@@ -102,8 +101,8 @@ class SpatioTemporalIdentityManager(IdentityManager):
         """事件時間(秒),已套用該相機的時鐘偏移校正。
 
         所有跨鏡頭的 Δt 都由這裡產出,所以校正只需做在這一個點。
-        未校正的話,鏡頭間 2 秒漂移在 σ=1.5s 下等於 1.33σ,足以把幾乎所有
-        真實轉場推出時間窗 —— 見 analyze_gate_capacity.py §4。
+        未校正的話,例如鏡頭間 2 秒漂移在 σ=1.5 秒下等於 1.33σ,足以把大部分
+        真實轉場推出時間窗。
         """
         raw = float(t_sec) if t_sec is not None else frame_id / self.fps
         return self.topo.corrected(camera_id, raw) if camera_id is not None else raw
@@ -114,8 +113,7 @@ class SpatioTemporalIdentityManager(IdentityManager):
         """兩個 [x1,y1,x2,y2] 的交並比。
 
         ⚠ 刻意**不** import `m3.eval.iou` —— 那會讓 M5 身份模組相依於 M3 偵測套件。
-          八行純算術,就地寫比建立跨模組相依乾淨(repo 內 `eval_m4m5_chirla.py`
-          與 `diag_chef_label_check.py` 也各有一份,是同樣的取捨)。
+          八行純算術,就地寫比建立跨模組相依乾淨。
         """
         ix1, iy1 = max(a[0], b[0]), max(a[1], b[1])
         ix2, iy2 = min(a[2], b[2]), min(a[3], b[3])
@@ -128,10 +126,10 @@ class SpatioTemporalIdentityManager(IdentityManager):
         return inter / ua if ua > 0 else 0.0
 
     def _same_cam_iou_exempt(self, chef_id, camera_id, bbox):
-        """F2 豁免(2026-09-18):本鏡頭上該 chef 的框與新框高度重疊 → 很可能是
+        """同鏡頭互斥的豁免:本鏡頭上該 chef 的框與新框高度重疊 → 很可能是
         偵測器把同一個人切成兩塊,擋掉只會換來碎裂。
 
-        ⚠ 門檻 None 時回 False,**整條檢查不執行** → 與 2026-09-05 的 F2 逐位相同。
+        ⚠ 門檻(same_cam_iou_exempt)為 None 時回 False,不做豁免。
         ⚠ 沒有框記錄時回 False(不豁免)—— 保守:寧可擋錯也不要無依據地放行。
         """
         tau = getattr(self.topo, "same_cam_iou_exempt", None)
@@ -146,12 +144,11 @@ class SpatioTemporalIdentityManager(IdentityManager):
                           exclude_key=None, cue_token=None):
         """算出所有通過物理可能性檢查的候選 [(score, chef_id, app_cos)]。
 
-        cue_token:這次偵測讀到的身份訊號(2026-09-16 上限實驗,見 m5_reid/cue.py)。
-          None 或拓撲沒開 cue → 完全不影響分數,與 9/15 的結果逐位相同。
+        cue_token:這次偵測讀到的身份訊號(選用功能,預設關閉,見 m5_reid/cue.py)。
+          None 或拓撲沒開 cue → 完全不影響分數。
 
-        ⚠ **這段從 `on_new_track` 抽出來,一個字都沒改。** 抽出來的唯一理由是
-          讓 P1 的重新投票走**完全相同**的評分邏輯 —— 兩條路若分歧,
-          投票結果就不能和出生時的決策相比,整個累積投票失去意義。
+        ⚠ on_new_track 與累積投票共用這一段評分邏輯 —— 兩條路若分歧,
+          投票結果就不能和 track 出現時的決策相比,累積投票失去意義。
 
         exclude_key:(camera, track) —— 計算某位 chef「此刻被哪些鏡頭看著」時
           要忽略的那一條 track。重新投票時必須把**被評分的這條 track 自己**
@@ -181,16 +178,14 @@ class SpatioTemporalIdentityManager(IdentityManager):
                 # 方向證據:與 Δt 正交,所以能幫到逗留者(時間軸上救不了的那些)
                 score += self.topo.direction_llr(ex[0], camera_id,
                                                  ex[3] if len(ex) > 3 else None, zone)
-                # F5 出入口位置(2026-09-05):「你是從通往這裡的那個門出去的嗎?」
-                # ⚠ 轉場路徑上除了 Δt 幾乎沒有別的證據,而實測顯示 3 條連結有 2 條
-                #   在**任何 Δt** 都過不了門檻(pdf 峰值 0.198 < 需要的 0.24)。
-                #   碎裂 54.42% 就是這麼來的 —— 不是證據弱,是不可能綁定。
+                # 出入口位置(選用功能,預設關閉):「你是從通往這裡的那個門出去的嗎?」
+                # 轉場路徑上除了 Δt 幾乎沒有別的證據,這條補上離場 / 進場位置。
                 # ⚠ 只有**退場項**能區分候選(每位候選有自己的退場點);
                 #   入場項對所有候選相同,只影響綁不綁。見 TransitPlaceLR 說明。
                 tp = self.topo.transit_place(ex[0], camera_id)
                 if tp is not None:
                     score += tp.llr(ex[2] if len(ex) > 2 else None, bbox)
-                # 平面圖位置證據(2026-10-13):「離開點到進入點,這段時間走得到嗎?」
+                # 平面圖位置證據(選用功能,預設關閉):「離開點到進入點,這段時間走得到嗎?」
                 # ⚠ 只用在**跨鏡頭**:同鏡頭已有 pos_lr(影像座標、身高單位),
                 #   兩條都加等於把同一段位移算兩次。
                 # ⚠ 離場點由 _exit 既存的離場框現算,不另存狀態 —— 少一份要同步清理的東西。
@@ -205,7 +200,7 @@ class SpatioTemporalIdentityManager(IdentityManager):
                     continue
                 app = cosine(emb, chef.embedding)
                 score = w_st * sp + w_app * app
-            # 身份訊號(2026-09-16):兩次讀數比對。關閉時 cue_lr 為 None,這行不執行。
+            # 身份訊號:兩次讀數比對。關閉時 cue_lr 為 None,這行不執行。
             if self.topo.cue_lr is not None:
                 score += self.topo.cue_lr.llr(cue_token, chef.cue_token)
             cands.append((score, cid, app))
@@ -213,12 +208,9 @@ class SpatioTemporalIdentityManager(IdentityManager):
         # (b) 該 chef 此刻正被某台「與本鏡頭重疊」的相機看著 → 幾何關聯
         #
         # ⚠ 判斷依據是 chef.track_ids(目前綁定中的所有 (鏡頭, track)),**不是**
-        #   _cam 的時間戳。踩過的坑:原本用 `_cam` 並要求 |Δt| ≤ 0.5s,但 _cam 只在
-        #   「綁定事件」發生時更新,而「這個人現在正在畫面裡」是一個**持續狀態**,
-        #   不是事件。M4 每幀都會輸出當前 active 的 tracks,但 M5 只吃事件,
-        #   所以它無從得知誰此刻在畫面上 —— 重疊路徑因此幾乎從不觸發。
-        #   全景鏡頭方案第一次跑時碎裂率完全沒降,根因就是這個。
-        pair_L = None              # 逐對位置證據的快取(第 2 輪),用到才算
+        #   _cam 的時間戳。_cam 只在綁定事件發生時更新,而「這個人現在正在畫面裡」
+        #   是持續狀態,不是事件;用 _cam 判斷的話,重疊路徑幾乎不會觸發。
+        pair_L = None              # 逐鏡頭對位置證據的快取,用到才算
         overlap_pool = {}          # 重疊鏡頭 -> 此刻在該鏡頭裡的 chef 數
         for chef in self.active.values():
             for c, _t in chef.track_ids:
@@ -228,17 +220,17 @@ class SpatioTemporalIdentityManager(IdentityManager):
                     overlap_pool[c] = overlap_pool.get(c, 0) + 1
 
         for cid, chef in self.active.items():
-            # F2 同鏡頭互斥(2026-09-05,預設關閉):這位 chef 此刻**已經**在本鏡頭上
+            # 同鏡頭互斥(選用功能,預設關閉):這位 chef 此刻**已經**在本鏡頭上
             # 綁著另一條 track → 他不可能同時又是這條新 track。
-            # ⚠ track_ids 在 on_track_removed(:283)會被剪除,所以它確實代表
+            # ⚠ track_ids 在 on_track_removed 會被剪除,所以它確實代表
             #   「目前還看得到的」,不是歷史累積 —— 這個檢查才安全。
             own = [k for k in chef.track_ids if k != exclude_key]
             if (getattr(self.topo, "same_cam_exclusive", False)
                     and any(c == camera_id for c, _t in own)
                     and not self._same_cam_iou_exempt(cid, camera_id, bbox)):
                 continue
-            # F6 跨鏡頭互斥(2026-09-18):這位 chef 此刻正被一台「與本鏡頭在真值裡
-            # 從未同時看到過同一個人」的相機綁著 → 他不可能同時也是這條 track。
+            # 跨鏡頭互斥(選用功能,預設關閉):這位 chef 此刻正被一台「與本鏡頭
+            # 不可能同時看到同一個人」的相機綁著 → 他不可能同時也是這條 track。
             # ⚠ 判準是 is_mutually_exclusive(從未共現),**不是** not is_overlapping。
             #   後者只表示不適合做幾何比對,兩台仍可能隔著門口互看得到。
             if (getattr(self.topo, "cross_cam_exclusive", False)
@@ -251,14 +243,14 @@ class SpatioTemporalIdentityManager(IdentityManager):
                 continue
             # ⚠ 「重疊鏡頭裡有人」不等於「就是這一個人」。若該鏡頭此刻有 K 位廚師,
             #   這條證據只說得出「是那 K 個之中的一個」→ 證據量要除以 K。
-            #   沒有這一項的話,多人同時在場時重疊路徑會無差別地給滿分,誤併爆增。
-            #   真正要收緊它需要**跨鏡頭的地面平面校正(homography)**,才能比對
-            #   「兩台鏡頭看到的是不是地面上同一個點」。本版尚未實作,故只做稀釋。
+            #   沒有這一項的話,多人同時在場時重疊路徑會無差別地給滿分,誤併大增。
+            #   要真正分辨是誰,需要跨鏡頭的地面校正(homography,見下方 ground_lr 分支),
+            #   比對「兩台鏡頭看到的是不是地面上同一個點」;沒有校正時只做稀釋。
             app = cosine(emb, chef.embedding)
             if not llr_mode:
                 cands.append((w_st * 1.0 + w_app * app, cid, app))
                 continue
-            # 逐鏡頭對的位置證據(2026-10-13 第 2 輪)。有設定 ground_pairs 才走這裡;
+            # 逐鏡頭對的位置證據(選用功能,預設關閉)。有設定 ground_pairs 才走這裡;
             # 這位候選沒有可用的鏡頭對時 pair_score 為 None → 落到下面原本的路徑。
             pair_score = None
             if (self.topo.ground_lr is not None and world_xy is not None
@@ -283,7 +275,7 @@ class SpatioTemporalIdentityManager(IdentityManager):
                 g = self._world.get(cid)
                 if g is None:
                     continue
-                # 距離走 topo.ground_dist:有平面圖時牆是障礙物,沒有時是直線(原行為)。
+                # 距離走 topo.ground_dist:有平面圖時牆是障礙物,沒有時是直線距離。
                 score = (self.topo.ground_lr.llr_dist(
                              self.topo.ground_dist(g[0], world_xy), dt=t - g[1])
                          + self.topo.app_lr.llr(app))
@@ -291,14 +283,14 @@ class SpatioTemporalIdentityManager(IdentityManager):
                 if self.topo.vel_lr is not None:
                     score += self.topo.vel_lr.llr(self._vel.get(cid), world_v)
             else:
-                # F4 CrossViewLR(2026-09-05):無度量標定,但用真值身份估出的
-                # 逐對單應性,一樣能回答「這兩個觀測落在地面的同一點嗎」。
+                # CrossViewLR(選用功能,預設關閉):沒有度量標定,但用鏡頭對之間的
+                # 單應性,一樣能回答「這兩個觀測落在地面的同一點嗎」。
                 # ⚠ 它**取代**下面那個常數,不是相加 —— 兩者回答同一個問題,
                 #   相加會把同一份證據算兩次。
                 cv = self.topo.cross_view(camera_id) if hasattr(self.topo, "cross_view") else None
                 cv_llr = None
                 if cv is not None:
-                    # 挑「這位 chef 此刻被哪一台重疊鏡頭看著、而且我們有那一對的
+                    # 挑「這位 chef 此刻被哪一台重疊鏡頭看著、而且有那一對的
                     # 單應性」。多台都可用時取證據最強的那台 —— 它是資訊最多的觀測,
                     # 不是「對我們最有利的」:負證據一樣會被選中並擋下綁定。
                     best_cv, best_abs = None, -1.0
@@ -316,13 +308,12 @@ class SpatioTemporalIdentityManager(IdentityManager):
                 else:
                     # 無校正也無單應性:只知道「那台鏡頭裡有人」。若該鏡頭此刻有
                     # K 位廚師,這條證據只說得出「是 K 個之中的一個」→ 除以 K。
-                    # ⚠ 2026-09-04 實測:這條在數學上**不可能拒絕**任何候選 ——
-                    #   5.0 − log(k) + app < 1.609 需要 k > 29.7,而 CHIRLA 單台
-                    #   最多 9 人。重疊路徑因此誤併 80.80%、正確率 16.49%(≈1/6)。
-                    #   保留它只是為了讓沒有單應性的鏡頭對仍能運作,不是認可它。
+                    # ⚠ 以預設 overlap_llr = 5.0、門檻 ln 5 ≈ 1.609 來看,鏡頭上要有約 30 人
+                    #   這條才會低於門檻,實務上等於不會拒絕任何候選,分不出是誰。
+                    #   它的作用是讓沒有校正的重疊鏡頭仍能接續身份。
                     k = max(min(overlap_pool.get(c, 1) for c in cams), 1)
                     score = self.f["overlap_llr"] - math.log(k) + self.topo.app_lr.llr(app)
-            # 身份訊號(2026-09-16):這是重疊路徑上**唯一能區分候選**的證據 ——
+            # 身份訊號(選用功能,預設關閉):重疊路徑上能區分候選的證據 ——
             # 常數項對每位候選都一樣,稀釋項只看鏡頭上有幾個人,兩者都回答不了「是誰」。
             if self.topo.cue_lr is not None:
                 score += self.topo.cue_lr.llr(cue_token, chef.cue_token)
@@ -381,15 +372,13 @@ class SpatioTemporalIdentityManager(IdentityManager):
 
         self.last_candidates = len(cands)
         self._cand_hist[min(len(cands), 5)] += 1
-        # 2026-09-13 的四層歸因診斷:把整份候選清單留給 runner 寫出去。
-        # 沒有它就分不開「正確答案不在候選集裡」(候選集層)與「在裡面但沒排第一」
-        # (評分層)—— 而前六個修法全部是在後者上打轉。
-        # ⚠ 只是一個快照參考,不影響任何決策;下一次決策就被覆寫。
+        # 候選清單快照,供除錯檢視:可分辨「正確答案不在候選裡」與「在裡面但沒排第一」。
+        # ⚠ 不影響任何決策;下一次決策就被覆寫。
         self.last_cands = sorted(cands, reverse=True)
 
         best_score, best_id, _ = max(cands, default=(float("-inf"), None, None))
 
-        # F1 margin test(2026-09-05,預設關閉)。
+        # 差距檢查(margin_nats,選用功能,預設關閉):最高分與次高分差距不足就不綁。
         # 每位 chef 在 cands 裡最多出現一次(gone 與 active 互斥),所以「次佳」
         # 必然是**另一個人**,差距才有「區分兩個假設」的意義。
         #
@@ -401,15 +390,15 @@ class SpatioTemporalIdentityManager(IdentityManager):
             second = sorted((c[0] for c in cands), reverse=True)[1]
             self.last_margin = best_score - second
             if self.last_margin < margin_nats:
-                # 分不出來 → 依 5:1 成本比,寧可碎裂也不要誤併。
+                # 分不出來 → 依誤併 / 碎裂成本比,寧可碎裂也不要誤併。
                 self._n_margin_blocked += 1
                 best_id = None
 
         gk = self._key(track_id, camera_id)
         if best_id is not None and best_score >= thr:          # 綁到既有廚師
             chef = self.gone.pop(best_id, None) or self.active[best_id]
-            # F2 的驗收量。**不論修法開關都計數** —— 關閉時量到的是基線的問題規模,
-            # 開啟後必須是 0。一個人不可能同時是同一台鏡頭上的兩條 track。
+            # 診斷:不論 same_cam_exclusive 開關都計數;開啟後必須是 0。
+            # 一個人不可能同時是同一台鏡頭上的兩條 track。
             if any(c == camera_id for c, _t in chef.track_ids):
                 self._n_same_cam_conflicts += 1
             chef.state = "active"
@@ -424,7 +413,7 @@ class SpatioTemporalIdentityManager(IdentityManager):
                 chef.cue_token = cue_token
             self.track_to_chef[gk] = best_id
             self._cam[best_id] = (camera_id, t)
-            if bbox is not None:                       # F4:見 on_track_update
+            if bbox is not None:                       # 見 on_track_update
                 self._bbox[(best_id, camera_id)] = (tuple(bbox[:4]), t)
             if world_xy is not None:
                 self._world[best_id] = (world_xy, t)
@@ -438,7 +427,7 @@ class SpatioTemporalIdentityManager(IdentityManager):
                                         cue_token)
         self.track_to_chef[gk] = cid
         self._cam[cid] = (camera_id, t)
-        if bbox is not None:                           # F4:見 on_track_update
+        if bbox is not None:                           # 見 on_track_update
             self._bbox[(cid, camera_id)] = (tuple(bbox[:4]), t)
         if world_xy is not None:
             self._world[cid] = (world_xy, t)
@@ -466,15 +455,10 @@ class SpatioTemporalIdentityManager(IdentityManager):
                         embedding=None, crop=None, zone=None, cue_token=None):
         """M4 每幀(或每隔幾幀)回報「這條 track 還在,現在在這裡」。
 
-        ⚠ 這個介面是**地面校正的前提**,不是可有可無的優化。
-          M5 原本只吃事件(new_track / lost / removed),所以它只知道每位 chef
-          **上次綁定時**在哪裡。全景鏡頭的 track 是連續的、中間沒有綁定事件,
-          於是比對「30 秒前的位置」與「現在的位置」→ 距離很大 → 強負證據 →
-          把對的綁定擋掉(實測碎裂從 0.2% 暴增到 22.7%)。
-
-          這與第五輪踩到的 `_cam` 時間戳問題是同一個結構性缺口:
-          **M4 每幀輸出 active tracks,但 M5 只吃事件。**
-          第五輪用 chef.track_ids 繞過了「誰在畫面裡」,但「在哪個位置」繞不過。
+        ⚠ 這個介面是**位置證據的前提**,不是可有可無的優化。
+          只靠事件(new_track / lost / removed)的話,M5 只知道每位 chef **上次綁定時**
+          在哪裡。全景鏡頭的 track 是連續的、中間沒有綁定事件,於是會拿很久以前的位置
+          與現在的位置比 → 距離很大 → 強負證據 → 把對的綁定擋掉。
         """
         cid = self.track_to_chef.get(self._key(track_id, camera_id))
         if cid is None:
@@ -485,13 +469,12 @@ class SpatioTemporalIdentityManager(IdentityManager):
             self._world[cid] = (world_xy, t)
         if world_v is not None:
             self._vel[cid] = world_v
-        # F4:CrossViewLR 要知道候選此刻在**那一台重疊鏡頭**上的 bbox。
-        # 與 world_xy 同一個理由 —— M4 每幀輸出 active tracks,但 M5 只吃事件,
-        # 所以不在這裡記的話,拿到的會是「上次綁定時」的位置。
+        # CrossViewLR 要知道候選此刻在**那一台重疊鏡頭**上的 bbox。
+        # 與 world_xy 同一個理由:不在這裡記的話,拿到的會是「上次綁定時」的位置。
         if bbox is not None:
             self._bbox[(cid, camera_id)] = (tuple(bbox[:4]), t)
 
-        # ── P1 累積投票(2026-09-13,預設關閉)────────────────────────────
+        # ── 累積投票(revote,選用功能,預設關閉)─────────────────────────
         rv = getattr(self.topo, "revote", None)
         if rv is None:
             return cid
@@ -514,9 +497,9 @@ class SpatioTemporalIdentityManager(IdentityManager):
                                        world_v, exclude_key=gk, cue_token=cue_token)
 
         if rv["assignment"] == "hungarian":
-            # P2:先緩衝,等這台鏡頭這一輪的 track 都進來了再一次解全域指派。
-            # 由 runner 呼叫 resolve_frame() 觸發;沒呼叫的話票不會投出去,
-            # 而 revote_pending 這個診斷會讓那件事看得見(不是靜默失效)。
+            # 全域指派:先緩衝,等這台鏡頭這一輪的 track 都進來了再一次解。
+            # 由呼叫端呼叫 resolve_frame() 觸發;沒呼叫的話票不會投出去,
+            # revote_pending 診斷會顯示這個狀況。
             self._pending_vote.setdefault(camera_id, []).append(
                 dict(gk=gk, cid=cid, cands=cands, frame_id=frame_id, t=t,
                      emb=emb, bbox=bbox, cue_token=cue_token))
@@ -531,7 +514,7 @@ class SpatioTemporalIdentityManager(IdentityManager):
 
     def _cast_vote(self, gk, cid, cands, frame_id, t, camera_id, emb, bbox,
                    forced=None):
-        """投一票。forced 不為 None 時用它(P2 的全域指派結果)。
+        """投一票。forced 不為 None 時用它(全域指派的結果)。
 
         ⚠ 過不了門檻就投「維持現狀」而不是「開新身份」—— 那是「沒有證據要改」
           不是「證據說要改」。投成開新身份會讓每一輪都想拆掉現有綁定。
@@ -562,14 +545,14 @@ class SpatioTemporalIdentityManager(IdentityManager):
         return cid
 
     def resolve_frame(self, camera_id):
-        """P2:把這台鏡頭這一輪緩衝的 track 一次做**全域一對一指派**,再投票。
+        """把這台鏡頭這一輪緩衝的 track 一次做**全域一對一指派**,再投票。
 
-        沒開 hungarian 時是 no-op,所以 runner 可以無條件呼叫。
+        沒開 hungarian 時是 no-op,所以呼叫端可以無條件呼叫。
 
         ⚠ 為什麼要一對一:同一時刻一台鏡頭上的兩條 track **不可能是同一個人**。
           貪心讓每條各自搶最高分,於是兩條可能搶到同一位;Hungarian 會重新
           安排整組配對,總分最佳且滿足這個物理約束。
-          F2(同鏡頭互斥)是它的粗糙版 —— F2 只能說「不准選」,不會重排。
+          同鏡頭互斥(same_cam_exclusive)是它的粗糙版 —— 只能說「不准選」,不會重排。
         """
         rv = getattr(self.topo, "revote", None)
         pend = self._pending_vote.pop(camera_id, None)
@@ -659,7 +642,7 @@ class SpatioTemporalIdentityManager(IdentityManager):
         """進 ByteTrack lost。只記「預備出口」(含離場位置),不動 chef 狀態。
 
         bbox 是 M4 該 track 最後已知的位置,同鏡頭重關聯要靠它分辨斷軌前後是不是
-        同一個人 —— 只有時間的話,同鏡頭有多人時會綁錯(實測誤併率會翻倍)。
+        同一個人 —— 只有時間的話,同鏡頭有多人時容易綁錯。
         """
         gk = self._key(track_id, camera_id)
         cid = self.track_to_chef.get(gk)
@@ -707,12 +690,11 @@ class SpatioTemporalIdentityManager(IdentityManager):
             return None
         if gk in chef.track_ids:
             chef.track_ids.remove(gk)
-        # F4:這位 chef 在這台鏡頭上已經看不到了 → 他的腳點也不再有效。
-        # 留著的話會拿「離場前的位置」去跟現在比,製造假的位置證據
-        # (與 :316 那個出口時間戳的坑同一種形狀)。
+        # 這位 chef 在這台鏡頭上已經看不到了 → 他的腳點也不再有效。
+        # 留著的話會拿「離場前的位置」去跟現在比,製造假的位置證據。
         self._bbox.pop((cid, camera_id), None)
-        # P1:track 沒了,它的投票紀錄也該清 —— 不清的話 _votes 與 _vote_calls
-        # 會隨累計人次單調成長,違反「活躍清單記憶體不無限成長」那條規格。
+        # track 沒了,它的投票紀錄也要清 —— 不清的話 _votes 與 _vote_calls
+        # 會隨累計人次單調成長,長時間運作時記憶體不斷增加。
         self._votes.pop(gk, None)
         self._vote_calls.pop(gk, None)
         chef.last_seen = exit_frame

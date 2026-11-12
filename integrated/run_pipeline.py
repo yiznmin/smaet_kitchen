@@ -53,7 +53,7 @@ from m5_reid.spatiotemporal import CameraTopology                 # noqa: E402
 DEFAULT_CONFIG = Path(__file__).resolve().parent / "pipeline_config.yaml"
 
 # 「人」的 class_id 依權重而異。接錯的話一個人都偵測不到,而且不會報錯,
-# 只會安靜地輸出 0 筆綁定(見 scripts/m5_track_video.py 檔頭)。
+# 只會安靜地輸出 0 筆綁定。
 PERSON_CLS_COCO = 1
 PERSON_CLS_FINETUNED = 0
 
@@ -650,7 +650,7 @@ def main():
           f"最終 chef_id 數 {m5.stats()['total_chefs']}")
     print(f"    候選數分布(0 = 開新人、1 = 唯一候選):{m5.candidate_histogram()}")
 
-    # run_meta.json:欄位名沿用 scripts/m5_track_video.py,既有評估腳本的自檢才讀得到
+    # run_meta.json:本次執行的設定與統計
     meta = {
         "pipeline": "run_pipeline.py(整合資料夾)",
         "config_path": str(args.config), "profile": cfg["profile"],

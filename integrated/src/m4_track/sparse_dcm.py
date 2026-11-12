@@ -137,7 +137,7 @@ class DCMMcByteTracker(McByteTracker):
             u_detection = list(range(n_d))
         return matched, sorted(u_tracks), sorted(u_detection)
 
-    # ── 2026-09-15 第 3 輪加的覆寫點;預設行為與原本 update 內的 closure 逐行相同 ──
+    # ── 子類別可覆寫的掛勾;預設行為與原本 update 內的 closure 逐行相同 ──
     def _before_association(self, strack_pool):
         """第 1 階段配對前呼叫一次(strack_pool = confirmed + lost)。預設不做事。"""
 
@@ -157,7 +157,7 @@ class DCMMcByteTracker(McByteTracker):
 
         score    配到的偵測分數
         was_lost 配對前是否為 lost
-        det_idx  (2026-09-28 第 4 輪加)配到的是**哪一個**偵測(該階段的原始索引);
+        det_idx  配到的是**哪一個**偵測(該階段的原始索引);
                  外觀子類別要用它才知道該拿哪一個特徵更新 track 的記憶。
         stage    "high" / "low" / "unconfirmed"
         預設不做事,所以既有子類別行為不變。

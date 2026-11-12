@@ -81,15 +81,14 @@ RF_BACKENDS = ("rf_botsort", "rf_cbiou", "rf_ocsort", "rf_mcbyte", "rf_mcbyte_no
 # McByte 需要每幀的 RGB 影像(遮罩傳遞);其他 backend 不收影像
 MCBYTE_BACKENDS = ("rf_mcbyte", "rf_mcbyte_nomask", "rf_mcbyte_dcm", "rf_mcbyte_nomask_dcm",
                    "rf_mcbyte_nomask_hybrid", "rf_mcbyte_nomask_app")
-# 2026-09-28 修法第 4 輪:*_app = McByte 不開遮罩 + 外觀特徵進關聯成本
-# (src/m4_track/appearance_assoc.py);權重由 backend_params 的 appearance_w 給,
-# 不給 = 0 → **完全不呼叫 embedder**,與 rf_mcbyte_nomask 逐位相同(預先登記 V1)
-# 2026-09-15 修法第 3 輪:*_hybrid = McByte 不開遮罩 + Hybrid-SORT 弱線索(src/m4_track/hybrid_cues.py);
-# 參數由 backend_params 的 tcm_first_weight / tcm_byte_weight / use_hmiou 給,不給 = 0 / 0 / false(= 原本 McByte)
-# 2026-09-15 修法第 2 輪:*_dcm = McByte + SparseTrack 偽深度分層配對(src/m4_track/sparse_dcm.py);
-# 層數由 backend_params 的 depth_levels_high / depth_levels_low 給,不給則都是 1(= 不分層)
-# McByte 遮罩權重的固定位置(model_result/ 已被 .gitignore 排除)
-# ⚠ Cutie cutie-base-mega 的訓練資料含 MOSE(CC BY-NC-SA 4.0,非商用)→ 只能用於驗證,不可出貨
+# *_app    = McByte 不開遮罩 + 外觀特徵進關聯成本(src/m4_track/appearance_assoc.py,single_person 使用);
+#            權重由 backend_params 的 appearance_w 給,不給 = 0 → 完全不呼叫 embedder,與 rf_mcbyte_nomask 逐位相同
+# *_hybrid = McByte 不開遮罩 + Hybrid-SORT 弱線索(src/m4_track/hybrid_cues.py,選用,預設設定不使用);
+#            參數由 backend_params 的 tcm_first_weight / tcm_byte_weight / use_hmiou 給,不給 = 原本 McByte
+# *_dcm    = McByte + SparseTrack 偽深度分層配對(src/m4_track/sparse_dcm.py,選用,預設設定不使用);
+#            層數由 backend_params 的 depth_levels_high / depth_levels_low 給,不給則都是 1(= 不分層)
+# 開遮罩的 McByte(rf_mcbyte、rf_mcbyte_dcm)需要下列 SAM / Cutie 權重,本交付資料夾沒有附,不可使用。
+# ⚠ Cutie cutie-base-mega 的訓練資料含 MOSE(CC BY-NC-SA 4.0,非商用),不可出貨。
 MCBYTE_SAM_CKPT = "model_result/mcbyte/sam_vit_b_01ec64.pth"
 MCBYTE_CUTIE_CKPT = "model_result/mcbyte/cutie-base-mega.pth"
 
@@ -97,21 +96,21 @@ MCBYTE_CUTIE_CKPT = "model_result/mcbyte/cutie-base-mega.pth"
 def rf_kwargs(backend, common, params=None):
     """把共用鍵(supervision ByteTrack 的語意)對映成 trackers 的建構參數。
 
-    目標是**同一份設定在兩個套件裡代表同一套配對規則**,讓網格裡每一格只差一件事:
+    目標是**同一份設定在兩個套件裡代表同一套配對規則**:
       bytetrack  → rf_botsort   只差卡爾曼狀態表示(supervision XYAH / trackers XCYCWH 尺度相關雜訊)
-      rf_botsort → rf_cbiou     只差框放大(buffer_ratio;設 0 與 rf_botsort 逐位相同,verify_m4 S6 驗)
+      rf_botsort → rf_cbiou     只差框放大(buffer_ratio;設 0 與 rf_botsort 逐位相同)
 
-    supervision 0.28 的規則(2026-09-15 讀 byte_tracker/core.py 確認):
+    supervision 0.28 的規則(依 byte_tracker/core.py):
       高分:score > track_activation_threshold;低分:0.1 < score < 同一門檻
       第一輪:IoU × 分數 > 1 − minimum_matching_threshold,對象 tracked + lost
       第二輪:純 IoU > 0.5,只對 tracked
       未確認 track:IoU × 分數 > 0.3,沒配到就刪
       開新 track:score ≥ track_activation_threshold + 0.1,第二次配到才啟動(tracker 的第一幀例外)
-    ⚠ 邊界比較(> 與 ≥)兩邊不同,不追求逐位相同 —— 所以網格需要 rf_botsort 當橋樑格。
+    ⚠ 邊界比較(> 與 ≥)兩邊不同,兩個套件的結果不會逐位相同。
 
     OC-SORT 沒有「開新 track 門檻」與「未確認 track」的概念(低於 high_conf_det_threshold
     的偵測整批丟掉、其餘全部可開新 track),只對映高分門檻,其餘用套件預設。
-    `params`(configs/tracker.yaml 的 backend_params.<backend>)最後覆蓋。
+    `params`(pipeline_config.yaml 的 m4.backend_params.<backend>)最後覆蓋。
     """
     act = float(common["track_activation_threshold"])
     kw = dict(lost_track_buffer=int(common["lost_track_buffer"]),
@@ -129,8 +128,8 @@ def rf_kwargs(backend, common, params=None):
         if backend == "rf_botsort":
             kw["enable_cmc"] = False       # 固定鏡頭,且評估不解碼影片、沒有 frame 可給
         if backend in MCBYTE_BACKENDS:
-            # 2026-09-15 修法第 1 輪:McByte = ByteTrack 式兩階段 + 傳遞的分割遮罩當關聯線索。
-            # 固定鏡頭 → 關相機運動補償;rf_mcbyte_nomask 是只差遮罩的橋樑格。
+            # McByte = ByteTrack 式兩階段 + 傳遞的分割遮罩當關聯線索。
+            # 固定鏡頭 → 關相機運動補償;_nomask 系列不開遮罩。
             kw["enable_cmc"] = False
             kw["enable_mask_manager"] = backend in ("rf_mcbyte", "rf_mcbyte_dcm")
     elif backend != "rf_ocsort":
@@ -212,8 +211,8 @@ class KitchenTracker(BaseTracker):
     def needs_frame(self) -> bool:
         """這個後端是否需要每幀畫面(frame=)。
 
-        McByte 系列要:遮罩版拿它算分割遮罩,第 4 輪的外觀版拿它裁圖抽特徵。
-        呼叫端據此決定要不要付 BGR→RGB 的轉換成本(見 scripts/m5_track_video.py)。
+        McByte 系列要:遮罩版拿它算分割遮罩,外觀版(_app)拿它裁圖抽特徵。
+        呼叫端據此決定要不要付 BGR→RGB 的轉換成本(見 run_pipeline.py)。
         """
         return self.backend in MCBYTE_BACKENDS
 
@@ -240,11 +239,8 @@ class KitchenTracker(BaseTracker):
         # ⚠ 從未啟動的 track(只出現一幀、沒被確認)在 supervision 裡的 external id
         #   一律是 NO_ID(= -1)。而 `removed_tracks` 是**逐幀覆寫**的(core.py 的
         #   `self.removed_tracks = removed_stracks`),於是 -1 會反覆進出集合,
-        #   下面的差集每次都把它當成「新被移除」發一個 removed 事件。
-        #   2026-09-14 實測:CHIRLA 七序列 7,779 次 removed 裡 **4,192 次是 -1**(54%),
-        #   EPFL 九台也有 129 次。那些不是「救不回的遺失」,是從沒成為 track 的偵測。
-        #   M5 本來就查不到 (cam, -1) 所以決策不受影響,但層 0 的統計被灌水。
-        #   用 tracker 實例上的 NO_ID property 而不寫死 -1。
+        #   下面的差集每次都把它當成「新被移除」發一個 removed 事件,灌水 removed 的統計。
+        #   因此排除 NO_ID;用 tracker 實例上的 NO_ID property 而不寫死 -1。
         no_id = self._bt.external_id_counter.NO_ID
         lost_ids = {t.external_track_id for t in self._bt.lost_tracks
                     if t.external_track_id != no_id}
@@ -320,8 +316,8 @@ class KitchenTracker(BaseTracker):
 
         ⚠ 不傳 timestamp(固定步長模式)。傳了的話 trackers 會改以「秒」算緩衝,
           而且卡爾曼一步走 經過秒數 × frame_rate 幀 —— supervision 是每次 update 走一步,
-          跟 bytetrack 比就多了一個變因。緩衝秒數由呼叫端換算成更新次數
-          (`eval_m4_chirla.tracker_config`),與 bytetrack 相同。
+          跟 bytetrack 比就多了一個變因。緩衝以「更新次數」計(pipeline_config.yaml 的
+          m4.lost_track_buffer),與 bytetrack 相同。
 
         狀態只看**已發 id** 的 track(tracker_id == -1 的未確認 track 不發任何事件,
         對應 bytetrack 路徑略過 NO_ID):

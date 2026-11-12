@@ -40,7 +40,7 @@ class AppearanceMcByteTracker(DCMMcByteTracker):
     參數:
       embedder        有 `.extract(crop_bgr) -> np.ndarray` 的物件;w > 0 時必須給
       appearance_w    w ∈ [0, 1];0 = 完全關閉(逐位等同基準)
-      ema_momentum    track 特徵的 EMA 動量,預設 0.9(預先登記定死,不調)
+      ema_momentum    track 特徵的 EMA 動量,預設 0.9
     """
 
     def __init__(self, *args, embedder=None, appearance_w=0.0, ema_momentum=0.9, **kwargs):
@@ -70,9 +70,6 @@ class AppearanceMcByteTracker(DCMMcByteTracker):
         ⚠ 色彩通道:`frame` 依 `tracker.py::update` 的約定是 RGB,但 embedder 的 `extract`
           預期收到 BGR(`dino_embedder.py` 內部再轉 RGB)。這裡先轉回 BGR 再交給 embedder,
           否則紅藍通道會對調。
-          實測影響:鑑別力幾乎沒變(`results/m4_round4/diag_channel_bug.json`,
-          d′ 反而略高 +0.21 / +0.32,因為對調是**一致的**,相對比較仍成立)——
-          所以這**不是**第 4 輪失敗的原因,但仍是錯的,要修。
         """
         h, w = self._frame.shape[:2]
         x1, y1, x2, y2 = (int(max(0, box[0])), int(max(0, box[1])),
@@ -84,7 +81,7 @@ class AppearanceMcByteTracker(DCMMcByteTracker):
         return _to_unit(np.asarray(self.embedder.extract(crop_bgr), dtype=np.float32))
 
     def _sim_high(self, sub_tracklets, det_idx, high_boxes, high_scores, predicted_state_boxes):
-        # w = 0:一行都不繞路,直接走基準(V1 要求逐位相同)
+        # w = 0:完全不用外觀,直接走基準,結果與不加外觀的追蹤器逐位相同
         if self.appearance_w <= 0 or self._frame is None:
             return super()._sim_high(sub_tracklets, det_idx, high_boxes, high_scores,
                                      predicted_state_boxes)

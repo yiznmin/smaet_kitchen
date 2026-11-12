@@ -5,8 +5,8 @@
 
 ## 為什麼不走 embedder / AppearanceLR
 
-`AppearanceLR` 的高斯參數是為特定 embedder **實測校正**的(evidence.py 的 MEASURED,
-dinov2 d′=0.25)。把合成訊號塞進那條路有兩個問題:
+`AppearanceLR` 的高斯參數是針對特定 embedder 估計的(evidence.py 的 MEASURED)。
+把合成訊號塞進那條路有兩個問題:
   1. 訊號的鑑別力會被壓成 dinov2 的鑑別力,準確率 p 這個旋鈕失效
   2. 「讀對的機率」與「cosine 分布」是兩種東西,硬套會讓結論無法解釋
 所以身份訊號自成一條證據,LLR 直接從讀取器的錯誤模型推導。
