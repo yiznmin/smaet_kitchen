@@ -1,25 +1,22 @@
-"""團隊 NG4a 觸發(單人):清洗物件 → 放下 → 判放置位置。
+"""NG4 洗過的食材 / 器具直接放桌面(單人):清洗 → 放下 → 判放置位置。
 
-團隊定義:洗過的食材 / 廚具直接放桌面 = NG4(範圍 清洗開始 → 放桌面);放砧板 / 容器 / 鍋子 = 合格。
-只用規則(M3 偵測 + 洗手台 zone + 時序),不用 VLM。
-預先登記:docs/M6_NG準則評估_預先登記_20261027.md §8.28–8.81;現行設定(§8.81)115 片段 R 0.685 / P 0.804。
-下列參數名稱皆為 configs/violation_rules.yaml ng4 節(DEFAULT 只是缺值時的後備)。
+放桌面 = NG4(範圍 清洗開始 → 放下);放砧板 / 容器 / 鍋子 = 合格。只用規則(M3 偵測 + 洗手台區域 + 時序)。
+下列參數皆為 configs/violation_rules.yaml ng4 節(DEFAULT 只是缺值時的後備)。
 
-流程(每類物件分開,單位皆為步,每步 0.1 秒):
-  1. 清洗:B 近拍鏡頭(wash_views)中,物件框中心在洗手台_NG4 zone、且與「中心在 zone 的手框」重疊(手拿著它在水槽);
-     不平滑(wash_smooth false,水槽內框斷續)直接累計,間隔 < wash_gap_s 合併,累計 ≥ wash_min_s 算一次清洗。
+流程(每類物件分開,每步 0.1 秒):
+  1. 清洗:B 近拍鏡頭(wash_views)中,物件框中心在洗手台_NG4 區域、且與「中心在區域內的手框」重疊(手拿著它在水槽);
+     不平滑(wash_smooth false)直接累計,間隔 < wash_gap_s 合併,累計 ≥ wash_min_s 算一次清洗。
   2. 放下:從清洗開始就找(during_wash),到清洗結束後 max_gap_s 秒為止;
-     - 新框:水槽外出現清洗開始前 / 開始後 start_s 秒內沒有的同類框(start_mode base:剛開始洗時看到的當舊框);
-     - 不在任何 sink_cams 的洗手台_NG4 範圍內(A、B 鏡頭都排除水槽內還在洗的東西);
+     - 新框:水槽外出現清洗開始前 / 開始後 start_s 秒內沒有的同類框(start_mode base);
+     - 不在任何 sink_cams 的洗手台_NG4 範圍內(排除水槽內還在洗的東西);
      - 放下前 release_s 秒內有手碰過這個位置(檯面上本來就擺著、沒被動過的不算);
      - 在支撐物上(手還按著也算)或手已離開,持續 ≥ put_min_s;
      - lock_support:已放到砧板 / 容器 / 鍋子上的,之後在上面移動不再算新的放下;連洗多樣時每放下一樣各判一次。
   3. 位置:放下 judge_offset_s 秒後開始看 judge_s 秒,各鏡頭投票「在支撐物上」或「在桌面」:
      - 支撐物(supports)被手或刀擋住時,沿用前 sup_mem_s 秒看到的位置;
-     - 與食材框幾乎重疊(IoU ≥ sup_dedup_iou)的支撐物框 = 同一個東西被認兩次,不算支撐物;
-     - 有在支撐物上 ≥ sup_only_s、且沒有任何鏡頭看到在桌面 → 合格(框時有時無不算違規);
+     - 與食材框幾乎重疊(IoU ≥ sup_dedup_iou)的支撐物框視為同一個東西,不算支撐物;
+     - 有在支撐物上 ≥ sup_only_s、且沒有任何鏡頭看到在桌面 → 合格;
      - 其餘依 decide majority:多數鏡頭看到桌面 → NG4 確定;兩邊一樣多或看不出來 → NG4 待確認。
-範圍外:NG4b(放桌面後未清洗即使用,§8.14 無鑑別力)。
 """
 import numpy as np
 
@@ -64,7 +61,7 @@ class _View:
 
     def __init__(self, cache, sink, p, app=None):
         self.c, self.idx, self.sink, self.p = cache, steps(cache), sink, p
-        self.app, self.ref = app, None            # §8.67:{步: (食材框, 直方圖)};ref = 這段清洗的參考直方圖
+        self.app, self.ref = app, None            # {步: (食材框, 直方圖)};ref = 這段清洗的參考直方圖
 
     def get(self, i, cls_name):
         xy, cf, cl = at(self.c, self.idx, i)
@@ -98,7 +95,7 @@ def wash_series(views, T, p):
 
 def wash_segments(raw_j, p, step):
     k = lambda s: max(1, int(round(s / step)))
-    # wash_smooth = False(§8.30):M3 在水槽裡的食材框時有時無,不平滑、直接累計原始成立步數
+    # wash_smooth = False:M3 在水槽裡的食材框時有時無,不平滑、直接累計原始成立步數
     sm = hysteresis(raw_j, *p["smooth"]) if p.get("wash_smooth", True) else np.asarray(raw_j, bool)
     segs = []
     for s, e in intervals(sm):
@@ -119,19 +116,19 @@ def _sink_dist(b, poly):
 def _place_flags(v, i, name, base, p, prev=None, excl=None):
     """回傳 (在支撐物上, 在桌面, 這步的新框)。
 
-    prev:前 still_s 秒那一步的新框;stationary_ok(§8.36)時,和 prev 幾乎重合(IoU ≥ still_iou)的框
+    prev:前 still_s 秒那一步的新框;stationary_ok時,和 prev 幾乎重合(IoU ≥ still_iou)的框
     即使手還碰著也算「放好了」(手扶著 / 放下後手停在旁邊)。
     """
     b, h, xy, cf, cl = v.get(i, name)
     b = _outside(b, v.sink)
     if len(b) and len(base):
         b = b[~(_iou(b, base) >= p["new_iou"]).any(1)]
-    if len(b) and v.sink is not None and p.get("sink_margin", 0) > 0:   # §8.42:水槽邊緣的不算放下
+    if len(b) and v.sink is not None and p.get("sink_margin", 0) > 0:   # 水槽邊緣的不算放下
         b = b[_sink_dist(b, v.sink) >= p["sink_margin"]]
-    if len(b) and excl is not None and len(excl):                       # §8.42:已放過的砧板 / 容器上的移動不算
+    if len(b) and excl is not None and len(excl):                       # 已放過的砧板 / 容器上的移動不算
         b = b[~(ioa(b, excl) >= p["sup_ioa"]).any(1)]
     rel = int(round(p.get("release_s", 0) / 0.1))
-    if len(b) and rel > 0:                                              # §8.61:前 release_s 秒內手碰過這個位置(從手上放下)
+    if len(b) and rel > 0:                                              # 前 release_s 秒內手碰過這個位置(從手上放下)
         w, hh = b[:, 2] - b[:, 0], b[:, 3] - b[:, 1]
         bx = np.c_[b[:, 0] - 0.5 * w, b[:, 1] - 0.5 * hh, b[:, 2] + 0.5 * w, b[:, 3] + 0.5 * hh]
         touched = np.zeros(len(b), bool)
@@ -143,14 +140,14 @@ def _place_flags(v, i, name, base, p, prev=None, excl=None):
             if touched.all():
                 break
         b = b[touched]
-    if len(b) and p.get("app_dist") and v.app is not None and v.ref is not None:   # §8.67:外觀要像剛洗的食材
+    if len(b) and p.get("app_dist") and v.app is not None and v.ref is not None:   # 外觀要像剛洗的食材
         b = b[_app_dist(v, i, b) <= p["app_dist"]]
     if not len(b):
         return False, False, b
     sup_ids = [NAME_TO_CLASS[n] for n in p["supports"]]
     s = xy[np.isin(cl, sup_ids) & (cf >= p["thr_obj"])]
     mem = int(round(p.get("sup_mem_s", 0) / 0.1))
-    if mem > 0:                                                          # §8.51:被擋住時沿用前幾秒的砧板 / 容器位置
+    if mem > 0:                                                          # 被擋住時沿用前幾秒的砧板 / 容器位置
         past = [s]
         for j in range(max(0, i - mem), i):
             xj, cj, lj = at(v.c, v.idx, j)
@@ -158,7 +155,7 @@ def _place_flags(v, i, name, base, p, prev=None, excl=None):
         s = np.concatenate(past)
     if name in p["supports"] and len(s):
         s = s[~(_iou(s, b) > 0.95).any(1)]                     # 支撐物類別本身:排除自己那個框
-    if len(s) and p.get("sup_dedup_iou"):                       # §8.79:和食材框幾乎重疊的支撐物框 = 同一個東西被認兩次,不算
+    if len(s) and p.get("sup_dedup_iou"):                       # 和食材框幾乎重疊的支撐物框 = 同一個東西被認兩次,不算
         on = ((ioa(b, s) >= p["sup_ioa"]) & (_iou(b, s) < p["sup_dedup_iou"])).any(1)
     else:
         on = (ioa(b, s) >= p["sup_ioa"]).any(1) if len(s) else np.zeros(len(b), bool)
@@ -169,7 +166,7 @@ def _place_flags(v, i, name, base, p, prev=None, excl=None):
 
 
 def _app_dist(v, i, b):
-    """§8.67:每個框與清洗參考直方圖的最小 Bhattacharyya 距離;查不到直方圖的框回傳 0(不過濾)。"""
+    """每個框與清洗參考直方圖的最小 Bhattacharyya 距離;查不到直方圖的框回傳 0(不過濾)。"""
     d = np.zeros(len(b))
     ent = v.app.get(i)
     if ent is None or not len(ent[0]):
@@ -185,7 +182,7 @@ def _app_dist(v, i, b):
 
 
 def wash_ref(views, name, ws, we, p, max_n=200):
-    """§8.67:清洗期間水槽內、手拿著的食材框直方圖(B 鏡頭),當外觀參考集;沒有則回傳 None。"""
+    """清洗期間水槽內、手拿著的食材框直方圖(B 鏡頭),當外觀參考集;沒有則回傳 None。"""
     out = []
     for vn, v in views.items():
         if v.sink is None or v.app is None or (p.get("wash_views") and vn not in p["wash_views"]):
@@ -213,7 +210,7 @@ def wash_ref(views, name, ws, we, p, max_n=200):
 
 
 def _baseline(v, name, ws, we, p, k):
-    """舊框:清洗最後 base_s 秒洗手台外的框;base_mode = static(§8.36)時,只留清洗開始前也在同位置的框(靜止物)。"""
+    """舊框:清洗最後 base_s 秒洗手台外的框;base_mode = static時,只留清洗開始前也在同位置的框(靜止物)。"""
     cat = lambda r: np.concatenate([_outside(v.get(i, name)[0], v.sink) for i in r]) if len(r) else np.zeros((0, 4))
     base = cat(range(max(ws, we - k(p["base_s"])), we))
     if p.get("base_mode", "last") == "static" and len(base):
@@ -248,10 +245,10 @@ def find_put(views, T, name, ws, we, p, step):
     if t is None:
         return None
     sup, cnt = [], []
-    off = int(round(p.get("judge_offset_s", 0.0) / step))      # §8.32:放下起點常早於真正放好,判位置往後移
+    off = int(round(p.get("judge_offset_s", 0.0) / step))      # 放下起點常早於真正放好,判位置往後移
     for vn, f in flags.items():
         w = f[t + off:t + off + k(p["judge_s"])]
-        if p.get("vote_base", "window") == "visible":           # §8.59:分母只算有看到新食材框的步數
+        if p.get("vote_base", "window") == "visible":           # 分母只算有看到新食材框的步數
             vis = w[:, 0] | w[:, 1] if len(w) else w
             if not len(w) or vis.sum() < k(p.get("min_vis_s", 0.2)):
                 continue
@@ -260,7 +257,7 @@ def find_put(views, T, name, ws, we, p, step):
             sup.append(vn)
         if len(w) and w[:, 1].mean() >= p["vote"]:
             cnt.append(vn)
-    if p.get("decide", "strict") == "majority":                # §8.32:兩邊都有時比鏡頭數,同數才算無法判斷
+    if p.get("decide", "strict") == "majority":                # 兩邊都有時比鏡頭數,同數才算無法判斷
         place = "砧板或容器" if len(sup) > len(cnt) else "桌面" if len(cnt) > len(sup) else "無法判斷"
     else:
         place = "砧板或容器" if sup and not cnt else "桌面" if cnt and not sup else "無法判斷"
@@ -274,7 +271,7 @@ def _judge(flags, t, p, step):
     sup, cnt = [], []
     for vn, f in flags.items():
         w = f[t + off:t + off + k(p["judge_s"])]
-        if p.get("vote_base", "window") == "visible":           # §8.59:分母只算有看到新食材框的步數
+        if p.get("vote_base", "window") == "visible":           # 分母只算有看到新食材框的步數
             vis = w[:, 0] | w[:, 1] if len(w) else w
             if not len(w) or vis.sum() < k(p.get("min_vis_s", 0.2)):
                 continue
@@ -284,12 +281,12 @@ def _judge(flags, t, p, step):
         if len(w) and w[:, 1].mean() >= p["vote"]:
             cnt.append(vn)
     so = int(round(p.get("sup_only_s", 0) / step))
-    if so > 0:                                                   # §8.72:有在支撐物上 ≥ sup_only_s、且沒有任何桌面證據 → 合格
+    if so > 0:                                                   # 有在支撐物上 ≥ sup_only_s、且沒有任何桌面證據 → 合格
         ws_ = {vn: f[t + off:t + off + k(p["judge_s"])] for vn, f in flags.items()}
         on_v = [vn for vn, w in ws_.items() if len(w) and w[:, 0].sum() >= so]
         if on_v and not any(len(w) and w[:, 1].any() for w in ws_.values()):
             return "砧板或容器", on_v, []
-    if p.get("sup_any"):                                         # §8.69:任一鏡頭任一步在支撐物上就算合格
+    if p.get("sup_any"):                                         # 任一鏡頭任一步在支撐物上就算合格
         anys = [vn for vn, f in flags.items() if f[t + off:t + off + k(p["judge_s"])][:, 0].any()]
         if anys:
             return "砧板或容器", anys, cnt
@@ -301,7 +298,7 @@ def _judge(flags, t, p, step):
 
 
 def find_puts_during(views, T, name, ws, we, p, step, trace=None):
-    """§8.40:清洗期間也找放下,一段清洗可有多次放下(連續洗好幾樣食材)。
+    """清洗期間也找放下,一段清洗可有多次放下(連續洗好幾樣食材)。
 
     - 從清洗開始 + wash_min_s 起找,直到清洗結束 + max_gap_s;
     - 舊框 = 清洗開始前 base_s 秒洗手台外已有的框(清洗中才放下的都算新的);
@@ -310,17 +307,17 @@ def find_puts_during(views, T, name, ws, we, p, step, trace=None):
     """
     k = lambda s: max(1, int(round(s / step)))
     off = int(round(p.get("judge_offset_s", 0.0) / step))
-    st = int(round(p.get("start_s", 0) / step))                 # §8.53:清洗開始的前 start_s 秒
+    st = int(round(p.get("start_s", 0) / step))                 # 清洗開始的前 start_s 秒
     lo = min(T, ws + max(k(p["wash_min_s"]), st if p.get("start_mode", "skip") == "skip" else 0))
     last_start = we + k(p["max_gap_s"])
     hi = min(T, last_start + k(p["put_min_s"]) + k(p["judge_s"]) + off)
     cat = lambda v, r: (np.concatenate([_outside(v.get(i, name)[0], v.sink) for i in r]) if len(r)
                         else np.zeros((0, 4)))
-    pre = k(p.get("pre_base_s", p["base_s"]))                 # §8.44:舊框看清洗前多久(拉長可減少偵測時有時無)
+    pre = k(p.get("pre_base_s", p["base_s"]))                 # 舊框看清洗前多久(拉長可減少偵測時有時無)
     b_hi = min(T, ws + st) if p.get("start_mode") == "base" else ws   # base:前 start_s 秒看到的框也當舊框
     base = {vn: cat(v, range(max(0, ws - pre), b_hi)) for vn, v in views.items()}
     gone = int(round(p.get("base_gone_s", 0) / step))
-    if gone > 0:                                                 # §8.82:清洗期間消失 ≥ base_gone_s 的舊框(被拿去洗)移出舊框名單
+    if gone > 0:                                                 # 清洗期間消失 ≥ base_gone_s 的舊框(被拿去洗)移出舊框名單
         for vn, v in views.items():
             b0 = base[vn]
             if not len(b0):
@@ -333,7 +330,7 @@ def find_puts_during(views, T, name, ws, we, p, step, trace=None):
                 run = np.where(seen, 0, run + 1)
                 miss = np.maximum(miss, run)
             base[vn] = b0[miss < gone]
-    hand_in = np.zeros(T, bool)                                  # §8.44:B 鏡頭手中心在洗手台(手還在水槽)
+    hand_in = np.zeros(T, bool)                                  # B 鏡頭手中心在洗手台(手還在水槽)
     org = int(round(p.get("origin_s", 0) / step))
     if p.get("hand_out") or org > 0:
         for v in views.values():
@@ -344,7 +341,7 @@ def find_puts_during(views, T, name, ws, we, p, step, trace=None):
                 h = xy[(cl == HAND) & (cf >= p["thr_hand"])]
                 if len(h) and in_poly(_ctr(h), v.sink).any():
                     hand_in[i] = True
-    if org > 0:                                                  # §8.51:前 origin_s 秒內手在水槽,才算剛從水槽拿出來
+    if org > 0:                                                  # 前 origin_s 秒內手在水槽,才算剛從水槽拿出來
         c = np.concatenate([[0], np.cumsum(hand_in)])
         ii = np.arange(T)
         recent = (c[ii + 1] - c[np.maximum(0, ii - org)]) > 0
@@ -366,7 +363,7 @@ def find_puts_during(views, T, name, ws, we, p, step, trace=None):
                 f[busy] = False
             if org > 0:
                 f[~recent[cur:hi]] = False
-            if p.get("put_still_iou"):                          # §8.67:新框 0.5 秒前也在同位置才算放下
+            if p.get("put_still_iou"):                          # 新框 0.5 秒前也在同位置才算放下
                 lag, stat = k(0.5), np.zeros(len(bx), bool)
                 for n in range(lag, len(bx)):
                     if len(bx[n]) and len(bx[n - lag]):
@@ -410,7 +407,7 @@ def find_puts_during(views, T, name, ws, we, p, step, trace=None):
 
 def detect_ng4(caches, sinks, step=0.1, params=None, t0=0.0, apps=None, trace=None):
     """caches:{鏡頭: DetCache};sinks:{鏡頭: 洗手台多邊形}(沒有的鏡頭不用給)。
-    apps(§8.67,選用):{鏡頭: {步: (食材框, 直方圖)}},給了且 params 有 app_dist 才做外觀比對。
+    apps(,選用):{鏡頭: {步: (食材框, 直方圖)}},給了且 params 有 app_dist 才做外觀比對。
 
     回傳每一次「清洗 → 放下」事件(含合格的),ng4 欄位表示是否違規;時間為秒(已加 t0)。
     trace(選用,dict):填入逐步中間結果供報告影片顯示(T、raw 清洗訊號、各物件的清洗段 / 位置旗標 / 新框 / 放下);
@@ -431,7 +428,7 @@ def detect_ng4(caches, sinks, step=0.1, params=None, t0=0.0, apps=None, trace=No
                 ref = wash_ref(views, name, ws, we, p)
                 for v in views.values():
                     v.ref = ref
-            if p.get("during_wash"):                            # §8.40:清洗期間也找放下
+            if p.get("during_wash"):                            # 清洗期間也找放下
                 tr = None
                 if trace is not None:
                     tr = trace.setdefault(name, dict(segs=[], puts=[], flag={vn: np.zeros((T, 2), bool) for vn in views},

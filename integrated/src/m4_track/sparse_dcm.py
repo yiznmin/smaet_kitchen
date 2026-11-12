@@ -1,25 +1,19 @@
-"""SparseTrack 的偽深度分層配對(DCM)接到 McByte 上 —— M4 修法第 2 輪(2026-09-15)。
+"""SparseTrack 的偽深度分層配對(DCM)接到 McByte 上(追蹤後端選項,預設設定未使用)。
 
 ## 來源與授權
 
 - 分層規則照抄 SparseTrack 官方實作 `tracker/sparse_tracker.py` 的 `get_deep_range`、`get_sub_mask`、`DCM`
   (https://github.com/hustvl/SparseTrack,MIT License,Copyright (c) 2023 Hust Vision Lab)
 - `update` 主體複製自 `trackers` 2.6.0 的 `McByteTracker.update`
-  (Roboflow,Apache License 2.0),**只改第 1、2 階段的配對呼叫**,其餘逐行不動
+  (Roboflow,Apache License 2.0),只改第 1、2 階段的配對呼叫
 
-## 做法(與官方一致的部分)
+## 做法
 
-- 偽深度 = 2000 − 框底 y(數值越小 = 框底越低 = 越靠近鏡頭)
-- 偵測與 track **各自**在自己的最小~最大偽深度之間均分 `levels` 層;由近到遠逐層配對
-- 某一層沒配到的偵測與 track,**接到下一層的清單後面**一起配
-- 一邊的層數多於另一邊時,多出來的層不參與配對,直接列為未配對
-- 官方設定:高分偵測 1 層(所有設定檔);低分偵測 MOT17 3 層、MOT20 8 層、DanceTrack 12 層
-
-## 刻意與官方不同的部分(為了只測「分層」這一件事)
-
-- 每一層的配對仍用 McByte 自己的相似度、分數融合、門檻與遮罩條件
-  (`_get_mask_conditioned_associated_indices`),不換成 SparseTrack 的 `1 − IoU` 距離與它的門檻
-- 因此 `levels = 1` 時必須與 `McByteTracker` 逐位相同 —— 由預先登記的硬性驗收檢查
+- 偽深度 = 2000 − 框底 y(數值越小 = 越靠近鏡頭)
+- 偵測與 track 各自在自己的最小~最大偽深度之間均分 `levels` 層,由近到遠逐層配對
+- 某一層沒配到的偵測與 track,接到下一層的清單後面一起配
+- 一邊的層數多於另一邊時,多出來的層直接列為未配對
+- 每一層的配對仍用 McByte 自己的相似度、分數融合、門檻與遮罩條件;`levels = 1` 時與 `McByteTracker` 相同
 """
 from __future__ import annotations
 

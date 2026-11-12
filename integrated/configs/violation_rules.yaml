@@ -1,26 +1,26 @@
-# M6 違規判定(單人)規則設定 —— 由 src/m6_events/violation.py 使用
+# M6 違規判定(單人)規則設定 —— 由 run_violations.py 讀取
 #
-# 目前的值是 EPFL 廚房的初版(docs/M6_違規判定_單人_預先登記_20261021.md);
-# 洗手秒數、緩衝、碰觸類別等「規範參數」要等食安負責人填規範表(docs/違規事件_資料準備說明_20261021.md §2)後再改。
-# 相對路徑一律相對於 integrated/。
+# 鏡頭名稱與區域是示範廚房的配置;換場地要改 cameras、zones,並重畫 configs/zones/ 的區域。
+# 洗手秒數、緩衝時間、碰觸類別等規範參數可依企業的食安規範調整。
+# 相對路徑一律相對於本資料夾。
 
-step_s: 0.1                    # 偵測快取每步秒數(30 fps、stride 3)
+step_s: 0.1                    # 偵測快取每步秒數(30 fps、每 3 幀一步)
 
 cameras:
-  overview: output0            # 定位 A / B 側、洗手台、垃圾桶(身體)
-  close:                       # 近拍鏡頭,依站的位置挑一組(角色分工融合)
+  overview: output0            # 俯視全景:定位人站在哪一側、洗手台、垃圾桶
+  close:                       # 近拍鏡頭,依人站的位置挑一組
     A: [Aoutput1, Aoutput2, Aoutput3]
     B: [Boutput1, Boutput2]
-  side_x: {x_a: 480.9, x_b: 729.3}   # output0 腳點 x 分界(YH2040 校準)
+  side_x: {x_a: 480.9, x_b: 729.3}   # output0 腳點 x 座標的 A / B 側分界
 
 zones:
   output0: configs/zones/epfl_output0.json      # 垃圾桶區、洗手台
   Aoutput1: configs/zones/epfl_Aoutput1.json    # 垃圾桶區、洗手台_NG4
-  Aoutput2: configs/zones/epfl_Aoutput2.json    # 洗手台_NG4(§8.77)
+  Aoutput2: configs/zones/epfl_Aoutput2.json    # 洗手台_NG4
   Boutput1: configs/zones/epfl_Boutput1.json    # 洗手台(上方近拍)
   Boutput2: configs/zones/epfl_Boutput2.json    # 洗手台(上方近拍)
 
-# 人—物關聯(M6 V 規則;HY3 凍結值)
+# 人—物關聯(判斷手碰到食材 / 器具)
 association:
   thr_person: 0.3
   hand_in_person: 0.5
@@ -35,86 +35,79 @@ association:
 
 touch_classes: [食材, 刀具, 砧板, 鍋鏟, 鍋子, 容器]   # 「碰到食材 / 器具」的類別
 
-# 觸發:垃圾桶事件(事件測試第 3 輪 trash_body 凍結設定)
+# 碰垃圾桶:Aoutput1 看到手在垃圾桶區,且 output0 看到人站在垃圾桶前
 trash_event:
   hand_cam: Aoutput1
   body_cam: output0
   zone: 垃圾桶區
   thr_hand: 0.2
   body_ioa: 0.2
-  sync_s: 0.5
+  sync_s: 0.5                  # 兩台鏡頭前後此秒數內都看到
   smooth: [3, 2, 5]
-  min_s: 1.0
-  # 回推污染起點(§8.22 / §8.23):手拿著要丟的食材 → 起點往前推;§8.23 未達採用條件,維持關閉
-  backtrack: {enable: false, near_s: 1.0, gap_s: 1.0, max_s: 10.0}
+  min_s: 1.0                   # 持續 ≥ 此秒數才算碰到
+  backtrack: {enable: false, near_s: 1.0, gap_s: 1.0, max_s: 10.0}   # 手拿著要丟的東西時起點往前推(關閉)
 
-# 洗手規則
+# 洗手
 hand_hygiene:
   wash_cam: output0
   sink_zone: 洗手台
-  wash_mode: close_hand        # 第 2 輪最佳(docs/M6_違規判定_單人_預先登記_20261021.md §8.3);hand = output0 手中心在洗手台;body = output0 人框蓋住洗手台;
-                               # close_hand = 上方近拍鏡頭手在水槽;close_hand_body = close_hand 且 body(±sync_s)
+  wash_mode: close_hand        # close_hand = 上方近拍鏡頭看到手在水槽;hand = output0 手中心在洗手台;
+                               # body = output0 人框蓋住洗手台;close_hand_body = close_hand 且 body(±sync_s)
   close_cams: [Boutput1, Boutput2]
   sync_s: 0.5
   thr_hand: 0.2
   body_ioa: 0.2
-  wash_s: 1.0                  # 髒手期間洗手累計秒數(第 2 輪最佳;待規範表)
-  grace_s: 1.0                 # 觸發後幾秒才開始算「髒手」(待規範表)
+  wash_s: 1.0                  # 洗手累計 ≥ 此秒數才算洗過手
+  grace_s: 1.0                 # 離開垃圾桶後此秒數才開始算「髒手」
 
-# 團隊 NG1 / NG2:碰垃圾桶後沒洗手 / 髒手碰食材器具容器(src/m6_events/ng.py;docs/M6_NG準則評估_預先登記_20261027.md)
-# 碰垃圾桶結束 + hand_hygiene.grace_s(1 秒)後才算髒手;NG1 與 NG2 是獨立事件。
-# 逐次接觸評估、使用者回查修正真值後:NG1 47 片段 R 1.000 / P 1.000(§8.88);NG2 44 片段 R 0.950 / P 0.864(§8.90)。
+# NG1 碰垃圾桶後沒洗手 / NG2 髒手碰食材、器具、容器(兩者是獨立事件)
 ng:
-  merge_s: 5.0                 # NG1:兩次接觸污染源間隔 < 此秒數合併成一次
-  ng1_wash_within_s: 5.0       # NG1:最後一次接觸結束後此秒數內要洗手(團隊定義)
+  merge_s: 5.0                 # NG1:兩次接觸垃圾桶間隔 < 此秒數合併成一次
+  ng1_wash_within_s: 5.0       # NG1:最後一次接觸結束後此秒數內要洗手
   touch_gap_s: 1.0             # NG2:碰觸間隔 < 此秒數合併成同一次
   touch_min_s: 0.3             # NG2:碰觸至少持續此秒數才算一次
-  ignore_wash_s: 0.0           # 碰觸前後此秒數內有洗手 → 視為洗手中不算(§8.11 未達門檻,預設關閉)
+  ignore_wash_s: 0.0           # 碰觸前後此秒數內有洗手 → 視為洗手中不算(0 = 關閉)
 
-# 團隊 NG4a:洗過的食材 / 廚具直接放桌面(src/m6_events/ng4.py;docs/M6_NG準則評估_預先登記_20261027.md §8.36–8.81)
-# 適用條件:M3 抓得到水槽內的物件(評估集 = 食材可偵測的人工檢視片段)。
-# 現行設定(§8.81):115 片段 R 0.685 / P 0.804 / F1 0.740(LOPO 同)。
-# 位置「無法判斷」也輸出 NG4,status = 待確認;「桌面」= 確定;放砧板 / 容器 / 鍋子不輸出。
+# NG4 洗過的食材 / 器具直接放桌面
+# 位置看不出來也輸出 NG4,status = 待確認;放桌面 = 確定;放砧板 / 容器 / 鍋子 = 合格,不輸出。
 ng4:
   enable: true
   objects: [食材, 刀具, 砧板, 鍋鏟, 鍋子, 容器]
   views: [Aoutput1, Aoutput2, Aoutput3, Boutput1, Boutput2]
-  sink_cams: [Boutput1, Boutput2, Aoutput1, Aoutput2]   # §8.77:A 鏡頭也有洗手台_NG4(排除水槽內還在洗的食材)
-  wash_views: [Boutput1, Boutput2]   # 清洗偵測仍只用 B 鏡頭
-  sink_zone: 洗手台_NG4         # §8.65:使用者手框多邊形(洗手偵測仍用 hand_hygiene.sink_zone)
+  sink_cams: [Boutput1, Boutput2, Aoutput1, Aoutput2]   # 有洗手台_NG4 範圍的鏡頭(排除水槽內還在洗的東西)
+  wash_views: [Boutput1, Boutput2]   # 判斷清洗用的鏡頭
+  sink_zone: 洗手台_NG4
   wash_smooth: false           # 水槽內物件框斷續,不平滑、直接累計
-  wash_min_s: 0.3
-  wash_gap_s: 1.0
-  put_min_s: 0.3
-  judge_offset_s: 0.5
-  decide: majority
-  max_gap_s: 30.0
-  during_wash: true            # §8.40 / 8.44:清洗期間也找放下(連續洗好幾樣食材時,先放下的也會判);false = 洗完才找
-  lock_support: true           # 已放到砧板 / 容器上的食材,之後在上面被移動不再算新的放下
-  # §8.54 / 8.55:使用者選用;下三行都拿掉 = 回到 §8.46
-  start_s: 2.0                 # 清洗開始後 2 秒內在水槽外看到的框當成原本就在(食材剛拿進水槽時還在移動)
+  wash_min_s: 0.3              # 清洗累計 ≥ 此秒數才算洗過
+  wash_gap_s: 1.0              # 清洗中斷 < 此秒數算同一次
+  put_min_s: 0.3               # 停留 ≥ 此秒數才算放下
+  judge_offset_s: 0.5          # 放下後此秒數開始判斷位置
+  decide: majority             # 位置以多數鏡頭為準
+  max_gap_s: 30.0              # 洗完後此秒數內還沒放下就不管
+  during_wash: true            # 清洗期間就開始找放下(連洗好幾樣時,先放下的也會判)
+  lock_support: true           # 已放到砧板 / 容器上的,之後在上面被移動不再算新的放下
+  start_s: 2.0                 # 清洗開始後此秒數內在水槽外看到的東西,當成原本就在
   start_mode: base
-  sup_mem_s: 5.0               # 砧板 / 容器被手、刀擋住時,沿用前 5 秒看到的位置
-  supports: [砧板, 容器, 鍋子]   # §8.60:放進鍋子裡也算放進容器
-  release_s: 2.0               # §8.71:使用者選用,放下前 2 秒內手要碰過這個位置(沒被動過的食材不算放下)
-  sup_only_s: 0.1              # §8.74:有看到在砧板 / 容器 / 鍋子上、且沒有任何桌面證據 → 合格(框不穩不算違規)
-  sup_dedup_iou: 0.5           # §8.81:和食材框幾乎重疊(IoU ≥ 0.5)的容器 / 鍋子 / 砧板框 = 同一個東西被認兩次,不算支撐物
+  sup_mem_s: 5.0               # 砧板 / 容器被手、刀擋住時,沿用前此秒數看到的位置
+  supports: [砧板, 容器, 鍋子]   # 放在這些上面算合格
+  release_s: 2.0               # 放下前此秒數內手要碰過該位置(沒被動過的東西不算放下)
+  sup_only_s: 0.1              # 有看到在砧板 / 容器 / 鍋子上、且沒有任何桌面證據 → 合格
+  sup_dedup_iou: 0.5           # 和食材框重疊(IoU ≥ 此值)的支撐物框視為同一個東西,不算支撐物
 
-# 團隊 NG3:手碰到臉就觸發,每碰一次算一次(src/m6_events/ng3.py;docs/M6_NG準則評估_預先登記_20261027.md §8.92–8.107)
-# 不算:摸頭髮、隔著衛生紙擦鼻子、用湯匙等餐具吃東西。需要人體姿態:run_violations.py 給 --video-dir 就從影片現算。
-# 183 個人工檢視片段 R 0.983 / P 0.734(參與者留一 R 0.983 / P 0.707;TN 未逐件檢視,R 可能高估)。
+# NG3 手碰臉:手碰到臉就觸發,每碰一次算一次
+# 不算:摸頭髮、隔著衛生紙擦鼻子、用湯匙等餐具吃東西。需要人體姿態(run_violations.py 給 --video-dir)。
 ng3:
   enable: true
-  views: [output0, Aoutput1]   # 看得到臉的鏡頭,任一台成立即算
-  r: 0.5                       # 手框到臉中心 ≤ r × 肩寬
-  kp_thr: 0.3                  # 關鍵點分數門檻
-  thr_hand: 0.2                # 手框信心
-  min_s: 0.2                   # 連續 ≥ 此秒數才算一次碰臉(§8.99 由 0.3 改 0.2,以 R 為主)
+  views: [output0, Aoutput1]   # 看得到臉的鏡頭
+  r: 0.5                       # 手框到臉中心 ≤ r × 肩寬 = 手在臉旁
+  kp_thr: 0.3                  # 姿態關鍵點分數門檻
+  thr_hand: 0.2                # 手框信心門檻
+  min_s: 0.2                   # 連續 ≥ 此秒數才算一次碰臉
   merge_s: 2.0                 # 兩次碰臉間隔 < 此秒數合併
   pose_every: 2                # 姿態每 2 步(0.2 秒)估一幀
-  gap_fill_s: 0.2              # §8.97:長度 ≤ 0.2 秒的空隙先補起來(§8.96 LOPO 15 折皆選)
-  fusion: veto2                # §8.103:任一台成立,但另一台看清楚兩隻手且都離臉 > veto_r × 肩寬則否決
+  gap_fill_s: 0.2              # 長度 ≤ 此秒數的中斷視為連續
+  fusion: veto2                # 任一台成立即成立;但另一台看清楚兩隻手且都離臉 > veto_r × 肩寬則否決
   veto_r: 1.0
-  clear_conf: 0.4              # 看清楚 = 看到臉、手框 ≥ 2 且第二高信心 ≥ 0.4
-  wrist_r: 1.0                 # §8.105:手框到手腕關鍵點 ≤ 1.0 × 肩寬才算手(排除牆面 / 地板誤偵)
-  short_r: 0.4                 # §8.107:碰臉不到 0.3 秒時,最短距離須 ≤ 0.4 × 肩寬(排除手快速經過臉旁)
+  clear_conf: 0.4              # 看清楚 = 看到臉、手框 ≥ 2 且第二高信心 ≥ 此值
+  wrist_r: 1.0                 # 手框到手腕關鍵點 ≤ 此值 × 肩寬才算手(排除牆面 / 地板誤偵)
+  short_r: 0.4                 # 碰臉不到 0.3 秒時,最短距離須 ≤ 此值 × 肩寬(排除手快速經過臉旁)

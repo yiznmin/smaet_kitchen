@@ -1,16 +1,9 @@
-"""標註畫面的繪製 —— 線上 runner 與離線渲染器共用同一份實作。
+"""標註畫面的繪製(線上執行與離線重放共用同一份實作)。
 
-2026-09-16 從 `scripts/m5_track_video.py` **原樣**搬過來(邏輯一個字沒改)。
-搬的理由:難度分級交付要一支離線渲染器(重放 `tracks.csv` 產出結果影片),
-而它沒有活著的 `IdentityManager` 可以問「這條 track 綁給誰」。
-兩邊若各畫各的,影片與指標就可能對不上而且沒人會發現 —— 所以共用一份。
+draw_panel 的 chef 對照參數可以是 IdentityManager,也可以是純 dict(鍵為 (camera_id, track_id))。
 
-唯一的介面調整:`draw_panel` 的 chef 對照參數可以是 manager,也可以是純 dict
-(鍵一律是 `(camera_id, track_id)`)。行為不變是驗收條件:EPFL 九台重跑,
-`chef_events.jsonl` / `tracks.csv` / `track_events.csv` 必須與搬動前逐位相同。
-
-⚠ 顏色由 **chef_id** 決定,不是 track_id —— track_id 每台鏡頭各自編號,
-  用它上色的話「跨鏡頭認出同一個人」這件事在畫面上就看不出來。
+顏色由 chef_id 決定,不是 track_id:track_id 每台鏡頭各自編號,
+用 chef_id 上色才看得出跨鏡頭是同一個人。
 """
 from collections import namedtuple
 

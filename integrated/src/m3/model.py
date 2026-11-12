@@ -1,18 +1,11 @@
-"""M3 的 RF-DETR 模型載入(集中處,取代散落在各腳本的 load_model)。
+"""M3 的 RF-DETR 模型載入。
 
-集中的理由是推論解析度(2026-10-13):
+推論解析度很重要:微調權重以 704 訓練,若建構時沒傳 resolution,rfdetr 會用變體預設值
+(nano 384、medium 576)並內插位置編碼 —— 不報錯,但準確度明顯下降。
 
-微調權重是以 704 訓練的,但原本每支腳本都只寫
-`ctor(pretrain_weights=..., num_classes=11)`、沒傳 `resolution`。rfdetr 這時會用變體的
-預設值(nano 384、medium 576),並把權重裡的位置編碼內插過去 —— **不報錯,只是變不準**。
-同一顆 Arm A 權重在 round2 test 上:384 推論 F1 0.824、704 推論 F1 0.922
-(results/m3_acc/resolution_compare_armA_20261013.json)。
-文件上早期的 F1 0.81 就是這樣在 384 下量出來的。
-
-所以這裡的預設是 `resolution="auto"`:
-  · 沒給權重(COCO 預訓)→ 變體預設值,與改動前完全相同
+因此預設 resolution="auto":
+  · 沒給權重(COCO 預訓)→ 變體預設值
   · 有給微調權重        → 權重自己的訓練解析度
-要重現 2026-10-13 之前用微調權重跑出來的結果,請明確傳 `resolution=384`。
 """
 from m3.classes import NAMES
 

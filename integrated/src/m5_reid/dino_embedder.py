@@ -1,10 +1,9 @@
-"""DINOv2 外觀特徵 embedder(**可商用**:code + weights 皆 Apache-2.0)。
+"""DINOv2 外觀特徵 embedder(程式碼與權重皆 Apache-2.0,可商用)。
 
-Meta DINOv2 主模型(https://github.com/facebookresearch/dinov2)程式碼與權重皆 Apache-2.0
-(CC-BY-NC 只適用其 Cell-DINO 生物延伸,不影響此處)。→ 可放進出貨產品。
-DINOv2 是通用視覺特徵,非 Re-ID 專用;實際 Re-ID 準確度由 reid_eval_market1501 驗證。
+Meta DINOv2 主模型(https://github.com/facebookresearch/dinov2);CC-BY-NC 只適用其 Cell-DINO 延伸,不影響此處。
+DINOv2 是通用視覺特徵,不是 Re-ID 專用模型。
 
-依賴 torch(推理)。在有 torch 的環境(Colab 或本機 inference env)才 import。
+依賴 torch;權重從 weights/pretrained/torch_hub/ 載入。
 """
 import numpy as np
 

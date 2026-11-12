@@ -1,16 +1,16 @@
-"""團隊 NG3(單人):手碰到臉就觸發,每碰一次算一次。
+"""NG3 手碰臉(單人):手碰到臉就觸發,每碰一次算一次。
 
-定義(使用者 2026-11-05、11-09):手碰到臉就算違規,含拿食物入口、用手臂 / 手背擦臉;
-  不算:摸頭髮、隔著衛生紙擦鼻子、用湯匙等餐具吃東西。
-現行判斷(configs/violation_rules.yaml ng3 節;登記 §8.92–8.107;183 個人工檢視片段 R 0.983 / P 0.734):
+算:拿食物入口、用手臂 / 手背擦臉。不算:摸頭髮、隔著衛生紙擦鼻子、用湯匙等餐具吃東西。
+
+判斷方式(參數見 configs/violation_rules.yaml ng3 節):
   1. 臉:ViTPose 關鍵點,鼻 / 眼 / 耳(0–4)中分數 ≥ kp_thr 者取平均當臉中心;肩寬 = 左右肩(5、6)距離,當距離單位。
   2. 手:M3 手框(信心 ≥ thr_hand),且手框到同幀手腕關鍵點(9、10)≤ wrist_r × 肩寬才算手(排除牆面 / 地板誤偵)。
   3. 單一鏡頭:手框到臉中心最短距離 ≤ r × 肩寬 → 這一步手在臉旁(views:看得到臉的 output0、Aoutput1)。
   4. 兩台合併(fusion veto2):任一台成立即成立;但另一台「看清楚」(看到臉、手框 ≥ 2 且第二高信心 ≥ clear_conf)
      而且所有手都離臉 > veto_r × 肩寬時否決。另一台沒看到手或看不清楚時,以看得到的那台為主。
-  5. 時間:長度 ≤ gap_fill_s 的空隙補起來;連續 ≥ min_s 秒算一次碰臉;兩次間隔 < merge_s 秒合併。
+  5. 時間:長度 ≤ gap_fill_s 的中斷視為連續;連續 ≥ min_s 秒算一次碰臉;兩次間隔 < merge_s 秒合併。
   6. 短暫觸發:段落內最長連續成立 < short_s 秒時,最短距離須 ≤ short_r × 肩寬(排除手快速經過臉旁)。
-其他可選設定(評估過、未採用):fusion any / veto / agree / agree2;face_front(ViTPose 背對時仍給鼻眼高分,無效)。
+fusion 另有 any / veto / agree / agree2 可選;face_front 可要求臉中心含鼻子或眼睛(預設關閉)。
 輸入:各鏡頭 M3 偵測快取 + 同鏡頭姿態(npz:step、box、kp[N, 17, 3];由 m6_events/pose.py 從影片算出)。
 """
 import numpy as np
@@ -98,7 +98,7 @@ def face_touch_raw(dc, pz, T, p):
 
 
 def fuse(ratios, p, nhs=None, c2s=None):
-    """多鏡頭融合(§8.94、§8.96、§8.102)。ratios:{鏡頭: float[T]};nhs:{鏡頭: int[T]} 手框數;
+    """多鏡頭融合()。ratios:{鏡頭: float[T]};nhs:{鏡頭: int[T]} 手框數;
     c2s:{鏡頭: float[T]} 第二高手框信心(veto2 / agree2 需要)。"""
     R = np.array(list(ratios.values()))
     f = p.get("fusion", "any")
@@ -144,7 +144,7 @@ def touch_segments(raw, step, min_s, merge_s):
 
 
 def keep_short(segs, raw, ratios, step, p):
-    """§8.106:短暫觸發段落須貼得更近(最短距離 ≤ short_r)才保留。"""
+    """短暫觸發段落須貼得更近(最短距離 ≤ short_r)才保留。"""
     if not p.get("short_r", 0):
         return segs
     k = int(round(p.get("short_s", 0.3) / step))

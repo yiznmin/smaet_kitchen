@@ -1,13 +1,12 @@
 """M4 多目標追蹤:KitchenTracker(可切換 backend 的包裝)。
 
 把 M3 每幀無 ID 的偵測(supervision Detections)串成有 track_id 的軌跡,
-維持跨幀一致、撐短暫遮擋,並輸出 new_track / reacquired / lost_track / removed 事件。
+維持跨幀一致、撐過短暫遮擋,並輸出 new_track / reacquired / lost_track / removed 事件。
 
-backend(全部是純運動 Kalman+IoU+匈牙利,不含 Re-ID):
-- `bytetrack`(預設):supervision 的 ByteTrack(MIT)。⚠ supervision 0.30 移除;requirements 釘 <0.30。
-- `rf_botsort` / `rf_cbiou` / `rf_ocsort`:Roboflow `trackers` 套件(Apache 2.0,乾淨重寫)。
-  2026-09-15 層 0 第二輪為了換掉「跟丟期間的配對方法」而加,見
-  docs/M4_層0_關聯方法_預先登記_20260915.md。
+backend:
+- `bytetrack`:supervision 的 ByteTrack(MIT)。supervision 0.30 已移除,requirements 釘 <0.30。
+- `rf_botsort` / `rf_cbiou` / `rf_ocsort`:Roboflow `trackers` 套件(Apache 2.0)。預設 `rf_cbiou`。
+- `rf_mcbyte*`:McByte 系列(single_person 用 `rf_mcbyte_nomask_app`,加入外觀關聯)。
 
 兩個套件的 update 都只回傳本幀配到的偵測、不含事件,所以事件一律從 backend 內部的
 track 狀態推導(supervision:tracked_tracks/lost_tracks/removed_tracks;trackers:tracks)。

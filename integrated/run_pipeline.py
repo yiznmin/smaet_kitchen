@@ -1,20 +1,9 @@
-"""智慧廚房 M1~M5 整合管線:單一進入點、單一設定檔。
+"""智慧廚房 M1~M5 人員追蹤管線:單一進入點、單一設定檔(pipeline_config.yaml)。
 
     M1 讀影片 → M2 動態偵測 → M3 物件偵測 → M4 單鏡頭追蹤 → M5 跨鏡頭 chef_id
 
-這個資料夾可以單獨交付:各模組的實作在同層的 `src/`(完整 repo 的 `src/` 的快照,
-來源版本見 MANIFEST.json),這支程式只做串接。所有定案參數集中在
-`pipeline_config.yaml`,用 `--profile` 切換設定組合。
+各模組實作在同層的 src/,這支程式只做串接;用 --profile 切換設定組合(delivery / single_person)。
 設定檔與命令列裡的相對路徑(影片除外)一律相對於本資料夾。
-
-與 `scripts/m5_track_video.py` 的關係:
-  · M3 → M4 → M5 的主迴圈順序(tick → 心跳 → resolve_frame → 事件 → 存圖 → 常駐取樣)
-    逐步照抄。M2 閘門關閉(預設)且參數相同時,`tracks.csv` / `track_events.csv` /
-    `chef_events.jsonl` 與它逐位相同,所以既有的評估腳本(eval_clips.py、
-    eval_m4m5_chirla.py)可以直接吃這裡的輸出。
-  · 這裡多了 M2(分支 A 與分支 B 兩條線)與 M3 的 11 類逐類門檻輸出。
-  · 這裡**沒有**四層歸因診斷(--track-gt)與上限實驗(--oracle-cue)。
-    那兩個是評估工具,會讓真值進入流程,要用請回到 scripts/m5_track_video.py。
 
 輸出(全部在 --out 目錄):
   chef_events.jsonl   每次綁定決策一筆(camera_id / track_id / chef_id / score / n_candidates)
@@ -24,19 +13,11 @@
   m2_motion.csv       每台每迴圈的 has_motion、motion_ratio、M3 是否實際執行
   m2_targets.jsonl    分支 B 的候選(動態線 / 靜態線啟用時才有)
   detections.csv      M3 的 11 類物件(有微調權重且非快取模式時才有)
-  run_meta.json       這次到底跑了什麼(下游自檢的唯一事實來源)
+  run_meta.json       這次執行的完整設定與統計
 
 用法:
-  # CHIRLA seq_025 片段,讀資料夾自帶的偵測快取(不需要 GPU)
-  python run_pipeline.py \\
-      --videos <camera_1.avi> <camera_2.avi> <camera_3.avi> \\
-      --cameras camera_1 camera_2 camera_3 \\
-      --det-cache demo/det_cache/seq_025 \\
-      --start-fid 1780 --end-fid 1890 --out outputs/demo
-
-  # 廚房影片,微調 11 類權重,即時偵測
-  python run_pipeline.py --videos <a.mp4> <b.mp4> --cameras cam1 cam2 \\
-      --weights weights/m3_nano_r2_armA/checkpoint_best_total.pth \\
+  python run_pipeline.py --videos <a.mp4> <b.mp4> --cameras cam1 cam2 \
+      --weights weights/m3_nano_r2_armA/checkpoint_best_total.pth \
       --topology <該場地的拓撲檔> --out outputs/kitchen
 """
 import argparse
@@ -267,10 +248,7 @@ def build_embedder(name):
     if name == "dinov2":
         from m5_reid.dino_embedder import DINOv2Embedder
         return DINOv2Embedder()
-    if name.startswith("chirla:"):
-        from m5_reid.chirla_embedder import ChirlaEmbedder
-        return ChirlaEmbedder(name.split(":", 1)[1])
-    raise ValueError(f"未知的 embedder: {name}")
+    raise ValueError(f"未知的 embedder: {name}(可用:none、color、dinov2)")
 
 
 def crop_of(frame_bgr, bbox):
@@ -315,8 +293,7 @@ def parse_args():
     ap.add_argument("--det-cache", default=None)
     ap.add_argument("--topology", default=None, help="外部拓撲檔(覆蓋 m5.topology_file)")
     ap.add_argument("--seq", default=None,
-                    help="序列名稱,代入拓撲檔路徑裡的 {seq}。平面圖投影含各序列的畫面對齊,"
-                         "所以 plan_* 設定是每序列一份拓撲")
+                    help="代入拓撲檔路徑裡的 {seq}(每段影片各一份拓撲檔時使用)")
     ap.add_argument("--embedder", default=None)
     ap.add_argument("--gate-m3", action="store_true", help="啟用 M2 閘門(未經 M4/M5 評估驗證)")
     ap.add_argument("--save-frames", action="store_true")
@@ -377,8 +354,7 @@ def main():
     # ── M5 拓撲 ──
     topo, topo_src = load_topology(cfg)
     if (topo.fusion.get("cue") or {}).get("enabled", False):
-        raise SystemExit("拓撲開了 fusion.cue(上限實驗)—— 整合管線不支援,"
-                         "請改用 scripts/m5_track_video.py --oracle-cue")
+        raise SystemExit("拓撲開了 fusion.cue —— 本管線不支援,請在拓撲檔關閉 fusion.cue")
     unknown = [c for c in cams if c not in topo.all_cameras()]
     if unknown:
         print(f"注意:這些 camera_id 不在拓撲裡:{unknown}")

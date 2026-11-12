@@ -1,24 +1,15 @@
-# 智慧廚房 M1~M5 整合管線的單一設定檔
+# 智慧廚房 M1~M5 人員追蹤管線設定檔(由 run_pipeline.py 讀取)
 #
-# 由 run_pipeline.py 讀取。原本分散在以下各檔的定案參數全部彙整到這裡
-# (原檔的副本放在 reference/configs/,僅供對照,程式不會讀):
-#   M2  benchmark.yaml(m2_motion / m2_branch_b / m2_static_line)
-#   M3  m3_thresholds.json(舊值)、2026-10-13 重掃的門檻
-#   M4  tracker_rf_cbiou.yaml、tracker_clip_app_dino_w0.7.yaml
-#   M5  fix_grid/base.yaml、fix_grid/base_overlapfix.yaml
-#
-# 主體區塊 = 「交付格」(profile: delivery),也就是多人場景目前成本最低的那一組。
-# 檔尾 profiles 區塊列出其他組合相對於主體的差異,用 --profile 切換。
-# 每個數值的來源與適用範圍見 交接說明.md 第 4 節。
+# 主體區塊 = profile delivery;檔尾 profiles 列出其他組合與主體的差異,用 --profile 切換。
 # 相對路徑一律相對於本資料夾。
 
 profile: delivery            # delivery | single_person(見檔尾 profiles)
 
 # ── M1 影像擷取 ───────────────────────────────────────────────────────
-# 目前只有離線讀檔(src/common/video_io.py)。RTSP 串流與斷線重連尚未實作。
+# 目前只支援讀影片檔(src/common/video_io.py),不支援 RTSP 串流。
 m1:
   sources: {}                # camera_id: 影片路徑;也可改用命令列 --videos / --cameras
-  stride: 5                  # 每 5 幀取 1 幀(30 fps 影片 = 6 fps)。所有 M4/M5 數字都在這個取樣率下量得
+  stride: 5                  # 每 5 幀取 1 幀(30 fps 影片 = 6 fps)
   fps: 30.0                  # 影片幀率,用來把迴圈數換成秒
   max_loops: -1              # 最多處理幾個迴圈(1 迴圈 = stride 幀);-1 = 跑到影片結束
   start_fid: 0               # 起始影片幀(含),必須是 stride 的倍數
@@ -26,19 +17,17 @@ m1:
 
 # ── M2 動態偵測 ───────────────────────────────────────────────────────
 m2:
-  branch_a:                  # 分支 A:全域 frame-diff,M3 的省電開關
+  branch_a:                  # 分支 A:全域 frame-diff
     enabled: true
     diff_threshold: 25       # absdiff 後二值化門檻
     min_motion_ratio: 0.002  # 變動像素佔比超過此值判定有動態
     blur_ksize: 5            # 前處理高斯模糊核
     use_reference_frame: false   # false = 與前一張取樣幀比
-    # gate_m3 = true 時,無動態的幀不跑 M3,沿用該鏡頭上一次的偵測結果。
-    # 注意:這個串接方式沒有在 M4/M5 的任何評估裡驗證過,預設關閉。
-    # 關閉時 M2 只記錄 has_motion 與可節省比例,M3/M4/M5 的輸出與完整 repo 的 scripts/m5_track_video.py 逐位相同。
+    # gate_m3 = true 時,無動態的幀不跑 M3,沿用該鏡頭上一次的偵測結果(省運算,預設關閉)。
     gate_m3: false
     gate_max_hold_loops: 30  # 閘門開啟時,最多連續沿用幾個迴圈就強制重跑一次 M3
-  dynamic_line:              # 分支 B 動態線:MOG2 找移動小目標(老鼠)
-    enabled: false           # 每幀每鏡頭都要跑 MOG2,預設關;需要時再開
+  dynamic_line:              # 分支 B 動態線:MOG2 找移動小目標(例如老鼠)
+    enabled: false           # 每幀每鏡頭都要跑 MOG2,預設關閉
     min_blob_area: 8
     large_blob_area: 2000
     exclusion_margin: 24
@@ -52,7 +41,7 @@ m2:
     persistence_frames: 3
     match_max_dist: 60
     track_max_miss: 2
-  static_line:               # 分支 B 靜態線:慢速基準比對找靜止新增物(水漬)
+  static_line:               # 分支 B 靜態線:慢速基準比對找靜止新增物(例如水漬)
     enabled: false
     baseline_alpha: 0.002
     baseline_diff_thresh: 30
@@ -70,14 +59,13 @@ m2:
     density_radius: 120
     density_max_neighbors: 4
     freeze_confirmed: true
-    # 地板 ROI。reference/configs/zones.json 是在 EPFL Boutput0(1280x720)上標的,只適用那一台。
-    # 多鏡頭時請用 floor_zone_by_camera 逐台給多邊形;都沒給 = 全畫面。
+    # 地板 ROI:多鏡頭時用 floor_zone_by_camera 逐台給多邊形;都沒給 = 全畫面。
     floor_zone_file: null
     floor_zone_name: 地板
     floor_zone: null
     floor_zone_by_camera: {}   # camera_id: [[x, y], ...]
-  classifier:                # 分支 B 的確認分類器。目前沒有訓練好的權重,缺檔時候選一律標「待確認」
-    onnx: weights/branch_b_classifier.onnx   # 尚不存在
+  classifier:                # 分支 B 的確認分類器;沒有權重檔時候選一律標「待確認」
+    onnx: weights/branch_b_classifier.onnx   # 未提供
     input_size: 224
     target_index: 1
     threshold: 0.5
@@ -85,25 +73,17 @@ m2:
 # ── M3 物件偵測(RF-DETR)────────────────────────────────────────────
 m3:
   variant: nano              # nano | small | medium
-  # weights = null 用 COCO 預訓權重(人的 class_id = 1),M4/M5 在 CHIRLA 上的所有數字都是這個設定。
-  # 廚房 11 類請填微調權重(人的 class_id = 0)。建議用 2026-10-13 本機重訓的 Arm A:
-  #   weights/m3_nano_r2_armA/checkpoint_best_total.pth   (round2 test F1 0.922 @ 704)
-  # 完整 repo 裡舊的 model_result/nano 是早期小資料權重(同條件 F1 0.590),沒有帶進本資料夾。
+  # weights = null:COCO 預訓權重,只偵測人(人的 class_id = 1)。
+  # 廚房 11 類:weights/m3_nano_r2_armA/checkpoint_best_total.pth(人的 class_id = 0)。
   weights: null
-  # 推論解析度。auto = 微調權重用權重檔記錄的訓練解析度(目前兩顆都是 704),COCO 預訓用變體預設(nano 384)。
+  # 推論解析度。auto = 微調權重用訓練解析度(704),COCO 預訓用變體預設(nano 384);
   # 也可填整數(須為 32 的倍數)或 null(一律用變體預設)。
-  # 2026-10-13 實測 nano 微調權重:384 → 704,test F1 0.531 → 0.597、食安類 recall 0.495 → 0.615。
   resolution: auto
-  thr: 0.10                 # 送進 M4 的「人」的信心門檻。0.10 才餵得到追蹤器第二輪低分關聯
+  thr: 0.10                  # 送進 M4 的「人」的信心門檻(低分框供追蹤器第二輪關聯)
   person_cls: null           # null = 依有無 weights 自動判斷(COCO = 1、微調 = 0)
   det_cache: null            # 偵測快取目錄(內含 <camera_id>.npz);給了就不載入 RF-DETR
-  # 微調 11 類的逐類門檻。只在有 weights 時生效,用於 detections.csv 的物件輸出;
-  # 送進 M4 的人一律用上面的 thr。
-  # 這組是 2026-10-13 用 weights/m3_nano_r2_armA/checkpoint_best_total.pth、解析度 704,
-  # 在 m3_finetune_r2 的 valid 90 張上依 scripts/sweep_thresholds.py 的規則掃出來的
-  # (食安類:precision >= 0.6 下取最大 recall;其餘取最大 F1)。test:P 0.884 / R 0.929 / F1 0.906。
-  # 這個規則偏向 recall;若要整體 F1 最高,全部改成 0.3 即可(test F1 0.922)。
-  # 換權重、換變體或換解析度都要重掃。reference/configs/m3_thresholds.json 是舊值,僅供對照。
+  # 微調 11 類的逐類門檻,只在有 weights 時生效,用於 detections.csv;送進 M4 的人一律用上面的 thr。
+  # 換權重、換變體或換解析度後,用 scripts/sweep_thresholds.py 重掃。
   class_thresholds:
     人: 0.3
     刀具: 0.3
@@ -114,12 +94,11 @@ m3:
     手: 0.1
     容器: 0.65
     抹布: 0.3
-    夾子: 0.3      # 訓練與 valid 都沒有樣本,預設值;模型等於沒學過這一類
+    夾子: 0.3      # 訓練資料沒有此類樣本,模型實際上無法偵測
     手套: 0.3      # 同上
 # ── M4 單鏡頭追蹤 ─────────────────────────────────────────────────────
-# 這一段的格式與 reference/configs/tracker*.yaml 的 tracker 區段相同,直接交給 KitchenTracker.from_config。
 m4:
-  backend: rf_cbiou          # 交付格:C-BIoU(Roboflow trackers 套件,Apache 2.0)
+  backend: rf_cbiou          # C-BIoU(Roboflow trackers 套件)
   track_activation_threshold: 0.25
   minimum_matching_threshold: 0.8
   lost_track_buffer: 30      # 單位是更新次數;stride 5 @ 30 fps 時 = 5 秒
@@ -137,17 +116,15 @@ m4:
 
 # ── M5 跨鏡頭身份 ─────────────────────────────────────────────────────
 m5:
-  embedder: none             # none | color | dinov2 | chirla:<checkpoint 路徑>
+  embedder: none             # none | color | dinov2
   ttl_loops: 600             # 離場後保留幾個迴圈;stride 5 @ 30 fps 時 = 100 秒
-  # 給了外部拓撲檔就用它,忽略下方的 camera_topology 區塊(例如 reference/configs/camera_topology.epfl9.yaml)。
-  topology_file: null
+  topology_file: null        # 外部拓撲檔(格式同下方 camera_topology 區塊);給了就忽略下方區塊
 
-# 相機拓撲。這一份是 CHIRLA 七鏡頭(reference/configs/fix_grid/base.yaml),換場地必須重建。
-# 時間參數只從推導集 seq_000 / 001 / 002 估;overlapping 清單來自全部 10 個序列(有洩漏,視為場地事實)。
+# 相機拓撲:各鏡頭之間的移動時間與畫面重疊關係。這一份是示範場地(7 台)的設定,換場地必須重建。
 camera_topology:
   fusion:
     mode: llr
-    background_arrival_hz: 0.04820     # 26 個身份 / 539 秒
+    background_arrival_hz: 0.04820     # 新身份出現率(每秒)
     cost_false_merge_over_break: 5.0   # 綁定門檻 = ln(5.0) = 1.6094 nats
     transit_model: loiter
     p_loiter: 0.1798
@@ -159,11 +136,11 @@ camera_topology:
     same_camera: { enabled: true, tau_break_s: 2.0, max_gap_s: 15.0 }
     unknown_path: { enabled: true, median_multiplier: 2.0, log_sigma: 0.8, logprior: -2.0 }
     direction: { enabled: false }
-  links:
+  links:                     # 鏡頭間移動時間(秒,平均與標準差)
     - { from: camera_2, to: camera_6, mean_s: 3.261, std_s: 1.845 }
     - { from: camera_6, to: camera_7, mean_s: 0.617, std_s: 0.481 }
     - { from: camera_7, to: camera_5, mean_s: 10.542, std_s: 4.278 }
-  overlapping:
+  overlapping:               # 畫面有重疊的鏡頭組
     - [camera_2, camera_3]
     - [camera_2, camera_4]
     - [camera_2, camera_5]
@@ -192,13 +169,10 @@ output:
 # ── 設定組合 ──────────────────────────────────────────────────────────
 # 每個組合只寫與主體不同的鍵;dict 逐層合併,list 整段取代。
 profiles:
-  # 交付格:C-BIoU + 原拓撲 + M5 不用外觀。多人 7 序列的基準(加權成本 325.5)。
+  # 多人場景用:C-BIoU 追蹤,M5 不用外觀特徵。
   delivery: {}
 
-  # 單人最佳:M4 外觀關聯 DINOv2 w=0.7 + 修正拓撲 + M5 DINOv2。
-  # 只在「畫面裡只有一個人」時成立(L3S 跨鏡頭一致 14/16)。
-  # 同一組設定在多人全長序列上誤併率 59.5% -> 83.0%,不可用於多人場景。
-  # w=0.7 與修正拓撲都是看過結果後選的,不是預先登記的驗證結果。
+  # 單人場景用(畫面裡只有一個人時):M4 加入 DINOv2 外觀關聯、M5 用 DINOv2 外觀。不可用於多人場景。
   single_person:
     m4:
       backend: rf_mcbyte_nomask_app
@@ -206,10 +180,10 @@ profiles:
       embedder: dinov2
     camera_topology:
       overlapping:
-        - [camera_1, camera_2]   # 實測共現 58,333 次,原清單漏列
-        - [camera_1, camera_3]   # 116,224 次
-        - [camera_1, camera_5]   # 5,109 次
-        - [camera_6, camera_7]   # 6,870 次
+        - [camera_1, camera_2]
+        - [camera_1, camera_3]
+        - [camera_1, camera_5]
+        - [camera_6, camera_7]
         - [camera_2, camera_3]
         - [camera_2, camera_4]
         - [camera_2, camera_5]
@@ -217,26 +191,3 @@ profiles:
         - [camera_3, camera_5]
         - [camera_4, camera_5]
         - [camera_5, camera_6]
-
-  # ── 平面圖幾何(2026-10-13,實驗性,**尚未採用**)──────────────────────
-  # 把場地平面圖投影接進 M5 的地面位置證據。M4 與 M5 embedder 同 single_person,
-  # 拓撲改讀 configs/plan_grid/<格>/<序列>.yaml(每序列一份,因為投影含該序列的畫面對齊),
-  # 執行時必須給 --seq。只適用 CHIRLA 這個場地;換場地要重建(scripts/chirla_build_plan_topology.py,repo)。
-  # 兩輪實驗沒有一格同時通過單人與多人判準,見 reference/docs/M5_平面圖幾何接入_預先登記_20261013.md。
-  #
-  # plan_strict(實驗代號 P1):位置證據自己要過門檻。多人全長加權成本 416 -> 217,
-  #   但單人 L3S 跨鏡頭一致 14/16 -> 4/16。
-  plan_strict:
-    m4:
-      backend: rf_mcbyte_nomask_app
-    m5:
-      embedder: dinov2
-      topology_file: "configs/plan_grid/P1/{seq}.yaml"
-  # plan_share(實驗代號 Q2):逐鏡頭對 σ,把「那台鏡頭裡有 k 個人」的均勻稀釋換成依位置分配。
-  #   單人 L3S 連續率 69% -> 95%,多人全長沒有改善(加權成本 424.6)。
-  plan_share:
-    m4:
-      backend: rf_mcbyte_nomask_app
-    m5:
-      embedder: dinov2
-      topology_file: "configs/plan_grid/Q2/{seq}.yaml"

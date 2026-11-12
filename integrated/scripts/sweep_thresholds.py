@@ -1,16 +1,15 @@
-"""在 valid 集掃描每個類別的最佳信心門檻,輸出 configs/m3_thresholds.json。
+"""在驗證集上掃描每個類別的最佳信心門檻(換權重、變體或解析度後要重掃)。
 
-策略(依 docs/M3_訓練SOP_迭代式_20260806.md §4、§6):
-- 食安關鍵類(刀具/食材/砧板/人/手):在 precision ≥ 下限(預設 0.6)下,選能達到「最大 recall」的最低門檻。
-- 一般類:選最大化 F1 的門檻。
-- 該類在 valid 沒有樣本(如夾子/手套)→ 用預設門檻,不調。
+策略:
+- 食安關鍵類(刀具 / 食材 / 砧板 / 人 / 手):precision ≥ 下限(預設 0.6)下,取 recall 最大的最低門檻。
+- 一般類:取 F1 最大的門檻。
+- 驗證集沒有樣本的類別:用預設門檻。
 
-作法:對 valid 低門檻(0.05)predict 一次拿全部候選,再在記憶體掃門檻(不重跑模型)。
-需要環境有 rfdetr + 權重(Colab 或本機 inference env)。
+作法:以低門檻(0.05)偵測一次拿全部候選,再在記憶體中掃門檻(不重跑模型)。
+結果填回 pipeline_config.yaml 的 m3.class_thresholds。
 
 用法:
-  python scripts/sweep_thresholds.py --weights out_final/checkpoint_best_regular.pth \\
-      --variant nano --valid data/m3_finetune_r2/valid
+  python scripts/sweep_thresholds.py --weights <權重.pth> --variant nano --valid <資料集>/valid
 """
 import argparse
 import json

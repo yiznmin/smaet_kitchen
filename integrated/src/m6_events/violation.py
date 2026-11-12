@@ -1,15 +1,13 @@
-"""M6 違規判定(單人):觸發 → 洗手 → 碰食材 / 器具。
+"""M6 違規判定(單人)的基本零件:觸發 → 洗手 → 碰食材 / 器具。
 
-輸入全部是 M3 偵測(DetCache 快取,每 0.1 秒一步)+ zone + 規則設定(configs/violation_rules.yaml)。
-不用大模型、不用 SAM。單人情境:不分 chef_id,所有手與人框都視為同一個人。
+輸入:M3 偵測快取(每 0.1 秒一步)+ 區域(zone)+ 規則設定(configs/violation_rules.yaml)。
+單人情境:不分 chef_id,所有手與人框都視為同一個人。
 
 零件:
-  touch_series      人—物關聯 V 規則 → 角色分工融合 → 遲滯平滑(同 M6 / HY3 的 V 分支)
-  wash_series       洗手台 zone:手中心在 zone(hand)或人框蓋住 zone(body)
-  trash_intervals   垃圾桶事件(Aoutput1 手在 zone 且 output0 人框蓋住 zone)
+  touch_series      手碰到食材 / 器具:人—物關聯 → 近拍鏡頭多台融合 → 遲滯平滑
+  wash_series       洗手:手在洗手台區域
+  trash_intervals   碰垃圾桶:Aoutput1 手在垃圾桶區,且 output0 人框蓋住垃圾桶區
   HandHygieneFSM    髒手 → 先洗手 = 合格;先碰觸 = 違規;都沒有 = 未解除
-
-預先登記:docs/M6_違規判定_單人_預先登記_20261021.md
 """
 from dataclasses import dataclass, field
 

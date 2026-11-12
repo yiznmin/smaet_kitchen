@@ -1,4 +1,4 @@
-"""Hybrid-SORT 的弱線索接到 McByte(不開遮罩)上 —— M4 修法第 3 輪(2026-09-15)。
+"""Hybrid-SORT 的弱線索接到 McByte(不開遮罩)上(追蹤後端選項,預設設定未使用)。
 
 ## 來源與授權
 
@@ -6,23 +6,21 @@
 - `hmiou`:`trackers/hybird_sort_tracker/association.py`(高度調整 IoU = IoU × 兩框垂直方向的重疊比例)
 - 信心分數卡爾曼:`trackers/byte_tracker/kalman_filter_score.py` 的 `KalmanFilter_score`
 - TCM 成本:`trackers/byte_tracker/matching.py` 的 `add_score_kalman`、`add_score_kalman_byte_step`
-- 分數狀態更新時機:`trackers/byte_tracker/byte_tracker_score.py` 的 `STrack`(官方 README 的「ByteTrack + TCM」)
+- 分數狀態更新時機:`trackers/byte_tracker/byte_tracker_score.py` 的 `STrack`
 
 ## 與官方一致的部分
 
 - 第 1 階段:成本 += |clip(track 卡爾曼預測分數, track_thresh, 1) − 偵測分數| × 權重
 - 第 2 階段(低分):成本 += |clip(score − (pre_score − score), 0.1, track_thresh) − 偵測分數| × 權重
 - 分數卡爾曼:狀態 [score, vscore];初始標準差 [1e-2, 1e-5];預測雜訊 [1e-2, 1e-5];量測雜訊 1e-1
-- **官方的時序照抄**:配對到時,卡爾曼先用**舊的** score 更新,再把 score 換成新偵測分數
-  (`update`:pre_score = 舊 score;`re_activate`(lost 找回):pre_score = 新 score)
+- 配對到時,卡爾曼先用舊的 score 更新,再把 score 換成新偵測分數
 - 只對 strack_pool(confirmed + lost)預測分數;unconfirmed 不預測
 
-## 刻意與官方不同的部分
+## 與官方不同的部分
 
-- 基底是 McByte(不開遮罩)的配對:TCM 從**相似度**扣掉(McByte 是最大化相似度),門檻判斷在扣掉之後 ——
-  與官方在距離上加 TCM 後才比門檻等價
+- 基底是 McByte(不開遮罩)的配對:TCM 從相似度扣掉,門檻判斷在扣掉之後(與官方在距離上加 TCM 等價)
 - `track_thresh` 對映為 McByte 的 `high_conf_det_threshold`
-- 權重 0 且不用 HMIoU 時必須與 `rf_mcbyte_nomask` 逐位相同 —— 由預先登記的硬性驗收檢查
+- 權重 0 且不用 HMIoU 時,結果與 `rf_mcbyte_nomask` 相同
 """
 from __future__ import annotations
 

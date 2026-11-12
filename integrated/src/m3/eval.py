@@ -1,12 +1,12 @@
-"""M3 每類偵測評估工具(把 notebook eval_model 的邏輯抽成可 import 的函式)。
+"""M3 每類偵測評估工具(scripts/sweep_thresholds.py 使用)。
 
 用法概念:
   gt    = load_gt(test_dir)                       # {file_name: [(class_id, [x1,y1,x2,y2])]}
-  preds = gather_predictions(model, test_dir)     # 低門檻 predict 一次,拿全部候選
+  preds = gather_predictions(model, test_dir)     # 低門檻偵測一次,拿全部候選
   tp,fp,fn,n = counts_for_class(gt, preds, cls, thr)   # 單類、單門檻
   prf(tp,fp,fn) -> (precision, recall, f1)
 
-class_id 一律用模型的 0..10(GT 的 COCO cat_id 1..11 在 load_gt 內以 CAT2CLS 轉好)。
+class_id 一律用模型的 0..10(標註的 COCO cat_id 1..11 在 load_gt 內轉換)。
 """
 import json
 import os

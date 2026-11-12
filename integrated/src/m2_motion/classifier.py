@@ -1,13 +1,9 @@
-"""
-M2 分支 B 分類器:對「已被背景相減定位 + 裁切放大」的小目標 crop 做 binary 確認
-(是不是目標,如老鼠)。對應 docs/M2_雙分支重構設計.md §5。
+"""M2 分支 B 分類器:對已定位、裁切放大的小目標 crop 做確認(是不是目標,例如老鼠)。
 
-模型族:MobileNetV3 / EfficientNet-lite(Apache/BSD,授權乾淨),匯出 ONNX,
-與 M3 共用 ONNX Runtime 後端(不引入新框架)。
+模型族:MobileNetV3 / EfficientNet-lite,匯出 ONNX,以 ONNX Runtime 推論。
 
-注意:目前尚無訓練好的權重(資料缺口見設計文件 §5.3 — 需蒐集老鼠正樣本 +
-蒸氣/光影等困難負樣本)。無模型時 available=False,predict() 回 (None, 0.0),
-讓管線仍可先驗證「定位/裁切」是否正確,日後補上權重即可啟用確認層。
+目前未提供權重。沒有模型時 available=False,predict() 回 (None, 0.0),
+管線仍可輸出定位與裁切結果;補上權重即可啟用確認。
 """
 from pathlib import Path
 

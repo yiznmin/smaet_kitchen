@@ -1,11 +1,7 @@
-"""M5 外觀特徵抽取:BaseEmbedder 介面 + ColorHistogramEmbedder(佔位,授權乾淨)。
+"""M5 外觀特徵抽取:BaseEmbedder 介面 + ColorHistogramEmbedder(純 OpenCV 顏色直方圖,可商用)。
 
-⚠ spec 指定 OSNet(512 維外觀特徵);但其常見預訓權重在 Market-1501/MSMT17/DukeMTMC
-   等資料集上訓練 = **研究限定、不可商用**(見 docs/M5_身份管理設計與驗證.md 的授權分析)。
-   因此本模組採「可插拔介面」:
-   - 先用純 OpenCV 的**顏色直方圖**當佔位特徵(自足、可商用、能跑通整條 Re-ID 流程)。
-   - 待取得**可商用授權或自訓**的外觀模型,再實作一個 BaseEmbedder 子類換入,
-     IdentityManager 完全不動(只換 embedder)。
+可插拔介面:要換外觀模型時,實作一個 BaseEmbedder 子類即可,IdentityManager 不用改。
+注意:常見的 Re-ID 預訓權重(Market-1501、MSMT17、DukeMTMC 等資料集)多為研究限定、不可商用。
 """
 import numpy as np
 

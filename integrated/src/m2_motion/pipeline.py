@@ -1,14 +1,11 @@
-"""
-M2 雙分支管線:整合分支 A(大事件)與分支 B(小目標專線)。
-對應 docs/M2_雙分支重構設計.md §3。
+"""M2 雙分支管線:整合分支 A(大事件)與分支 B(小目標)。
 
-  - 分支 A:MotionDetector(全域 frame-diff)→ has_motion;有動時整張(縮放)送 M3。
-            管人員/潑灑/跨區等大動作,分支本身不掛模型。
+  - 分支 A:MotionDetector(全域 frame-diff)→ has_motion;有動態時整張畫面送 M3。
   - 分支 B 動態線:SmallTargetDetector(MOG2)→ 移動小目標(老鼠)crop。
   - 分支 B 靜態線:StaticTargetDetector(慢速基準比對)→ 靜止新增物(水漬)crop。
-  - 兩線 crop 都經同一個多類別 TargetClassifier 確認(老鼠/水漬/拒絕)才保留。
+  - 兩線 crop 都經同一個 TargetClassifier 確認後才保留。
 
-設計觀念:觸發運算 ≠ 觸發存檔。分支 B 常時跑只吃算力;只有分類器確認後才落地。
+觸發運算 ≠ 觸發存檔:分支 B 常時運算,只有分類器確認後才輸出。
 """
 from m2_motion.detector import MotionDetector
 from m2_motion.branch_b import SmallTargetDetector

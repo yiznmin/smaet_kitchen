@@ -1,18 +1,17 @@
-"""在畫面上實跑 M3(RF-DETR)並畫框。支援兩種模型與每類信心門檻。
+"""在圖片或影片幀上實跑 M3(RF-DETR)並畫框,用來目視檢查偵測效果。
 
 模式:
-  - 未給 --weights:用 COCO 預訓練 RF-DETR(未微調,英文類別;小餐具偏弱)。
-  - 給 --weights:載入我們微調的 11 類模型(中文類別;畫框用 ASCII 代號,console 印中文)。
-  - 給 --thresholds:先低門檻 predict 再「每類各自把關」過濾(configs/m3_thresholds.json)。
+  - 未給 --weights:COCO 預訓練 RF-DETR(英文類別)。
+  - 給 --weights:微調的 11 類模型(中文類別;畫框用 ASCII 代號,console 印中文)。
+  - 給 --thresholds:先低門檻偵測,再依每類門檻過濾。
 
-輸入來源:
-  - 預設:從 EPFL 影片抽指定 --frames。
-  - --images a.jpg b.jpg …:直接對這些圖跑(例如 test 集)。
+輸入:
+  - --images a.jpg b.jpg …:直接對這些圖跑。
+  - 否則從影片抽 --frames 指定的幀。
 
 用法:
-  python scripts/m3_on_frame.py                                    # COCO 模型 + 影片幀
-  python scripts/m3_on_frame.py --weights out_final/checkpoint_best_regular.pth \\
-      --images data/m3_finetune_r2/test/*.jpg --thresholds configs/m3_thresholds.json
+  python scripts/m3_on_frame.py --weights weights/m3_nano_r2_armA/checkpoint_best_total.pth \
+      --images <資料夾>/*.jpg
 """
 import argparse
 import glob
@@ -29,7 +28,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from common.video_io import iter_frames, imwrite_unicode   # noqa: E402
 from m3.classes import NAMES, ROMAN, FOOD_SAFETY           # noqa: E402
 
-VIDEO = ROOT / "data" / "epfl" / "Boutput0.mp4"
+VIDEO = None                       # 由 --video 指定
 OUT = ROOT / "results" / "m3_acc" / "epfl_vis"
 
 
@@ -43,7 +42,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--variant", default="nano", choices=["nano", "small", "medium"])
     ap.add_argument("--weights", help="微調權重 .pth(不給=用 COCO 預訓練)")
-    ap.add_argument("--thresholds", help="每類門檻 json(configs/m3_thresholds.json)")
+    ap.add_argument("--thresholds", help="每類門檻 json({類別: 門檻})")
+    ap.add_argument("--video", help="從這支影片抽 --frames 指定的幀(沒給 --images 時必填)")
     ap.add_argument("--resolution", default="auto",
                     help="M3 推論解析度:auto(微調權重用其訓練解析度、COCO 用變體預設)"
                          " | default(一律變體預設)| 整數。2026-10-13 前的行為等同 default")
@@ -69,7 +69,9 @@ def main():
                 items[Path(p).stem] = bgr
     else:
         want = set(args.frames)
-        for fid, ts, fr in iter_frames(VIDEO):
+        if not args.video:
+            raise SystemExit("請給 --images 或 --video")
+        for fid, ts, fr in iter_frames(args.video):
             if fid in want:
                 items[f"f{fid}"] = fr
             if len(items) == len(want):

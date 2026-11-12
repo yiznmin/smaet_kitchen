@@ -1,28 +1,16 @@
-"""M4 第 4 輪:把外觀特徵接進關聯成本(預先登記 `docs/M4_修法第4輪_外觀關聯_預先登記_20260928.md`)。
+"""M4 外觀關聯:把外觀特徵接進追蹤的關聯成本(single_person 設定使用)。
 
-## 這支在做什麼
-
-現在的關聯只看「框重疊」。兩人交錯時位置本來就重疊(9/15 實測:第一次換人時
-兩人框重疊 94.6%),所以純位置的方法分不開 —— 前三輪(McByte 遮罩、SparseTrack 偽深度、
-Hybrid-SORT 弱線索)全部是位置資訊的不同切法,全部無效。
-
-本輪加**位置以外**的證據:
+兩人交錯時框本來就重疊,只看位置分不開,因此加入外觀證據:
 
     相似度 = (1 − w) × 框重疊 + w × 外觀相似度
     外觀相似度 = 0.5 × (1 + cosine)        ← 映射到 [0, 1],與 IoU 同尺度
 
-## ⚠ 三個定死的設計(預先登記 §2)
+設計:
+1. 只用在第一輪(高信心)關聯;低信心偵測的裁圖品質差,外觀不可信。
+2. track 特徵用 EMA 更新,動量 0.9。
+3. w = 0 時完全不呼叫 embedder,結果與不用外觀相同。
 
-1. **只用在第一輪關聯**(`_sim_high`)。低信心偵測的裁圖品質差,外觀不可信 ——
-   這是 ByteTrack / BoT-SORT 的慣例,不是我們的發明。
-2. **track 特徵用 EMA 更新,動量 0.9**(BoT-SORT 的標準值)。**不調**。
-3. **w = 0 時必須與基準逐位相同**(V1)。所以 w=0 不只是權重為 0,而是
-   **完全不呼叫 embedder**、不改任何一個數值路徑。
-
-## ⚠ 特徵是對「偵測框」算的,不是對 track
-
-每一幀對**這一幀的高信心偵測**裁圖、抽特徵;track 那邊存的是自己歷史特徵的 EMA。
-配對時比的是「這個偵測」與「這條 track 的記憶」。
+特徵是對「這一幀的高信心偵測」裁圖計算;track 存的是自己歷史特徵的 EMA。
 """
 import numpy as np
 
@@ -32,17 +20,12 @@ from m4_track.sparse_dcm import DCMMcByteTracker, _fuse_score
 def build_embedder(name):
     """把設定檔裡的字串轉成 embedder 物件。
 
-    ⚠ 與 `scripts/m5_track_video.py::build_embedder` 是**同一組名稱**,但這裡不含 `none`
-      —— 外觀權重 0 時根本不該建 embedder(V1 要求逐位等同基準)。
-    可出貨性:dinov2 = Apache-2.0;chirla:<ckpt> = ImageNet 起始 + CC-BY-4.0 資料。
+    不含 `none`:外觀權重 0 時不建 embedder。dinov2 為 Apache-2.0,可商用。
     """
     if name == "dinov2":
         from m5_reid.dino_embedder import DINOv2Embedder
         return DINOv2Embedder()
-    if name.startswith("chirla:"):
-        from m5_reid.chirla_embedder import ChirlaEmbedder
-        return ChirlaEmbedder(name.split(":", 1)[1])
-    raise ValueError(f"未知的外觀模型:{name}(可用:dinov2、chirla:<checkpoint>)")
+    raise ValueError(f"未知的外觀模型:{name}(可用:dinov2)")
 
 
 def _to_unit(v):
@@ -84,12 +67,9 @@ class AppearanceMcByteTracker(DCMMcByteTracker):
     def _crop_feature(self, box):
         """裁圖 → 特徵。框超出畫面時夾住;裁不出東西時回 None(視為中性)。
 
-        ⚠ **色彩通道**(2026-09-29 修):`frame` 依 `tracker.py::update` 的約定是 **RGB**
-          (`eval_m4_chirla.py` 明確做 `bgr[:, :, ::-1]` 再傳進來,因為 McByte 的遮罩要 RGB)。
-          但兩個 embedder 的 `extract` 都**預期收到 BGR**、自己在內部轉成 RGB
-          (`dino_embedder.py` 的 `cvtColor(BGR2RGB)`、`chirla_embedder.py` 的 `[:, :, ::-1]`)。
-          第 4 輪直接把 RGB 裁圖丟進去 → 被再轉一次 → **紅藍通道對調**,
-          與兩個模型的訓練分佈不符。這裡補上 RGB → BGR 才交給 embedder。
+        ⚠ 色彩通道:`frame` 依 `tracker.py::update` 的約定是 RGB,但 embedder 的 `extract`
+          預期收到 BGR(`dino_embedder.py` 內部再轉 RGB)。這裡先轉回 BGR 再交給 embedder,
+          否則紅藍通道會對調。
           實測影響:鑑別力幾乎沒變(`results/m4_round4/diag_channel_bug.json`,
           d′ 反而略高 +0.21 / +0.32,因為對調是**一致的**,相對比較仍成立)——
           所以這**不是**第 4 輪失敗的原因,但仍是錯的,要修。

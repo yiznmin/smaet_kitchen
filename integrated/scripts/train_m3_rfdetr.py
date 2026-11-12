@@ -1,22 +1,15 @@
-"""在本機微調 M3(RF-DETR)—— notebooks/m3_experiment_staged_vs_epfl.ipynb 的 Arm A 本機版。
+"""微調 M3(RF-DETR)11 類物件偵測模型。
 
-為什麼需要這支:文件上 F1 0.81 的 Arm A / B / C 權重只存在 Colab,沒有帶回來;
-repo 的 model_result/nano 是 2026-07-23 一鍵比較那次的早期小資料權重(round2 test F1 約 0.6)。
-見 integrated/交接說明.md 4.3 節。
+預設超參數:60 epochs / 解析度 704 / batch 4 / grad_accum 4 / lr 1e-4。
 
-超參數預設值與 notebook 的 Arm A 逐項相同(60 epochs / 704 / batch 4 / grad_accum 4 / lr 1e-4)。
-
-需要訓練用的相依(pytorch_lightning、pycocotools 等),專案的 .venv 只有推論版:
+需要訓練用相依(pytorch_lightning、pycocotools 等),建議裝在獨立的虛擬環境:
     pip install "rfdetr[train,loggers]==1.9.4"
-為了不動到推論環境,建議裝在獨立的虛擬環境。
 
-資料集目錄須為 rfdetr 的 COCO 格式:<dataset>/{train,valid,test}/_annotations.coco.json。
+資料集須為 rfdetr 的 COCO 格式:<dataset>/{train,valid,test}/_annotations.coco.json。
+權重的使用授權取決於訓練資料的授權;正式使用請以自有資料訓練。
 
 用法:
-    python scripts/train_m3_rfdetr.py --dataset ../m3_fintune_data/m3_finetune_r2 \\
-        --out model_result/nano_r2_armA
-
-注意:訓練資料含 EPFL(CC BY-NC),產出的權重只能用於驗證,不可出貨。
+    python scripts/train_m3_rfdetr.py --dataset <資料集資料夾> --out <輸出資料夾>
 """
 import argparse
 import json
