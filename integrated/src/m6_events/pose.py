@@ -1,4 +1,4 @@
-"""NG3 用的姿態快取:ViTPose 對 M3 人框估 17 個 COCO 關鍵點(做法同 scripts/eval_ng3_face.py run_pose)。
+"""NG3 用的人體姿態:ViTPose 對 M3 人框估 17 個 COCO 關鍵點(臉中心、肩寬、手腕;做法同 scripts/eval_ng3_face.py run_pose)。
 
 輸出 npz:step(int32[N],偵測快取的步)、box(float32[N, 4],人框 xyxy)、kp(float32[N, 17, 3],x、y、分數)。
 每 every 步(預設 2 = 0.2 秒)估一幀。需要 transformers(>=4.48,含 VitPoseForPoseEstimation)與 CUDA。

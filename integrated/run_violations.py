@@ -1,8 +1,9 @@
 """M6 團隊 NG 準則判定(單人):讀各鏡頭 M3 全類別偵測快取 → NG1 / NG2 / NG3 / NG4 事件。
 
     M3 偵測快取(每台一個 <鏡頭>.npz,stride 3 = 0.1 秒一步,全類別)→ 垃圾桶接觸 / 洗手 / 碰觸 → NG 事件
-    NG3(手碰臉)另需 output0、Aoutput1 的姿態快取(--pose-cache);缺快取時給 --video-dir 會用 ViTPose 現算
-    (需 transformers 與 CUDA)。兩者都沒給就跳過 NG3,ng_summary.json 的 ng3 欄註明。
+    NG3(手碰臉)另需 output0、Aoutput1 的人體姿態(臉中心、肩寬、手腕來自 ViTPose 關鍵點,M3 偵測沒有臉):
+    給 --video-dir 就從影片現算(需 transformers 與 CUDA),結果存在 <out>/pose_cache 供重跑直接讀;
+    --pose-cache 選用,可指定已算好的姿態檔資料夾。兩者都沒給就跳過 NG3,ng_summary.json 的 ng3 欄註明。
 
 規則與參數:configs/violation_rules.yaml(ng、trash_event、hand_hygiene、association 各節);
 zone:configs/zones/epfl_<鏡頭>.json。需要的鏡頭:output0、Aoutput1~3、Boutput1~2。
@@ -16,7 +17,7 @@ zone:configs/zones/epfl_<鏡頭>.json。需要的鏡頭:output0、Aoutput1~3、B
 用法:
   python run_violations.py --det-cache <含 output0.npz、Aoutput1.npz… 的資料夾> --out outputs/ng
   python run_violations.py --det-cache <資料夾> --t0 1085.9 --out outputs/ng   # 快取從影片 1085.9 秒開始
-  python run_violations.py --det-cache <資料夾> --pose-cache <資料夾> --video-dir <含 output0.mp4、Aoutput1.mp4> --out outputs/ng
+  python run_violations.py --det-cache <資料夾> --video-dir <含 output0.mp4、Aoutput1.mp4> --out outputs/ng   # 含 NG3
 """
 import argparse
 import json
@@ -35,11 +36,12 @@ from m6_events.ng3 import detect_ng3  # noqa: E402
 
 
 def load_poses(caches, n3, args):
-    """NG3 姿態快取:有檔就讀;沒有且給了 --video-dir 就用 ViTPose 現算並存檔。"""
+    """NG3 姿態:給 --video-dir 就用 ViTPose 從影片現算(存到 --pose-cache,沒給則存 <out>/pose_cache,重跑可直接讀);
+    只給 --pose-cache 則讀現成的姿態檔。兩者都沒給回傳 {}(跳過 NG3)。"""
     import numpy as np
-    if not args.pose_cache:
+    if not args.pose_cache and not args.video_dir:
         return {}
-    pdir = Path(args.pose_cache)
+    pdir = Path(args.pose_cache) if args.pose_cache else Path(args.out) / "pose_cache"
     est, out = None, {}
     for v in n3["views"]:
         f = pdir / f"{v}.npz"
@@ -60,8 +62,8 @@ def main():
     ap.add_argument("--out", required=True)
     ap.add_argument("--config", default="configs/violation_rules.yaml")
     ap.add_argument("--t0", type=float, default=0.0, help="快取第 0 步對應的影片秒數")
-    ap.add_argument("--pose-cache", help="NG3 姿態快取資料夾(<鏡頭>.npz);沒有的鏡頭若給 --video-dir 會現算存進來")
-    ap.add_argument("--video-dir", help="NG3 現算姿態用的影片資料夾(<鏡頭>.mp4)")
+    ap.add_argument("--video-dir", help="NG3 用:影片資料夾(<鏡頭>.mp4),從影片現算姿態")
+    ap.add_argument("--pose-cache", help="選用:姿態檔資料夾(<鏡頭>.npz);預設 <out>/pose_cache")
     args = ap.parse_args()
     t_start = time.time()
     cfg = yaml.safe_load((ROOT / args.config).read_text(encoding="utf-8"))
@@ -79,7 +81,7 @@ def main():
                             key=lambda x: (x["start"], x["type"]))
             ng3_note = f"姿態鏡頭 {sorted(poses)}"
         else:
-            ng3_note = "跳過:沒有姿態快取(給 --pose-cache 或 --video-dir)"
+            ng3_note = "跳過:沒有姿態(給 --video-dir 從影片現算)"
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     with open(out / "ng_events.jsonl", "w", encoding="utf-8") as fh:
