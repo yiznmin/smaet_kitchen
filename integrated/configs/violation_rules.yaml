@@ -14,11 +14,11 @@ cameras:
   side_x: {x_a: 480.9, x_b: 729.3}   # output0 腳點 x 座標的 A / B 側分界
 
 zones:
-  output0: configs/zones/epfl_output0.json      # 垃圾桶區、洗手台
-  Aoutput1: configs/zones/epfl_Aoutput1.json    # 垃圾桶區、洗手台_NG4
-  Aoutput2: configs/zones/epfl_Aoutput2.json    # 洗手台_NG4
-  Boutput1: configs/zones/epfl_Boutput1.json    # 洗手台(上方近拍)
-  Boutput2: configs/zones/epfl_Boutput2.json    # 洗手台(上方近拍)
+  output0: configs/zones/epfl_output0.json      # 用到:垃圾桶區
+  Aoutput1: configs/zones/epfl_Aoutput1.json    # 用到:垃圾桶區、洗手台_NG4
+  Aoutput2: configs/zones/epfl_Aoutput2.json    # 用到:洗手台_NG4
+  Boutput1: configs/zones/epfl_Boutput1.json    # 用到:洗手台、洗手台_NG4
+  Boutput2: configs/zones/epfl_Boutput2.json    # 用到:洗手台、洗手台_NG4
 
 # 人—物關聯(判斷手碰到食材 / 器具)
 association:
@@ -47,16 +47,11 @@ trash_event:
   min_s: 1.0                   # 持續 ≥ 此秒數才算碰到
   backtrack: {enable: false, near_s: 1.0, gap_s: 1.0, max_s: 10.0}   # 手拿著要丟的東西時起點往前推(關閉)
 
-# 洗手
+# 洗手:水槽上方的近拍鏡頭任一台看到手框中心在「洗手台」區域內
 hand_hygiene:
-  wash_cam: output0
-  sink_zone: 洗手台
-  wash_mode: close_hand        # close_hand = 上方近拍鏡頭看到手在水槽;hand = output0 手中心在洗手台;
-                               # body = output0 人框蓋住洗手台;close_hand_body = close_hand 且 body(±sync_s)
   close_cams: [Boutput1, Boutput2]
-  sync_s: 0.5
-  thr_hand: 0.2
-  body_ioa: 0.2
+  sink_zone: 洗手台
+  thr_hand: 0.2                # 手框信心門檻
   wash_s: 1.0                  # 洗手累計 ≥ 此秒數才算洗過手
   grace_s: 1.0                 # 離開垃圾桶後此秒數才開始算「髒手」
 
