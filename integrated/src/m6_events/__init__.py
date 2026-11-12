@@ -1,1 +1,1 @@
-"""M6 事件與違規判定(單人)。association.py、smoothing.py 為 src/m6_assoc/ 的副本。"""
+"""M6 違規判定(單人):NG1、NG2(ng.py)、NG3(ng3.py)、NG4(ng4.py)。"""

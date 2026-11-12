@@ -1,10 +1,9 @@
-"""M3 物件偵測的 11 類定義(集中處,取代散落在 notebook/docs 的重複)。
+"""M3 物件偵測的 11 類定義。
 
 兩套 id,差 1:
-- COCO 標註檔的 category_id = 1..11(標註器 make_bbox_labeler_html.py 產出、split_coco 沿用)
-- 模型 predict 出來的 class_id  = 0..10(rfdetr 內部 0-indexed)
-以 CAT2CLS / CLASS2CAT 互轉。
-"""
+- COCO 標註檔的 category_id = 1..11(scripts/make_labeler.py 產生、scripts/build_dataset.py 沿用)
+- 模型輸出的 class_id     = 0..10
+以 CAT2CLS / CLASS2CAT 互轉。類別順序不可更動;新增類別只能加在最後並重新訓練。"""
 
 # 順序 = 模型 class_id 0..10(不可改動)
 CLASSES = ["人", "刀具", "砧板", "食材", "鍋鏟", "鍋子", "手", "容器", "抹布", "夾子", "手套"]

@@ -1,10 +1,10 @@
-"""
-共用影像 I/O(M1 的離線版:只負責讀檔解碼,RTSP/斷線重連等留待 M1 線上版)。
+"""影片讀取(M1):逐幀解碼影片檔。
 
-提供 iter_frames():逐幀產出 (frame_id, timestamp_s, frame_bgr)。
-注意:Windows 上含中文路徑時,cv2.VideoCapture 多數情況可讀,
-      但寫檔請用 imencode + write_bytes(見 imwrite_unicode)。
-"""
+  iter_frames(path, stride, start, end)  逐幀產出 (幀號, 秒數, BGR 影像);stride > 1 時每隔 stride 幀取一張
+  video_meta(path)                       幀率、總幀數、解析度
+  imwrite_unicode(path, img)             寫入含中文的路徑(Windows 上 cv2.imwrite 不支援)
+
+只支援影片檔,不支援 RTSP 串流。"""
 from pathlib import Path
 
 import cv2

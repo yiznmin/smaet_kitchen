@@ -1,11 +1,9 @@
-"""M5 廚師身份管理:把 M4 的本地 track_id 綁定到全域 chef_id。
+"""M5 身份管理的基底:把 M4 各鏡頭的 track_id 綁定到全域 chef_id。
 
-由 M4 的 new_track 事件觸發:抽外觀特徵 → 用餘弦相似度比對「目前活躍(其他鏡頭仍在)+
-最近消失(recently_disappeared)」的廚師 → 相似度夠高就沿用該 chef_id,否則開新 chef_id。
-track 消失 → 該 chef 若無其他鏡頭仍看得到,移入 recently_disappeared,保留 TTL 幀等再現。
-
-本檔是我方自有邏輯(授權乾淨);外觀特徵抽取抽象在 embedder(可插拔),見 embedder.py。
-"""
+由 M4 的 new_track 事件觸發:比對「其他鏡頭仍看得到」與「最近離開畫面」的廚師,
+分數夠高就沿用該 chef_id,否則開新 chef_id。track 消失後,若沒有其他鏡頭看得到該廚師,
+保留 TTL 時間等待重新出現。外觀特徵由可替換的 embedder 提供(見 embedder.py)。
+實際使用的是子類 identity_st.SpatioTemporalIdentityManager。"""
 from dataclasses import dataclass, field
 
 import numpy as np

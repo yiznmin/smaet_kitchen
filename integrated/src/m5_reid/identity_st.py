@@ -1,11 +1,10 @@
-"""M5 v2 空間+時序身份管理:時空為主、外觀(DINOv2 可商用)為輔破平手。
+"""M5 身份管理(人員追蹤實際使用):以移動時間與畫面重疊為主、外觀為輔,綁定跨鏡頭身份。
 
-擴充 IdentityManager:on_new_track/on_track_lost 帶入 camera_id + bbox + 時間,
-用 CameraTopology 的「轉場時間門」先把候選縮到少數,再用外觀 cosine 破平手。
-→ 即使外觀弱(DINOv2 Rank-1 僅 11%),時空門也能綁對;且全條可商用。
+擴充 IdentityManager:new_track / lost 等事件帶入鏡頭、人框與時間,
+依 CameraTopology 的相機拓撲對每位候選累加對數勝算比(移動時間、畫面重疊、同鏡頭重現、外觀),
+最高分超過門檻即沿用該 chef_id,否則開新的。原理見 模組說明.md 第 5 節。
 
-track_id 各鏡頭不全域唯一 → 內部一律用 (camera_id, track_id) 當 key。
-"""
+track_id 只在各鏡頭內唯一,內部一律用 (camera_id, track_id) 當鍵。"""
 from collections import Counter, deque
 import math
 

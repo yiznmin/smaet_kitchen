@@ -1,19 +1,14 @@
-"""
-Zone 設定的讀寫與繪製(全專案共用)。
+"""區域(zone)設定的讀寫與繪製。
 
-zones.json 格式:
+區域 JSON 格式(scripts/draw_zones.py 產生,放在 configs/zones/):
 {
-  "source": "data/epfl/Boutput0.mp4", "frame": 0, "width": 1280, "height": 720,
+  "source": "output0 鏡頭的區域", "frame": 0, "width": 1280, "height": 720,
   "zones": [
-    {"name": "floor",      "points": [[x,y], ...]},
-    {"name": "zoneA_raw",  "points": [[x,y], ...]}
+    {"name": "垃圾桶區", "points": [[x, y], ...]},
+    {"name": "洗手台",   "points": [[x, y], ...]}
   ]
 }
-
-固定鏡頭裝機時標一次、存檔,開機載入。需要區域的模組共用:
-  - 靜態線地板 ROI(floor)
-  - M6 事件判斷各 zone(生食區/熟食區/洗手台/垃圾桶區…)
-"""
+座標為影片原始解析度的像素。使用者:M6 違規判定的各區域、M2 靜態線的地板範圍。"""
 import json
 from pathlib import Path
 

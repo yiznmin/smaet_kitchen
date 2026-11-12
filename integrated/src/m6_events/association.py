@@ -1,21 +1,13 @@
-"""單幀人—物關聯(規則,可審計)。
+"""單幀人—物關聯:判斷這一幀手有沒有碰到某類物件(規則)。
 
-輸入一幀的 M3 偵測(xyxy, conf, class_id),對每個計分類別算出幾個連續量,
-門檻比較放到 decide() —— 這樣 d、IoA 門檻可以直接在同一份連續量上掃,不必重算。
+輸入一幀的 M3 偵測(xyxy, conf, class_id),對每個計分類別算出距離、重疊等連續量,
+再由呼叫端用門檻判定。violation.touch_series 使用 frame_features_r1:
+  1. 人框:類別「人」且信心 > thr_person
+  2. 手框:類別「手」且信心 > thr_hand,且 IoA(手, 人框) ≥ hand_in_person → 指派給該人
+  3. 物件只看「在動的」:與 lag 步前同類框的 IoU < iou_move
+  4. 手框與物件框的間距 ≤ d × 人框高 → 碰到;沒偵測到手時,改看物件與人框上半部的 IoA
 
-規則:
-  1. 人框:class「人」且 conf > thr_person
-  2. 手框:class「手」且 conf > thr_hand,且 IoA(手, 某人框) ≥ hand_in_person → 指派給 IoA 最大的那個人
-  3. 物件 o 與人 p 有關聯:
-       a. p 有手:o 與 p 任一隻手的框間距 ≤ d × p 的框高          → 證據 "hand"
-       b. p 沒有偵測到手(退路):IoA(o, p 的上半身框) ≥ x_upper   → 證據 "upper_body"
-
-兩條基準線(同一套輸入,用來證明「用手」有用):
-  present:畫面裡有這類物件(conf > thr_obj)就算接觸
-  person :IoA(o, 任一人框) ≥ x_person 就算接觸(不用手)
-
-門檻比較一律用 `conf > float32(thr)`,與 rfdetr predict 及 DetCache 的判定一致。
-"""
+門檻比較一律用 `conf > float32(thr)`,與 RF-DETR 及 DetCache 的判定一致。"""
 import numpy as np
 
 from m3.classes import NAME_TO_CLASS

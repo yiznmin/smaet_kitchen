@@ -37,7 +37,8 @@ integrated/
 │   ├── train_m3_rfdetr.py     訓練 M3
 │   ├── sweep_thresholds.py    掃 M3 各類門檻
 │   ├── m3_on_frame.py         對圖片 / 影片幀跑 M3 並畫框
-│   └── build_topology.py      產生人員追蹤用的相機拓撲
+│   ├── build_topology.py      產生人員追蹤用的相機拓撲
+│   └── render_violations.py   把每件違規剪成對照影片
 └── weights/
     ├── m3_nano_r2_armA/       M3 微調權重(廚房 11 類)
     └── pretrained/            RF-DETR COCO 預訓權重、DINOv2
@@ -136,6 +137,7 @@ python run_violations.py --video-dir <影片資料夾> --out outputs/ng
 
 - 需要的鏡頭:`output0`(俯視全景)、`Aoutput1`、`Aoutput2`、`Aoutput3`、`Boutput1`、`Boutput2`。
 - M3 偵測結果存在 `<out>/det_cache/<鏡頭>.npz`,人體姿態存在 `<out>/pose_cache/<鏡頭>.npz`,重跑時直接讀取、不重算。
+- 處理時間參考:6 台鏡頭從影片開始跑,約為影片長度的 3 倍(NVIDIA RTX A6000)。大部分時間花在 M3 偵測與姿態估計;已有快取時重跑只需數秒。
 - `--det-cache <資料夾>`:指定偵測快取位置(可重複使用已算好的快取)。
 - `--t0 <秒>`:影片第 0 幀對應原始錄影的秒數,輸出的時間會加上此值。
 - `--config`:改用別的規則設定檔(預設 `configs/violation_rules.yaml`)。
@@ -146,6 +148,14 @@ python run_violations.py --video-dir <影片資料夾> --out outputs/ng
 |---|---|
 | `ng_events.jsonl` | 每件違規一筆:`type`(NG1~NG4)、`start`、`end`(秒)、`reason`;NG2 附碰觸物件,NG3 附成立鏡頭,NG4 附物件、放置位置與 `status`(確定 / 待確認) |
 | `ng_summary.json` | 各類違規次數、輸入、使用的設定 |
+
+要看每件違規的畫面,接著執行:
+
+```
+python scripts/render_violations.py --video-dir <影片資料夾> --out outputs/ng
+```
+
+每件違規輸出一支影片到 `<out>/report/<編號>_<NG 類別>.mp4`:6 台鏡頭並排,疊上偵測框與區域;上方是違規類別、原因、時間,下方時間軸標出違規區間,播放到違規區間內時外框變紅。中文字型預設用 Windows 的微軟正黑體,其他系統用 `--font` 指定。
 
 ### 4.4 違規判斷規則
 
@@ -347,7 +357,7 @@ python scripts/m3_on_frame.py --weights weights/m3_kitchen/checkpoint_best_total
 ### 5.7 試跑驗收
 
 1. 準備幾段已知內容的影片:有違規的(碰垃圾桶後沒洗手、手碰臉、洗過的東西放桌面等)和沒有違規的各幾段。
-2. 執行 `run_violations.py`,對照 `ng_events.jsonl` 與實際情況。
+2. 執行 `run_violations.py` 與 `scripts/render_violations.py`,看每件違規的對照影片,判斷是否符合實際情況;也要確認沒有違規的影片沒有輸出事件。
 3. 結果不符時,依序檢查:
    - 區域預覽圖的位置是否正確(5.2)。
    - `side_x` 是否正確(5.3)。
